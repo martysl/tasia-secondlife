@@ -31,7 +31,7 @@
 #include "llcombobox.h"
 #include "llcheckboxctrl.h"
 #include "llfloaterreg.h"
-#include "llgridmanager.h"
+#include "llviewernetwork.h"
 #include "lllineeditor.h"
 #include "llnotifications.h"
 #include "llnotificationsutil.h"
