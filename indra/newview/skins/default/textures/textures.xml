@@ -180,6 +180,7 @@ with the same filename but different name
   <texture name="Command_Search_Icon"       file_name="toolbar_icons/search.png"       preload="true" />
   <texture name="Command_Snapshot_Icon"     file_name="toolbar_icons/snapshot.png"     preload="true" />
   <texture name="Command_Speak_Icon"        file_name="toolbar_icons/speak.png"        preload="true" />
+  <texture name="TasiaFeed_Icon"        file_name="icons/tasiafeed.png"        preload="true" />
   <!-- FS:Beq FIRE-20977 -->
   <texture name="Command_RFO_Icon"        file_name="toolbar_icons/RFO_ON.png"        preload="true" />
   <!-- /RFO Changes -->

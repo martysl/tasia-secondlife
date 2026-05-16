@@ -112,6 +112,7 @@
 #include "llfloatersnapshot.h" // <FS:Beq/> for snapshotFrame
 #include "llfloaterflickr.h" // <FS:Beq/> for snapshotFrame
 #include "fsfloaterprimfeed.h" // <FS:Beq/> for snapshotFrame
+#include "llfloatertasiafeed.h"
 #include "llsnapshotlivepreview.h" // <FS:Beq/> for snapshotFrame
 // #include "llpanelface.h"  // <FS:Zi> switchable edit texture/materials panel - include not needed
 #include "llpathfindingpathtool.h"
