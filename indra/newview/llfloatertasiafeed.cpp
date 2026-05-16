@@ -171,10 +171,12 @@ void LLFloaterTasiaFeed::onSend()
     metadata["avatar_name"] = LLSLURL("agent", gAgent.getID(), "inventory").getSLURLString();
     // Get just the display name
     std::string avatar_name;
-    if (LLAgentUI::buildFullname(avatar_name))
+    LLAgentUI::buildFullname(avatar_name);
+    if (avatar_name.empty())
     {
-        metadata["avatar_name"] = avatar_name;
+        avatar_name = "Unknown";
     }
+    metadata["avatar_name"] = avatar_name;
 
     // Grid info
     metadata["grid_name"] = LLGridManager::instance().getGridLabel();
@@ -184,8 +186,11 @@ void LLFloaterTasiaFeed::onSend()
     if (region)
     {
         metadata["region_name"] = region->getName();
-        LLVector3d pos = gAgent.getPositionGlobal();
-        std::string pos_str = llformat("%.1f,%.1f,%.1f", pos.mdX, pos.mdY, pos.mdZ);
+        LLVector3 local_pos = gAgent.getPositionAgent();
+        std::string pos_str = llformat("%.1f,%.1f,%.1f",
+            local_pos.mV[0],
+            local_pos.mV[1],
+            local_pos.mV[2]);
         metadata["position"] = pos_str;
     }
 
