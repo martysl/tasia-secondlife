@@ -31,6 +31,7 @@
 #include "llcombobox.h"
 #include "llcheckboxctrl.h"
 #include "llfloaterreg.h"
+#include "llfloatersnapshot.h"
 #include "llviewernetwork.h"
 #include "lllineeditor.h"
 #include "llnotifications.h"
@@ -230,16 +231,11 @@ void LLFloaterTasiaFeed::uploadCallback(bool success, const LLSD& response)
 
 LLSnapshotLivePreview* LLFloaterTasiaFeed::getPreviewView()
 {
-    // Try to get the preview from the snapshot floater
-    LLFloater* snapshot_floater = LLFloaterReg::findInstance("snapshot");
+    LLFloaterSnapshotBase* snapshot_floater =
+        dynamic_cast<LLFloaterSnapshotBase*>(LLFloaterReg::findInstance("snapshot"));
     if (snapshot_floater)
     {
-        // Find the preview panel within the snapshot floater
-        LLPanel* preview_panel = snapshot_floater->findChild<LLPanel>("preview_panel", true);
-        if (preview_panel)
-        {
-            return dynamic_cast<LLSnapshotLivePreview*>(preview_panel);
-        }
+        return snapshot_floater->getPreviewView();
     }
     return nullptr;
 }
