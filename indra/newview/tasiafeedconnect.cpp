@@ -74,7 +74,9 @@ void TasiaFeedUploadResponse(LLSD const& aData, TasiaFeedUpload::response_callba
     response_str.assign(rawData.begin(), rawData.end());
 
     // Parse JSON response
-    LLSD response = ll_sd_from_json(response_str);
+    boost::system::error_code json_ec;
+    boost::json::value json_root = boost::json::parse(response_str, json_ec);
+    LLSD response = json_ec.failed() ? LLSD() : LlsdFromJson(json_root);
 
     if (response.has("success") && response["success"].asBoolean())
     {
@@ -104,7 +106,7 @@ void TasiaFeedUploadCoro(std::string url, LLSD body, TasiaFeedUpload::response_c
 
     httpHeaders->append("Content-Type", "application/json");
 
-    std::string body_str = ll_sd_to_json(body);
+    std::string body_str = boost::json::serialize(LlsdToJson(body));
     LLSD result = httpAdapter->postAndSuspend(httpRequest, url, body_str, httpOptions, httpHeaders);
 
     TasiaFeedUploadResponse(result, callback);
@@ -125,9 +127,23 @@ void TasiaFeedUpload::uploadSnapshot(const LLSD& metadata, LLImageFormatted* ima
         return;
     }
 
-    // Convert image to JPEG bytes
+    // Decode formatted image to raw
+    LLPointer<LLImageRaw> raw_image = new LLImageRaw;
+    if (!image->decode(raw_image, 0.0f))
+    {
+        LL_WARNS("TasiaFeed") << "Failed to decode image" << LL_ENDL;
+        if (callback)
+        {
+            LLSD error;
+            error["message"] = "Failed to decode image";
+            callback(false, error);
+        }
+        return;
+    }
+
+    // Encode raw image to JPEG
     LLPointer<LLImageJPEG> jpeg = new LLImageJPEG;
-    if (!jpeg->encode(image, 85.0f))
+    if (!jpeg->encode(raw_image, 85.0f))
     {
         LL_WARNS("TasiaFeed") << "Failed to encode image as JPEG" << LL_ENDL;
         if (callback)

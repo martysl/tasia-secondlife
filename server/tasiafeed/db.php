@@ -38,7 +38,7 @@ function initDB(PDO $db): void
             user_uuid   TEXT NOT NULL DEFAULT "",
             ip_addr     TEXT NOT NULL DEFAULT "",
             user_agent  TEXT NOT NULL DEFAULT "",
-            created_at  TEXT NOT NULL DEFAULT (strftime("%Y-%m-%dT%H:%M:%SZ", "now")),
+            created_at  TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
             reported    INTEGER NOT NULL DEFAULT 0,
             hidden      INTEGER NOT NULL DEFAULT 0
         )
@@ -50,7 +50,7 @@ function initDB(PDO $db): void
             post_id     INTEGER NOT NULL REFERENCES posts(id),
             reason      TEXT NOT NULL DEFAULT "",
             reporter_ip TEXT NOT NULL DEFAULT "",
-            created_at  TEXT NOT NULL DEFAULT (strftime("%Y-%m-%dT%H:%M:%SZ", "now"))
+            created_at  TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
         )
     ');
 }
@@ -60,7 +60,7 @@ function generateToken(): string
     return bin2hex(random_bytes(12));
 }
 
-function jsonResponse(mixed $data, int $code = 200): never
+function jsonResponse($data, int $code = 200)
 {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');

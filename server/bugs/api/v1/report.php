@@ -13,7 +13,7 @@ $supportEmail = '009daw+viewersupport@gmail.com';
 $storageRoot = __DIR__ . '/../../../crash_reports';
 $maxBytes = 64 * 1024 * 1024;
 
-function fail(int $code, string $message): never
+function fail(int $code, string $message)
 {
     http_response_code($code);
     header('Content-Type: text/plain; charset=utf-8');

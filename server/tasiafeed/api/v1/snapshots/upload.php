@@ -38,19 +38,34 @@ if (strlen($image_data) > MAX_FILE_SIZE) {
     jsonResponse(['success' => false, 'message' => 'Image too large (max ' . (MAX_FILE_SIZE / 1024 / 1024) . ' MB)'], 413);
 }
 
-// Detect MIME type
-$finfo = new finfo(FILEINFO_MIME_TYPE);
-$mime = $finfo->buffer($image_data);
+// Detect MIME type (fallback if finfo extension is not available)
+$mime = '';
+if (class_exists('finfo')) {
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->buffer($image_data);
+} else {
+    // Magic byte detection
+    if (strlen($image_data) >= 4) {
+        $header = substr($image_data, 0, 4);
+        if ($header === "\xff\xd8\xff\xe0" || $header === "\xff\xd8\xff\xe1") {
+            $mime = 'image/jpeg';
+        } elseif ($header === "\x89PNG") {
+            $mime = 'image/png';
+        } elseif ($header === "RIFF" && substr($image_data, 8, 4) === "WEBP") {
+            $mime = 'image/webp';
+        }
+    }
+}
 if (!in_array($mime, ALLOWED_MIME_TYPES, true)) {
     jsonResponse(['success' => false, 'message' => 'Unsupported image type. Allowed: JPEG, PNG, WebP'], 415);
 }
 
-$ext = match ($mime) {
-    'image/jpeg' => 'jpg',
-    'image/png'  => 'png',
-    'image/webp' => 'webp',
-    default      => 'jpg',
-};
+switch ($mime) {
+    case 'image/jpeg': $ext = 'jpg'; break;
+    case 'image/png':  $ext = 'png'; break;
+    case 'image/webp': $ext = 'webp'; break;
+    default:           $ext = 'jpg'; break;
+}
 
 // ---------- Create storage directories ----------
 $date_dir = gmdate('Y/m/d');
@@ -127,12 +142,12 @@ jsonResponse([
 // ---------- Helper: create thumbnail ----------
 function createThumbnail(string $srcPath, string $dstPath, string $mime): void
 {
-    $img = match ($mime) {
-        'image/jpeg' => @imagecreatefromjpeg($srcPath),
-        'image/png'  => @imagecreatefrompng($srcPath),
-        'image/webp' => @imagecreatefromwebp($srcPath),
-        default      => false,
-    };
+    switch ($mime) {
+        case 'image/jpeg': $img = @imagecreatefromjpeg($srcPath); break;
+        case 'image/png':  $img = @imagecreatefrompng($srcPath); break;
+        case 'image/webp': $img = @imagecreatefromwebp($srcPath); break;
+        default:           $img = false; break;
+    }
 
     if ($img === false) {
         // Copy original as fallback
@@ -157,11 +172,11 @@ function createThumbnail(string $srcPath, string $dstPath, string $mime): void
     imagecopyresampled($thumb, $img, 0, 0, $cropX, $cropY, THUMB_WIDTH, THUMB_HEIGHT, $size, $size);
     imagedestroy($img);
 
-    match ($mime) {
-        'image/jpeg' => imagejpeg($thumb, $dstPath, 85),
-        'image/png'  => imagepng($thumb, $dstPath, 8),
-        'image/webp' => imagewebp($thumb, $dstPath, 85),
-        default      => imagejpeg($thumb, $dstPath, 85),
-    };
+    switch ($mime) {
+        case 'image/jpeg': imagejpeg($thumb, $dstPath, 85); break;
+        case 'image/png':  imagepng($thumb, $dstPath, 8); break;
+        case 'image/webp': imagewebp($thumb, $dstPath, 85); break;
+        default:           imagejpeg($thumb, $dstPath, 85); break;
+    }
     imagedestroy($thumb);
 }
