@@ -41,7 +41,7 @@ public:
     void onOpen(const LLSD& key) override;
     void draw() override;
 
-    static void update();
+    void refreshControls();
 
 private:
     void onSend();

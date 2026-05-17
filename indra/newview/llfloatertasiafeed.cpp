@@ -74,6 +74,7 @@ bool LLFloaterTasiaFeed::postBuild()
     mDescriptionEditor = getChild<LLLineEditor>("description_edit");
     mVisibilityCombo = getChild<LLComboBox>("visibility_combo");
     mMaturityCombo = getChild<LLComboBox>("maturity_combo");
+    refreshControls();
     return true;
 }
 
@@ -106,12 +107,18 @@ void LLFloaterTasiaFeed::onOpen(const LLSD& key)
     {
         mMaturityCombo->selectByValue("general");
     }
+
+    refreshControls();
+    LL_INFOS("TasiaFeed") << "Opening TasiaFeed floater" << LL_ENDL;
 }
 
 void LLFloaterTasiaFeed::draw()
 {
     LLFloater::draw();
+}
 
+void LLFloaterTasiaFeed::refreshControls()
+{
     // Update button state based on upload progress
     LLButton* send_btn = findChild<LLButton>("send_btn");
     if (send_btn)
@@ -119,26 +126,19 @@ void LLFloaterTasiaFeed::draw()
         send_btn->setEnabled(!mUploading);
     }
 
-    // Show result
-    if (!mResultURL.empty())
+    // Show or hide result text
+    LLTextBase* result_text = getChild<LLTextBase>("result_text");
+    if (result_text)
     {
-        LLTextBase* result_text = getChild<LLTextBase>("result_text");
-        if (result_text)
+        if (!mResultMessage.empty())
         {
             result_text->setText(mResultMessage);
             result_text->setVisible(true);
         }
-    }
-}
-
-// static
-void LLFloaterTasiaFeed::update()
-{
-    // Force redraw to update preview
-    LLFloaterTasiaFeed* floater = LLFloaterReg::findTypedInstance<LLFloaterTasiaFeed>("tasiafeed");
-    if (floater)
-    {
-        floater->draw();
+        else
+        {
+            result_text->setVisible(false);
+        }
     }
 }
 
@@ -146,16 +146,34 @@ void LLFloaterTasiaFeed::onSend()
 {
     if (mUploading) return;
 
+    LL_INFOS("TasiaFeed") << "TasiaFeed Send clicked" << LL_ENDL;
+
     mUploading = true;
     mResultURL.clear();
     mResultMessage.clear();
+    refreshControls();
 
     // Get the snapshot preview
     LLSnapshotLivePreview* previewp = getPreviewView();
+    LL_INFOS("TasiaFeed") << "Preview pointer: " << previewp << LL_ENDL;
+
     if (!previewp)
     {
+        LL_WARNS("TasiaFeed") << "No snapshot preview available" << LL_ENDL;
         LLNotificationsUtil::add("TasiaFeedUploadFailed");
         mUploading = false;
+        refreshControls();
+        return;
+    }
+
+    // Get the formatted image
+    LLPointer<LLImageFormatted> formatted = previewp->getFormattedImage();
+    if (!formatted || !formatted->getData() || formatted->getDataSize() <= 0)
+    {
+        LL_WARNS("TasiaFeed") << "No formatted snapshot image available" << LL_ENDL;
+        LLNotificationsUtil::add("TasiaFeedUploadFailed");
+        mUploading = false;
+        refreshControls();
         return;
     }
 
@@ -203,7 +221,7 @@ void LLFloaterTasiaFeed::onSend()
     metadata["build_num"] = stringize(LLVersionInfo::instance().getBuild());
 
     // Upload
-    TasiaFeedUpload::uploadSnapshot(metadata, previewp->getFormattedImage().get(),
+    TasiaFeedUpload::uploadSnapshot(metadata, formatted.get(),
         boost::bind(&LLFloaterTasiaFeed::uploadCallback, this, _1, _2));
 }
 
@@ -232,6 +250,8 @@ void LLFloaterTasiaFeed::uploadCallback(bool success, const LLSD& response)
         args["MESSAGE"] = err_msg;
         LLNotificationsUtil::add("TasiaFeedUploadFailed", args);
     }
+
+    refreshControls();
 }
 
 LLSnapshotLivePreview* LLFloaterTasiaFeed::getPreviewView()
