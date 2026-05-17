@@ -33,9 +33,6 @@
 #include "llimagejpeg.h"
 #include "llimagepng.h"
 #include "llsd.h"
-#include "llsdjson.h"
-#include "llsdserialize.h"
-#include "llsdutil.h"
 #include "llslurl.h"
 #include "lltrans.h"
 #include "lluri.h"
@@ -57,42 +54,23 @@ void TasiaFeedUploadResponse(LLSD const& aData, TasiaFeedUpload::response_callba
 
     LL_INFOS("TasiaFeed") << "Upload response status: " << status.getType() << LL_ENDL;
 
-    if (!aData.has(LLCoreHttpUtil::HttpCoroutineAdapter::HTTP_RESULTS_RAW))
+    // postJsonAndSuspend + HttpCoroJSONHandler returns parsed JSON keys directly in aData.
+    // Keys: success (bool), post_url (string), message (string), plus http_result.
+    if (aData.has("success") && aData["success"].asBoolean())
     {
-        LL_WARNS("TasiaFeed") << "No content in response" << LL_ENDL;
+        LL_INFOS("TasiaFeed") << "Upload successful: " << aData["post_url"].asString() << LL_ENDL;
         if (aCallback)
-        {
-            LLSD error;
-            error["message"] = "No response from server";
-            aCallback(false, error);
-        }
-        return;
-    }
-
-    const LLSD::Binary& rawData = aData[LLCoreHttpUtil::HttpCoroutineAdapter::HTTP_RESULTS_RAW].asBinary();
-    std::string response_str;
-    response_str.assign(rawData.begin(), rawData.end());
-
-    // Parse JSON response
-    boost::system::error_code json_ec;
-    boost::json::value json_root = boost::json::parse(response_str, json_ec);
-    LLSD response = json_ec.failed() ? LLSD() : LlsdFromJson(json_root);
-
-    if (response.has("success") && response["success"].asBoolean())
-    {
-        LL_INFOS("TasiaFeed") << "Upload successful: " << response["post_url"].asString() << LL_ENDL;
-        if (aCallback)
-        {
-            aCallback(true, response);
-        }
+            aCallback(true, aData);
     }
     else
     {
-        std::string err_msg = response.has("message") ? response["message"].asString() : "Upload failed";
+        std::string err_msg = aData.has("message") ? aData["message"].asString() : "No response from server";
         LL_WARNS("TasiaFeed") << "Upload failed: " << err_msg << LL_ENDL;
         if (aCallback)
         {
-            aCallback(false, response);
+            LLSD error;
+            error["message"] = err_msg;
+            aCallback(false, error);
         }
     }
 }
