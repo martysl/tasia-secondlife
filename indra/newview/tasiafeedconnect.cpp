@@ -106,8 +106,7 @@ void TasiaFeedUploadCoro(std::string url, LLSD body, TasiaFeedUpload::response_c
 
     httpHeaders->append("Content-Type", "application/json");
 
-    std::string body_str = boost::json::serialize(LlsdToJson(body));
-    LLSD result = httpAdapter->postAndSuspend(httpRequest, url, body_str, httpOptions, httpHeaders);
+    LLSD result = httpAdapter->postJsonAndSuspend(httpRequest, url, body, httpOptions, httpHeaders);
 
     TasiaFeedUploadResponse(result, callback);
 }
