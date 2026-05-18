@@ -21,7 +21,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
- * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 
@@ -39,8 +38,8 @@
 #include "llfloateraddpaymentmethod.h"
 #include "llfloaterauction.h"
 #include "llfloaterautoreplacesettings.h"
+#include "llfloateravatar.h"
 #include "llfloateravatarpicker.h"
-#include "llfloateravatarwelcomepack.h"
 //#include "llfloateravatarrendersettings.h" // <FS:Ansariel> [FS Persisted Avatar Render Settings]
 #include "llfloateravatartextures.h"
 #include "llfloaterbanduration.h"
@@ -59,7 +58,6 @@
 #include "llfloatercamera.h"
 #include "llfloatercamerapresets.h"
 #include "llfloaterchangeitemthumbnail.h"
-#include "llfloaterchatmentionpicker.h"
 #include "llfloaterchatvoicevolume.h"
 #include "llfloaterclassified.h"
 #include "llfloaterconversationlog.h"
@@ -67,7 +65,6 @@
 #include "llfloatercreatelandmark.h"
 #include "llfloaterdeleteprefpreset.h"
 #include "llfloaterdestinations.h"
-#include "llfloaterdirectory.h"
 #include "llfloaterdisplayname.h"
 #include "llfloatereditextdaycycle.h"
 #include "llfloateremojipicker.h"
@@ -100,7 +97,6 @@
 #include "llfloaterlinkreplace.h"
 #include "llfloaterloadprefpreset.h"
 #include "llfloatermap.h"
-#include "llfloatermarketplace.h"
 #include "llfloatermarketplacelistings.h"
 #include "llfloatermediasettings.h"
 #include "llfloatermemleak.h"
@@ -217,7 +213,6 @@
 #include "fsfloaterprotectedfolders.h"
 #include "fsfloaterradar.h"
 #include "fsfloatersearch.h"
-#include "fsfloatersplashscreensettings.h"
 #include "fsfloaterstatistics.h"
 #include "fsfloaterstreamtitle.h"
 #include "fsfloaterteleporthistory.h"
@@ -227,11 +222,15 @@
 #include "fsfloaterwearablefavorites.h"
 #include "fsmoneytracker.h"
 //#include "fspanelclassified.h"
+#include "lofloaterspoof.h"
+#include "lofloaterextras.h"
 #include "lggbeamcolormapfloater.h"
 #include "lggbeammapfloater.h"
 #include "llfloaterdisplayname.h"
 #include "fsfloaterprimfeed.h"
 #include "llfloaterflickr.h"
+#include "llfloatergiphypicker.h"
+#include "llfloatertasiafeed.h"
 #include "llfloaterscriptrecover.h"
 #include "llfloatersearchreplace.h"
 #include "llpanelgroup.h"
@@ -241,8 +240,7 @@
 #include "quickprefs.h"
 #include "vjfloaterlocalmesh.h" // local mesh
 #include "fsfloaterwhitelisthelper.h" // fs whitelist helper
-#include "omnifilter.h"               // Omnifilter support
-#include "fsfloateravataralign.h" // <FS:Chanayane> Compass floater
+
 
 // handle secondlife:///app/openfloater/{NAME} URLs
 const std::string FLOATER_PROFILE("profile");
@@ -293,8 +291,7 @@ public:
                 "upload_model",
                 "upload_script",
                 "upload_sound",
-                "bulk_upload",
-                "legacy_search"
+                "bulk_upload"
             };
             return std::find(blacklist_clicked.begin(), blacklist_clicked.end(), fl_name) == blacklist_clicked.end();
         }
@@ -346,8 +343,7 @@ public:
                 "upload_script",
                 "upload_sound",
                 "bulk_upload",
-                "slapp_test",
-                "legacy_search"
+                "slapp_test"
             };
             return std::find(blacklist_untrusted.begin(), blacklist_untrusted.end(), fl_name) == blacklist_untrusted.end();
         }
@@ -406,8 +402,8 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("appearance", "floater_my_appearance.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterSidePanelContainer>);
     LLFloaterReg::add("associate_listing", "floater_associate_listing.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterAssociateListing>);
     LLFloaterReg::add("auction", "floater_auction.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterAuction>);
+    LLFloaterReg::add("avatar", "floater_avatar.xml",  (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterAvatar>);
     LLFloaterReg::add("avatar_picker", "floater_avatar_picker.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterAvatarPicker>);
-    LLFloaterReg::add("avatar_welcome_pack", "floater_avatar_welcome_pack.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterAvatarWelcomePack>);
     // <FS:Ansariel> [FS Persisted Avatar Render Settings]
     //LLFloaterReg::add("avatar_render_settings", "floater_avatar_render_settings.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterAvatarRenderSettings>);
     LLFloaterReg::add("avatar_textures", "floater_avatar_textures.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterAvatarTextures>);
@@ -435,7 +431,6 @@ void LLViewerFloaterReg::registerFloaters()
     //LLFloaterReg::add("nearby_chat", "floater_im_session.xml", (LLFloaterBuildFunc)&LLFloaterIMNearbyChat::buildFloater);
     LLFloaterReg::add("fs_nearby_chat", "floater_fs_nearby_chat.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterNearbyChat>);
     // </FS:Ansariel> [FS communication UI]
-    LLFloaterReg::add("chat_mention_picker", "floater_chat_mention_picker.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterChatMentionPicker>);
     LLFloaterReg::add("classified", "floater_classified.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterClassified>);
     LLFloaterReg::add("compile_queue", "floater_script_queue.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterCompileQueue>);
     LLFloaterReg::add("conversation", "floater_conversation_log.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterConversationLog>);
@@ -508,7 +503,6 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("mem_leaking", "floater_mem_leaking.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterMemLeak>);
 
     LLFloaterReg::add("media_settings", "floater_media_settings.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterMediaSettings>);
-    LLFloaterReg::add("marketplace", "floater_marketplace.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterMarketplace>);
     LLFloaterReg::add("marketplace_listings", "floater_marketplace_listings.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterMarketplaceListings>);
     LLFloaterReg::add("marketplace_validation", "floater_marketplace_validation.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterMarketplaceValidation>);
     LLFloaterReg::add("message_critical", "floater_critical.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterTOS>);
@@ -610,10 +604,8 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("stop_queue", "floater_script_queue.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterNotRunQueue>);
     LLFloaterReg::add("snapshot", "floater_snapshot.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterSnapshot>);
     LLFloaterReg::add("simple_snapshot", "floater_simple_snapshot.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterSimpleSnapshot>);
-    LLFloaterReg::add("snapshot_guide_settings", "floater_snapshot_guide_settings.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloater>);// <FS:Beq/> photo guide settings
     // <FS:CR> Search floater is deferred to login now so we can tell what grid we're in.
     //LLFloaterReg::add("search", "floater_search.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterSearch>);
-    LLFloaterReg::add("legacy_search", "floater_directory.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterDirectory>);
     LLFloaterReg::add("profile", "floater_profile.xml",(LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterProfile>);
     LLFloaterReg::add("guidebook", "floater_how_to.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterHowTo>);
     LLFloaterReg::add("slapp_test", "floater_test_slapp.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterSLappTest>);
@@ -643,7 +635,9 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("export_collada", "floater_export_collada.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<ColladaExportFloater>);
     LLFloaterReg::add("delete_queue", "floater_script_queue.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterDeleteQueue>);
     LLFloaterReg::add("flickr", "floater_flickr.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterFlickr>);
+    LLFloaterReg::add("giphy_picker", "floater_giphy_picker.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterGiphyPicker>);
     LLFloaterReg::add("primfeed", "floater_primfeed.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterPrimfeed>);
+    LLFloaterReg::add("tasiafeed", "floater_tasiafeed.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterTasiaFeed>);
     LLFloaterReg::add("fs_asset_blacklist", "floater_fs_asset_blacklist.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterAssetBlacklist>);
     LLFloaterReg::add("fs_avatar_render_settings", "floater_fs_avatar_render_settings.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterAvatarRenderSettings>);
     LLFloaterReg::add("fs_blocklist", "floater_fs_blocklist.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterBlocklist>);
@@ -660,7 +654,6 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("fs_poser", "floater_fs_poser.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterPoser>); // <FS:AR> [FIRE-30873]: Poser
     LLFloaterReg::add("fs_protectedfolders", "floater_fs_protectedfolders.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterProtectedFolders>);
     LLFloaterReg::add("fs_radar", "floater_fs_radar.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterRadar>);
-    LLFloaterReg::add("fs_splash_screen_settings", "floater_fs_splash_screen_settings.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterSplashScreenSettings>);
     LLFloaterReg::add("fs_streamtitle", "floater_fs_streamtitle.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterStreamTitle>);
     LLFloaterReg::add("fs_streamtitlehistory", "floater_fs_streamtitlehistory.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterStreamTitleHistory>);
     LLFloaterReg::add("fs_teleporthistory", "floater_fs_teleporthistory.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterTeleportHistory>);
@@ -672,7 +665,6 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("lgg_beamshape", "floater_beamshape.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<lggBeamMapFloater>);
     LLFloaterReg::add("media_lists", "floater_media_lists.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FloaterMediaLists>);
     LLFloaterReg::add("money_tracker", "floater_fs_money_tracker.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSMoneyTracker>);
-    LLFloaterReg::add("omnifilter", "floater_omnifilter.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<Omnifilter>);        // <FS:Zi> Omnifilter support
     LLFloaterReg::add("particle_editor","floater_particle_editor.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<ParticleEditor>);
     LLFloaterReg::add("performance", "floater_fs_performance.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterPerformance>);
 	// <FS:William_W:FixPhototoolsTypo> [PhotoTools] Corrected typo in Phototools floater registration - using string literal instead of PHOTOTOOLS_FLOATER constant (likely intended).
@@ -688,10 +680,9 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("vram_usage", "floater_fs_vram_usage.xml", static_cast<LLFloaterBuildFunc>(&LLFloaterReg::build<FSFloaterVRAMUsage>));
     LLFloaterReg::add("local_mesh_floater", "floater_vj_local_mesh.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterLocalMesh>); // local mesh
     LLFloaterReg::add("fs_whitelist_floater", "floater_whitelist.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterWhiteListHelper>); // white list advisor
-    // <FS:Chanayane> Compass floater
-    LLFloaterReg::add("avatar_align",      "floater_avatar_align.xml",      (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterAvatarAlign>);
-    LLFloaterReg::add("avatar_align_mini", "floater_avatar_align_mini.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterAvatarAlignMini>);
-    // </FS:Chanayane>
+
+    LLFloaterReg::add("lo_spoof", "floater_lo_spoof.xml", static_cast<LLFloaterBuildFunc>(&LLFloaterReg::build<LOFloaterSpoof>));
+    LLFloaterReg::add("lo_extras", "floater_lo_extras.xml", static_cast<LLFloaterBuildFunc>(&LLFloaterReg::build<LOFloaterExtras>));
 
     LLFloaterReg::registerControlVariables(); // Make sure visibility and rect controls get preserved when saving
 }

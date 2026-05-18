@@ -30,6 +30,11 @@
 
 #include "fschathistory.h"
 
+#include <algorithm>
+#include <boost/signals2.hpp>
+#include <cctype>
+#include <vector>
+
 #include "llavatarnamecache.h"
 #include "llinstantmessage.h"
 
@@ -42,23 +47,36 @@
 #include "llagentdata.h"
 #include "llavataractions.h"
 #include "llavatariconctrl.h"
+#include "llbutton.h"
 #include "llcallingcard.h" //for LLAvatarTracker
+#include "llgroupactions.h"
 #include "llgroupmgr.h"
+#include "llmediactrl.h"
+#include "llsd.h"
 #include "llspeakers.h" //for LLIMSpeakerMgr
 #include "lltrans.h"
 #include "llfloaterreg.h"
 #include "llfloaterreporter.h"
+#include "llfloatersidepanelcontainer.h"
+#include "llmath.h"
+#include "llstylemap.h"
 #include "llslurl.h"
 #include "lllayoutstack.h"
 #include "llnotifications.h"
 #include "llnotificationsutil.h"
 #include "lltoastnotifypanel.h"
+#include "lltooltip.h"
 #include "llviewerregion.h"
+#include "llviewertexteditor.h"
 #include "llworld.h"
+#include "lluiconstants.h"
 #include "llstring.h"
 #include "llurlaction.h"
+#include "lluri.h"
 #include "llviewercontrol.h"
 #include "llviewermenu.h"
+#include "llweb.h"
+#include "llviewernetwork.h"
 
 #if LL_SDL2
 #include "llwindow.h"
@@ -70,6 +88,7 @@
 #include "llkeyboard.h"
 #include "llpanelblockedlist.h"
 #include "rlvactions.h"
+#include "rlvcommon.h"
 #include "rlvhandler.h"
 
 static LLDefaultChildRegistry::Register<FSChatHistory> r("fs_chat_history");
@@ -78,6 +97,628 @@ const static std::string NEW_LINE(rawstr_to_utf8("\n"));
 
 const static std::string SLURL_APP_AGENT = "secondlife:///app/agent/";
 const static std::string SLURL_ABOUT = "/about";
+
+namespace
+{
+struct TasiaGiphyPreview
+{
+    std::string id;
+    std::string page_url;
+};
+
+struct TasiaImagePreview
+{
+    std::string url;
+};
+
+struct TasiaYouTubePreview
+{
+    std::string video_id;
+    std::string page_url;
+    std::string embed_url;
+};
+
+bool tasiaEndsWith(const std::string& value, const std::string& suffix)
+{
+    return value.size() >= suffix.size() &&
+        value.compare(value.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+bool tasiaIsGiphyHost(std::string host)
+{
+    LLStringUtil::toLower(host);
+    return host == "giphy.com" ||
+        host == "www.giphy.com" ||
+        tasiaEndsWith(host, ".giphy.com");
+}
+
+bool tasiaHasDirectImageExtension(std::string path)
+{
+    LLStringUtil::toLower(path);
+    return tasiaEndsWith(path, ".png") ||
+        tasiaEndsWith(path, ".jpg") ||
+        tasiaEndsWith(path, ".jpeg") ||
+        tasiaEndsWith(path, ".gif") ||
+        tasiaEndsWith(path, ".webp") ||
+        tasiaEndsWith(path, ".bmp") ||
+        tasiaEndsWith(path, ".apng");
+}
+
+bool tasiaIsYouTubeHost(std::string host)
+{
+    LLStringUtil::toLower(host);
+    return host == "youtube.com" ||
+        host == "www.youtube.com" ||
+        host == "m.youtube.com" ||
+        host == "youtube-nocookie.com" ||
+        host == "www.youtube-nocookie.com" ||
+        host == "youtu.be";
+}
+
+std::vector<std::string> tasiaSplitPath(const std::string& path)
+{
+    std::vector<std::string> segments;
+    std::string::size_type start = 0;
+    while (start < path.size())
+    {
+        while (start < path.size() && path[start] == '/')
+        {
+            ++start;
+        }
+
+        std::string::size_type end = path.find('/', start);
+        if (end == std::string::npos)
+        {
+            end = path.size();
+        }
+
+        if (end > start)
+        {
+            segments.push_back(path.substr(start, end - start));
+        }
+        start = end + 1;
+    }
+    return segments;
+}
+
+bool tasiaIsGiphyId(const std::string& value)
+{
+    if (value.size() < 4 || value.size() > 80)
+    {
+        return false;
+    }
+
+    for (std::string::const_iterator it = value.begin(); it != value.end(); ++it)
+    {
+        if (!isalnum(static_cast<unsigned char>(*it)))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool tasiaIsYouTubeVideoId(const std::string& value)
+{
+    if (value.size() < 6 || value.size() > 128)
+    {
+        return false;
+    }
+
+    for (std::string::const_iterator it = value.begin(); it != value.end(); ++it)
+    {
+        const char c = *it;
+        if (!isalnum(static_cast<unsigned char>(c)) && c != '_' && c != '-')
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string tasiaGiphyIdFromSlug(const std::string& slug)
+{
+    std::string candidate = slug;
+    std::string::size_type dash_pos = slug.rfind('-');
+    if (dash_pos != std::string::npos && dash_pos + 1 < slug.size())
+    {
+        candidate = slug.substr(dash_pos + 1);
+    }
+
+    if (tasiaIsGiphyId(candidate))
+    {
+        return candidate;
+    }
+    if (tasiaIsGiphyId(slug))
+    {
+        return slug;
+    }
+    return std::string();
+}
+
+void tasiaStripTrailingUrlPunctuation(std::string& url)
+{
+    while (!url.empty())
+    {
+        char c = url[url.size() - 1];
+        if (c == '.' || c == ',' || c == ';' || c == ':' || c == '!' || c == '?' ||
+            c == ')' || c == ']' || c == '}')
+        {
+            url.erase(url.size() - 1);
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
+bool tasiaExtractGiphyPreviewFromURL(std::string url, TasiaGiphyPreview& preview)
+{
+    tasiaStripTrailingUrlPunctuation(url);
+    LLURI uri(url);
+    std::string scheme = uri.scheme();
+    LLStringUtil::toLower(scheme);
+    if (scheme != "http" && scheme != "https")
+    {
+        return false;
+    }
+
+    const std::string host = uri.hostName();
+    if (!tasiaIsGiphyHost(host))
+    {
+        return false;
+    }
+
+    const std::vector<std::string> segments = tasiaSplitPath(uri.path());
+    std::string id;
+    for (std::vector<std::string>::const_iterator it = segments.begin(); it != segments.end(); ++it)
+    {
+        if ((*it == "embed" || *it == "media") && (it + 1) != segments.end())
+        {
+            id = tasiaGiphyIdFromSlug(*(it + 1));
+            break;
+        }
+        if (*it == "gifs" && (it + 1) != segments.end())
+        {
+            id = tasiaGiphyIdFromSlug(*(it + 1));
+            break;
+        }
+    }
+
+    if (id.empty())
+    {
+        return false;
+    }
+
+    preview.id = id;
+    preview.page_url = "https://giphy.com/gifs/" + id;
+    return true;
+}
+
+bool tasiaExtractImagePreviewFromURL(std::string url, TasiaImagePreview& preview)
+{
+    tasiaStripTrailingUrlPunctuation(url);
+    LLURI uri(url);
+    std::string scheme = uri.scheme();
+    LLStringUtil::toLower(scheme);
+    if (scheme != "http" && scheme != "https")
+    {
+        return false;
+    }
+
+    if (uri.hostName().empty() || !tasiaHasDirectImageExtension(uri.path()))
+    {
+        return false;
+    }
+
+    preview.url = url;
+    return true;
+}
+
+bool tasiaExtractYouTubePreviewFromURL(std::string url, TasiaYouTubePreview& preview)
+{
+    tasiaStripTrailingUrlPunctuation(url);
+    LLURI uri(url);
+    std::string scheme = uri.scheme();
+    LLStringUtil::toLower(scheme);
+    if (scheme != "http" && scheme != "https")
+    {
+        return false;
+    }
+
+    std::string host = uri.hostName();
+    LLStringUtil::toLower(host);
+    if (!tasiaIsYouTubeHost(host))
+    {
+        return false;
+    }
+
+    std::string video_id;
+    const std::vector<std::string> segments = tasiaSplitPath(uri.path());
+    if (host == "youtu.be")
+    {
+        if (!segments.empty())
+        {
+            video_id = segments[0];
+        }
+    }
+    else if (!segments.empty() && segments[0] == "watch")
+    {
+        LLSD query = uri.queryMap();
+        if (query.has("v"))
+        {
+            video_id = query["v"].asString();
+        }
+    }
+    else
+    {
+        for (std::vector<std::string>::const_iterator it = segments.begin(); it != segments.end(); ++it)
+        {
+            if ((*it == "embed" || *it == "shorts" || *it == "live") && (it + 1) != segments.end())
+            {
+                video_id = *(it + 1);
+                break;
+            }
+        }
+    }
+
+    if (!tasiaIsYouTubeVideoId(video_id))
+    {
+        return false;
+    }
+
+    preview.video_id = video_id;
+    preview.page_url = "https://www.youtube.com/watch?v=" + video_id;
+    preview.embed_url = "https://www.youtube.com/embed/" + video_id + "?rel=0";
+    return true;
+}
+
+bool tasiaFindFirstGiphyPreview(const std::string& text, TasiaGiphyPreview& preview)
+{
+    std::string::size_type search_pos = 0;
+    while (search_pos < text.size())
+    {
+        std::string::size_type http_pos = text.find("http://", search_pos);
+        std::string::size_type https_pos = text.find("https://", search_pos);
+        std::string::size_type url_pos = std::min(http_pos, https_pos);
+        if (http_pos == std::string::npos)
+        {
+            url_pos = https_pos;
+        }
+        else if (https_pos == std::string::npos)
+        {
+            url_pos = http_pos;
+        }
+
+        if (url_pos == std::string::npos)
+        {
+            return false;
+        }
+
+        std::string::size_type url_end = text.find_first_of(" \n\r\t<>\"'", url_pos);
+        if (url_end == std::string::npos)
+        {
+            url_end = text.size();
+        }
+
+        if (tasiaExtractGiphyPreviewFromURL(text.substr(url_pos, url_end - url_pos), preview))
+        {
+            return true;
+        }
+        search_pos = url_end;
+    }
+    return false;
+}
+
+bool tasiaFindFirstImagePreview(const std::string& text, TasiaImagePreview& preview)
+{
+    std::string::size_type search_pos = 0;
+    while (search_pos < text.size())
+    {
+        std::string::size_type http_pos = text.find("http://", search_pos);
+        std::string::size_type https_pos = text.find("https://", search_pos);
+        std::string::size_type url_pos = std::min(http_pos, https_pos);
+        if (http_pos == std::string::npos)
+        {
+            url_pos = https_pos;
+        }
+        else if (https_pos == std::string::npos)
+        {
+            url_pos = http_pos;
+        }
+
+        if (url_pos == std::string::npos)
+        {
+            return false;
+        }
+
+        std::string::size_type url_end = text.find_first_of(" \n\r\t<>\"'", url_pos);
+        if (url_end == std::string::npos)
+        {
+            url_end = text.size();
+        }
+
+        if (tasiaExtractImagePreviewFromURL(text.substr(url_pos, url_end - url_pos), preview))
+        {
+            return true;
+        }
+        search_pos = url_end;
+    }
+    return false;
+}
+
+bool tasiaFindFirstYouTubePreview(const std::string& text, TasiaYouTubePreview& preview)
+{
+    std::string::size_type search_pos = 0;
+    while (search_pos < text.size())
+    {
+        std::string::size_type http_pos = text.find("http://", search_pos);
+        std::string::size_type https_pos = text.find("https://", search_pos);
+        std::string::size_type url_pos = std::min(http_pos, https_pos);
+        if (http_pos == std::string::npos)
+        {
+            url_pos = https_pos;
+        }
+        else if (https_pos == std::string::npos)
+        {
+            url_pos = http_pos;
+        }
+
+        if (url_pos == std::string::npos)
+        {
+            return false;
+        }
+
+        std::string::size_type url_end = text.find_first_of(" \n\r\t<>\"'", url_pos);
+        if (url_end == std::string::npos)
+        {
+            url_end = text.size();
+        }
+
+        if (tasiaExtractYouTubePreviewFromURL(text.substr(url_pos, url_end - url_pos), preview))
+        {
+            return true;
+        }
+        search_pos = url_end;
+    }
+    return false;
+}
+
+class TasiaImagePreviewPanel : public LLPanel
+{
+public:
+    TasiaImagePreviewPanel(const TasiaImagePreview& preview)
+        : LLPanel(makeParams())
+        , mURL(preview.url)
+    {
+        LLMediaCtrl::Params media_params;
+        media_params.name = "tasia_image_preview_media";
+        media_params.rect = LLRect(10, 178, 330, 28);
+        media_params.start_url = mURL;
+        media_params.border_visible = true;
+        media_params.focus_on_click = false;
+        media_params.trusted_content = false;
+        mMedia = LLUICtrlFactory::create<LLMediaCtrl>(media_params);
+        mMedia->setTakeFocusOnClick(false);
+        addChild(mMedia);
+
+        LLTextBox::Params url_params;
+        url_params.name = "tasia_image_preview_url";
+        url_params.rect = LLRect(10, 24, 330, 6);
+        url_params.initial_value = LLSD(mURL);
+        url_params.use_ellipses = true;
+        mURLText = LLUICtrlFactory::create<LLTextBox>(url_params);
+        addChild(mURLText);
+
+        LLButton::Params open_params;
+        open_params.name = "tasia_image_open";
+        open_params.label = "Open Image";
+        open_params.rect = LLRect(340, 98, 440, 74);
+        mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
+        mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openURL(); });
+        addChild(mOpenButton);
+    }
+
+    void reshape(S32 width, S32 height, bool called_from_parent = true) override
+    {
+        LLPanel::reshape(width, height, called_from_parent);
+        if (mMedia)
+        {
+            mMedia->setRect(LLRect(10, height - 10, llmax(120, width - 120), 28));
+        }
+        if (mURLText)
+        {
+            mURLText->setRect(LLRect(10, 24, llmax(120, width - 120), 6));
+        }
+        if (mOpenButton)
+        {
+            mOpenButton->setRect(LLRect(width - 110, 98, width - 10, 74));
+        }
+    }
+
+private:
+    static LLPanel::Params makeParams()
+    {
+        LLPanel::Params params;
+        params.name = "tasia_image_preview";
+        params.rect = LLRect(0, 188, 440, 0);
+        params.mouse_opaque = true;
+        params.background_visible = true;
+        params.has_border = true;
+        return params;
+    }
+
+    void openURL()
+    {
+        LLWeb::loadURLExternal(mURL);
+    }
+
+    std::string mURL;
+    LLMediaCtrl* mMedia = nullptr;
+    LLTextBox* mURLText = nullptr;
+    LLButton* mOpenButton = nullptr;
+};
+
+class TasiaYouTubePreviewPanel : public LLPanel
+{
+public:
+    TasiaYouTubePreviewPanel(const TasiaYouTubePreview& preview)
+        : LLPanel(makeParams())
+        , mURL(preview.page_url)
+        , mEmbedURL(preview.embed_url)
+    {
+        LLMediaCtrl::Params media_params;
+        media_params.name = "tasia_youtube_preview_media";
+        media_params.rect = LLRect(10, 220, 400, 40);
+        media_params.start_url = mEmbedURL;
+        media_params.border_visible = true;
+        media_params.focus_on_click = false;
+        media_params.trusted_content = false;
+        mMedia = LLUICtrlFactory::create<LLMediaCtrl>(media_params);
+        mMedia->setTakeFocusOnClick(false);
+        addChild(mMedia);
+
+        LLTextBox::Params title_params;
+        title_params.name = "tasia_youtube_preview_title";
+        title_params.rect = LLRect(10, 34, 400, 16);
+        title_params.initial_value = LLSD("YouTube embed");
+        mTitle = LLUICtrlFactory::create<LLTextBox>(title_params);
+        addChild(mTitle);
+
+        LLButton::Params open_params;
+        open_params.name = "tasia_youtube_open";
+        open_params.label = "Open YouTube";
+        open_params.rect = LLRect(410, 132, 530, 108);
+        mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
+        mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openURL(); });
+        addChild(mOpenButton);
+    }
+
+    void reshape(S32 width, S32 height, bool called_from_parent = true) override
+    {
+        LLPanel::reshape(width, height, called_from_parent);
+        if (mMedia)
+        {
+            mMedia->setRect(LLRect(10, height - 10, llmax(160, width - 130), 40));
+        }
+        if (mTitle)
+        {
+            mTitle->setRect(LLRect(10, 34, llmax(160, width - 130), 16));
+        }
+        if (mOpenButton)
+        {
+            mOpenButton->setRect(LLRect(width - 120, 132, width - 10, 108));
+        }
+    }
+
+private:
+    static LLPanel::Params makeParams()
+    {
+        LLPanel::Params params;
+        params.name = "tasia_youtube_preview";
+        params.rect = LLRect(0, 230, 530, 0);
+        params.mouse_opaque = true;
+        params.background_visible = true;
+        params.has_border = true;
+        return params;
+    }
+
+    void openURL()
+    {
+        LLWeb::loadURLExternal(mURL);
+    }
+
+    std::string mURL;
+    std::string mEmbedURL;
+    LLMediaCtrl* mMedia = nullptr;
+    LLTextBox* mTitle = nullptr;
+    LLButton* mOpenButton = nullptr;
+};
+
+class TasiaGiphyPreviewPanel : public LLPanel
+{
+public:
+    TasiaGiphyPreviewPanel(const TasiaGiphyPreview& preview)
+        : LLPanel(makeParams())
+        , mURL(preview.page_url)
+    {
+        LLTextBox::Params title_params;
+        title_params.name = "tasia_giphy_preview_title";
+        title_params.rect = LLRect(10, 60, 260, 40);
+        title_params.initial_value = LLSD("GIF preview");
+        mTitle = LLUICtrlFactory::create<LLTextBox>(title_params);
+        addChild(mTitle);
+
+        LLTextBox::Params url_params;
+        url_params.name = "tasia_giphy_preview_url";
+        url_params.rect = LLRect(10, 39, 260, 21);
+        url_params.initial_value = LLSD(mURL);
+        url_params.use_ellipses = true;
+        mURLText = LLUICtrlFactory::create<LLTextBox>(url_params);
+        addChild(mURLText);
+
+        LLTextBox::Params powered_params;
+        powered_params.name = "tasia_giphy_powered";
+        powered_params.rect = LLRect(10, 20, 180, 4);
+        powered_params.initial_value = LLSD("Powered by GIPHY");
+        mPoweredBy = LLUICtrlFactory::create<LLTextBox>(powered_params);
+        addChild(mPoweredBy);
+
+        LLButton::Params open_params;
+        open_params.name = "tasia_giphy_open";
+        open_params.label = "Open GIF";
+        open_params.rect = LLRect(270, 42, 360, 18);
+        mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
+        mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openURL(); });
+        addChild(mOpenButton);
+    }
+
+    void reshape(S32 width, S32 height, bool called_from_parent = true) override
+    {
+        LLPanel::reshape(width, height, called_from_parent);
+        if (mTitle)
+        {
+            mTitle->setRect(LLRect(10, height - 6, width - 110, height - 26));
+        }
+        if (mURLText)
+        {
+            mURLText->setRect(LLRect(10, height - 27, width - 110, height - 45));
+        }
+        if (mPoweredBy)
+        {
+            mPoweredBy->setRect(LLRect(10, height - 46, width - 110, height - 62));
+        }
+        if (mOpenButton)
+        {
+            mOpenButton->setRect(LLRect(width - 100, height - 18, width - 10, height - 42));
+        }
+    }
+
+private:
+    static LLPanel::Params makeParams()
+    {
+        LLPanel::Params params;
+        params.name = "tasia_giphy_preview";
+        params.rect = LLRect(0, 66, 360, 0);
+        params.mouse_opaque = true;
+        params.background_visible = true;
+        params.has_border = true;
+        return params;
+    }
+
+    void openURL()
+    {
+        LLWeb::loadURLExternal(mURL);
+    }
+
+    std::string mURL;
+    LLTextBox* mTitle = nullptr;
+    LLTextBox* mURLText = nullptr;
+    LLTextBox* mPoweredBy = nullptr;
+    LLButton* mOpenButton = nullptr;
+};
+}
 
 // support for secondlife:///app/objectim/{UUID}/ SLapps
 class LLObjectIMHandler : public LLCommandHandler
@@ -118,8 +759,6 @@ LLObjectIMHandler gObjectIMHandler;
 class FSChatHistoryHeader: public LLPanel
 {
 public:
-    typedef boost::function<void (const std::string& speaker_id)> insert_mention_callback_t;
-
     FSChatHistoryHeader()
     :   LLPanel(),
         mInfoCtrl(NULL),
@@ -142,7 +781,6 @@ public:
         mTimeBoxTextBox(NULL),
         mHeaderLayoutStack(NULL),
         mAvatarNameCacheConnection(),
-        mInsertMentionCallback(NULL),
         mTime(0)
     {}
 
@@ -170,24 +808,6 @@ public:
         {
             menu->die();
             mPopupMenuHandleObject.markDead();
-        }
-    }
-
-    void setInsertMentionCallback(insert_mention_callback_t cb)
-    {
-        mInsertMentionCallback = cb;
-    }
-
-    void copyURLToClipboard()
-    {
-        LLUrlAction::copyURLToClipboard("secondlife:///app/agent/" + mAvatarID.asString() + "/mention");
-    }
-
-    void insertMentionAtCursor()
-    {
-        if (mInsertMentionCallback)
-        {
-            mInsertMentionCallback("secondlife:///app/agent/" + mAvatarID.asString() + "/mention");
         }
     }
 
@@ -223,14 +843,6 @@ public:
             std::string url = "secondlife://" + mObjectData["slurl"].asString();
             LLUrlAction::teleportToLocation(url);
         }
-        else if (level == "obj_zoom_in")
-        {
-            LLUUID obj_id = mObjectData["object_id"];
-            if (obj_id.notNull())
-            {
-                handle_zoom_to_object(obj_id);
-            }
-        }
     }
 
     bool onObjectIconContextMenuItemVisible(const LLSD& userdata)
@@ -243,16 +855,6 @@ public:
         else if (level == "not_blocked")
         {
             return !LLMuteList::getInstance()->isMuted(getAvatarId(), mFrom, LLMute::flagTextChat);
-        }
-        else if (level == "obj_zoom_in")
-        {
-            LLUUID obj_id = mObjectData["object_id"];
-            if (obj_id.notNull())
-            {
-                LLViewerObject* object = gObjectList.findObject(obj_id);
-                return object && object->isReachable();
-            }
-            return false;
         }
         return false;
     }
@@ -1081,9 +1683,6 @@ protected:
             registrar_enable.add("AvatarIcon.Enable", boost::bind(&FSChatHistoryHeader::onAvatarIconContextMenuItemEnabled, this, _2));
             registrar_enable.add("AvatarIcon.Visible", boost::bind(&FSChatHistoryHeader::onAvatarIconContextMenuItemVisible, this, _2));
 
-            registrar.add("Mention.CopyURI", boost::bind(&FSChatHistoryHeader::copyURLToClipboard, this));
-            registrar.add("Mention.Chat", boost::bind(&FSChatHistoryHeader::insertMentionAtCursor, this));
-
             menu = LLUICtrlFactory::getInstance()->createFromFile<LLMenuGL>("menu_avatar_icon.xml", gMenuHolder, LLViewerMenuHolderGL::child_registry_t::instance());
             if (menu)
             {
@@ -1119,7 +1718,7 @@ protected:
                 menu->setItemEnabled("Chat History", false);
                 menu->setItemEnabled("Add Contact Set", false);
                 menu->setItemEnabled("Invite Group", false);
-                menu->setItemEnabled("Zoom In", true);
+                menu->setItemEnabled("Zoom In", false);
                 menu->setItemEnabled("track", false);
                 menu->setItemEnabled("Share", false);
                 menu->setItemEnabled("Pay", false);
@@ -1271,8 +1870,6 @@ protected:
 
 private:
     boost::signals2::connection mAvatarNameCacheConnection;
-
-    insert_mention_callback_t mInsertMentionCallback;
 };
 
 FSChatHistory::FSChatHistory(const FSChatHistory::Params& p)
@@ -1297,11 +1894,6 @@ FSChatHistory::FSChatHistory(const FSChatHistory::Params& p)
     mUseColor = true;
 
     setIsObjectBlockedCallback(boost::bind(&LLMuteList::isMuted, LLMuteList::getInstance(), _1, _2, 0));
-    setIsObjectReachableCallback([](const LLUUID& obj_id)
-        {
-            LLViewerObject* object = gObjectList.findObject(obj_id);
-            return object && object->isReachable();
-        });
 }
 
 LLSD FSChatHistory::getValue() const
@@ -1375,17 +1967,6 @@ void FSChatHistory::initFromParams(const FSChatHistory::Params& p)
     setShowContextMenu(true);
 }
 
-// virtual
-void FSChatHistory::insertMentionAtCursor(const std::string& str)
-{
-    updateChatInputLine();
-    if (mChatInputLine)
-    {
-        mChatInputLine->insertMentionAtCursor(str);
-        mChatInputLine->setFocus(true);
-    }
-}
-
 LLView* FSChatHistory::getSeparator()
 {
     LLPanel* separator = LLUICtrlFactory::getInstance()->createFromFile<LLPanel>(mMessageSeparatorFilename, NULL, LLPanel::child_registry_t::instance());
@@ -1398,7 +1979,6 @@ LLView* FSChatHistory::getHeader(const LLChat& chat,const LLStyle::Params& style
     if (header)
     {
         header->setup(chat, style_params, args);
-        header->setInsertMentionCallback(boost::bind(&FSChatHistory::insertMentionAtCursor, this, _1));
     }
     return header;
 }
@@ -1946,6 +2526,86 @@ void FSChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
         appendText(message, prependNewLineState, body_message_params);  // <FS:Zi> FIRE-8600: TAB out of chat history
         setContentTrusted(is_trusted);
         setPlainText(use_plain_text_chat_history);
+
+        if (!use_plain_text_chat_history && !message_from_log)
+        {
+            bool preview_added = false;
+
+            if (gSavedSettings.getBOOL("TasiaYouTubeChatPreview"))
+            {
+                TasiaYouTubePreview youtube_preview;
+                if (tasiaFindFirstYouTubePreview(message, youtube_preview))
+                {
+                    TasiaYouTubePreviewPanel* youtube_panel = new TasiaYouTubePreviewPanel(youtube_preview);
+
+                    LLRect target_rect = getDocumentView()->getRect();
+                    target_rect.mLeft += mLeftWidgetPad + getHPad();
+                    target_rect.mRight -= mRightWidgetPad;
+                    youtube_panel->reshape(target_rect.getWidth(), youtube_panel->getRect().getHeight());
+                    youtube_panel->setOrigin(target_rect.mLeft, youtube_panel->getRect().mBottom);
+
+                    LLInlineViewSegment::Params params;
+                    params.force_newline = true;
+                    params.view = youtube_panel;
+                    params.left_pad = mLeftWidgetPad;
+                    params.right_pad = mRightWidgetPad;
+                    params.top_pad = 4;
+                    params.bottom_pad = 4;
+                    appendWidget(params, "\n[YouTube] " + youtube_preview.page_url, false);
+                    preview_added = true;
+                }
+            }
+
+            if (!preview_added && gSavedSettings.getBOOL("TasiaImageChatPreview"))
+            {
+                TasiaImagePreview image_preview;
+                if (tasiaFindFirstImagePreview(message, image_preview))
+                {
+                    TasiaImagePreviewPanel* image_panel = new TasiaImagePreviewPanel(image_preview);
+
+                    LLRect target_rect = getDocumentView()->getRect();
+                    target_rect.mLeft += mLeftWidgetPad + getHPad();
+                    target_rect.mRight -= mRightWidgetPad;
+                    image_panel->reshape(target_rect.getWidth(), image_panel->getRect().getHeight());
+                    image_panel->setOrigin(target_rect.mLeft, image_panel->getRect().mBottom);
+
+                    LLInlineViewSegment::Params params;
+                    params.force_newline = true;
+                    params.view = image_panel;
+                    params.left_pad = mLeftWidgetPad;
+                    params.right_pad = mRightWidgetPad;
+                    params.top_pad = 4;
+                    params.bottom_pad = 4;
+                    appendWidget(params, "\n[Image] " + image_preview.url, false);
+                    preview_added = true;
+                }
+            }
+
+            if (!preview_added && gSavedSettings.getBOOL("TasiaAnimatedGifChatPreview"))
+            {
+                TasiaGiphyPreview preview;
+                if (tasiaFindFirstGiphyPreview(message, preview))
+                {
+                    TasiaGiphyPreviewPanel* preview_panel = new TasiaGiphyPreviewPanel(preview);
+
+                    LLRect target_rect = getDocumentView()->getRect();
+                    target_rect.mLeft += mLeftWidgetPad + getHPad();
+                    target_rect.mRight -= mRightWidgetPad;
+                    preview_panel->reshape(target_rect.getWidth(), preview_panel->getRect().getHeight());
+                    preview_panel->setOrigin(target_rect.mLeft, preview_panel->getRect().mBottom);
+
+                    LLInlineViewSegment::Params params;
+                    params.force_newline = true;
+                    params.view = preview_panel;
+                    params.left_pad = mLeftWidgetPad;
+                    params.right_pad = mRightWidgetPad;
+                    params.top_pad = 4;
+                    params.bottom_pad = 4;
+                    appendWidget(params, "\n[GIPHY] " + preview.page_url, false);
+                }
+            }
+        }
+
         // Uncomment this if we never need to append to the end of a message. [FS:CR]
         //prependNewLineState = false;
     }

@@ -2,6 +2,149 @@
 <llsd xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="llsd.xsd">
 <map>
+  <key>TasiaWelcomeURL</key>
+  <map>
+    <key>Comment</key>
+    <string>URL containing one welcome message per line for the loading progress panel.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>https://i.let-us.cyou/welcome.txt</string>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaWelcomeURLTimeout</key>
+  <map>
+    <key>Comment</key>
+    <string>Timeout in seconds for fetching the loading welcome message.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>4.0</real>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaWelcomeMaxBytes</key>
+  <map>
+    <key>Comment</key>
+    <string>Maximum number of bytes to read from the loading welcome message URL.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <integer>65536</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaGiphyEnabled</key>
+  <map>
+    <key>Comment</key>
+    <string>Enable Tasia Viewer GIPHY search and chat insertion UI.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaGiphyAPIKey</key>
+  <map>
+    <key>Comment</key>
+    <string>User override for the GIPHY API key. If empty, the viewer uses the build-time embedded fallback when present.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string></string>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaGiphyRating</key>
+  <map>
+    <key>Comment</key>
+    <string>GIPHY content rating used for viewer searches: g, pg, pg-13, or r.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>pg-13</string>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaAnimatedGifChatPreview</key>
+  <map>
+    <key>Comment</key>
+    <string>Show enhanced local previews for supported animated GIF URLs in chat history.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaImageChatPreview</key>
+  <map>
+    <key>Comment</key>
+    <string>Show inline previews for direct image URLs in chat history.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaYouTubeChatPreview</key>
+  <map>
+    <key>Comment</key>
+    <string>Show inline YouTube embeds for YouTube URLs in chat history.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaLoadingYouTubeEnabled</key>
+  <map>
+    <key>Comment</key>
+    <string>Enable optional YouTube media on the loading progress panel.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaLoadingYouTubeURL</key>
+  <map>
+    <key>Comment</key>
+    <string>Optional YouTube/embed URL used by the loading progress panel when enabled.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string></string>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
   <key>FSLandmarkCreatedNotification</key>
   <map>
     <key>Comment</key>

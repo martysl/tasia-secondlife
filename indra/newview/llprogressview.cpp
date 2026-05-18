@@ -28,15 +28,23 @@
 
 #include "llprogressview.h"
 
+#include <cctype>
+#include <vector>
+
+#include "lltasia_welcome_client.h"
+
 #include "indra_constants.h"
 #include "llmath.h"
 #include "llgl.h"
 #include "llrender.h"
+#include "llsd.h"
 #include "llui.h"
 #include "llfontgl.h"
+#include "llstring.h"
 #include "lltimer.h"
 #include "lltextbox.h"
 #include "llglheaders.h"
+#include "lluri.h"
 
 #include "llagent.h"
 #include "llbutton.h"
@@ -65,6 +73,119 @@ const F32 FADE_TO_WORLD_TIME = 1.0f;
 
 static LLPanelInjector<LLProgressView> r("progress_view");
 static LLPanelInjector<LLProgressViewMini> r_mini("progress_view_mini");
+
+namespace
+{
+std::vector<std::string> tasiaSplitPath(const std::string& path)
+{
+    std::vector<std::string> segments;
+    std::string::size_type start = 0;
+    while (start < path.size())
+    {
+        while (start < path.size() && path[start] == '/')
+        {
+            ++start;
+        }
+
+        std::string::size_type end = path.find('/', start);
+        if (end == std::string::npos)
+        {
+            end = path.size();
+        }
+
+        if (end > start)
+        {
+            segments.push_back(path.substr(start, end - start));
+        }
+        start = end + 1;
+    }
+    return segments;
+}
+
+bool tasiaIsYouTubeVideoId(const std::string& value)
+{
+    if (value.size() < 6 || value.size() > 128)
+    {
+        return false;
+    }
+
+    for (std::string::const_iterator it = value.begin(); it != value.end(); ++it)
+    {
+        const char c = *it;
+        if (!isalnum(static_cast<unsigned char>(c)) && c != '_' && c != '-')
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool tasiaIsYouTubeHost(std::string host)
+{
+    LLStringUtil::toLower(host);
+    return host == "youtube.com" ||
+        host == "www.youtube.com" ||
+        host == "m.youtube.com" ||
+        host == "youtube-nocookie.com" ||
+        host == "www.youtube-nocookie.com" ||
+        host == "youtu.be";
+}
+
+bool tasiaBuildYouTubeEmbedURL(const std::string& input_url, std::string& embed_url)
+{
+    LLURI uri(input_url);
+    std::string scheme = uri.scheme();
+    LLStringUtil::toLower(scheme);
+    if (scheme != "http" && scheme != "https")
+    {
+        return false;
+    }
+
+    std::string host = uri.hostName();
+    LLStringUtil::toLower(host);
+    if (!tasiaIsYouTubeHost(host))
+    {
+        return false;
+    }
+
+    std::string video_id;
+    const std::vector<std::string> segments = tasiaSplitPath(uri.path());
+    if (host == "youtu.be")
+    {
+        if (!segments.empty())
+        {
+            video_id = segments[0];
+        }
+    }
+    else if (!segments.empty() && segments[0] == "watch")
+    {
+        LLSD query = uri.queryMap();
+        if (query.has("v"))
+        {
+            video_id = query["v"].asString();
+        }
+    }
+    else
+    {
+        for (std::vector<std::string>::const_iterator it = segments.begin(); it != segments.end(); ++it)
+        {
+            if ((*it == "embed" || *it == "shorts" || *it == "live") && (it + 1) != segments.end())
+            {
+                video_id = *(it + 1);
+                break;
+            }
+        }
+    }
+
+    if (!tasiaIsYouTubeVideoId(video_id))
+    {
+        return false;
+    }
+
+    embed_url = "https://www.youtube.com/embed/" + video_id + "?autoplay=1&mute=1&rel=0";
+    return true;
+}
+}
 
 LLProgressViewMini::LLProgressViewMini()
 {
@@ -230,6 +351,14 @@ void LLProgressView::revealIntroPanel()
 void LLProgressView::setStartupComplete()
 {
     mStartupComplete = true;
+    mWelcomeRequested = true;
+    mHasTasiaWelcomeMessage = false;
+    ++mWelcomeRequestId;
+
+    if (mLoadingYouTubeActive)
+    {
+        stopLoadingYouTube();
+    }
 
     // if we are not showing a video, fade into world
     if (!mMediaCtrl->getVisible())
@@ -252,6 +381,7 @@ void LLProgressView::setVisible(bool visible)
     // hiding progress view
     if (getVisible() && !visible)
     {
+        stopLoadingYouTube();
         LLPanel::setVisible(false);
     }
     // showing progress view
@@ -260,6 +390,8 @@ void LLProgressView::setVisible(bool visible)
         setFocus(true);
         mFadeToWorldTimer.stop();
         LLPanel::setVisible(true);
+        requestWelcomeMessage();
+        maybeStartLoadingYouTube();
     }
 }
 
@@ -419,7 +551,7 @@ void LLProgressView::setPercent(const F32 percent)
     mProgressBar->setValue(percent);
 }
 
-void LLProgressView::setMessage(const std::string& msg)
+void LLProgressView::setMessageText(const std::string& msg)
 {
     mMessage = msg;
     mMessageText->setValue(mMessage);
@@ -435,6 +567,97 @@ void LLProgressView::setMessage(const std::string& msg)
         mLayoutPanel4->reshape(mLayoutPanel4RectInitial.getWidth(), mLayoutPanel4RectInitial.getHeight());
         mLayoutMOTD->reshape(mLayoutMOTDRectInitial.getWidth(), mLayoutMOTDRectInitial.getHeight());
     }
+}
+
+void LLProgressView::setMessage(const std::string& msg)
+{
+    mServerMessage = msg;
+    if (!mHasTasiaWelcomeMessage)
+    {
+        setMessageText(msg);
+    }
+}
+
+void LLProgressView::setTasiaWelcomeMessage(const std::string& msg)
+{
+    if (msg.empty())
+    {
+        return;
+    }
+
+    mHasTasiaWelcomeMessage = true;
+    setMessageText(msg);
+}
+
+void LLProgressView::requestWelcomeMessage()
+{
+    if (mWelcomeRequested || mStartupComplete || LLStartUp::getStartupState() >= STATE_STARTED)
+    {
+        return;
+    }
+
+    mWelcomeRequested = true;
+    const S32 request_id = ++mWelcomeRequestId;
+    LLTasiaWelcomeClient::requestRandomLine(
+        boost::bind(&LLProgressView::onWelcomeMessageFetched, request_id, _1));
+}
+
+void LLProgressView::maybeStartLoadingYouTube()
+{
+    if (mLoadingYouTubeActive || mStartupComplete || !gSavedSettings.getBOOL("TasiaLoadingYouTubeEnabled"))
+    {
+        return;
+    }
+
+    std::string configured_url = gSavedSettings.getString("TasiaLoadingYouTubeURL");
+    LLStringUtil::trim(configured_url);
+    if (configured_url.empty())
+    {
+        return;
+    }
+
+    std::string embed_url;
+    if (!tasiaBuildYouTubeEmbedURL(configured_url, embed_url))
+    {
+        LL_WARNS("TasiaLoading") << "Ignoring invalid YouTube loading URL" << LL_ENDL;
+        return;
+    }
+
+    mLoadingYouTubeActive = true;
+    mMediaCtrl->navigateTo(embed_url);
+    mMediaCtrl->setVisible(true);
+    mMediaCtrl->setFocus(false);
+}
+
+void LLProgressView::stopLoadingYouTube()
+{
+    if (!mLoadingYouTubeActive)
+    {
+        return;
+    }
+
+    mLoadingYouTubeActive = false;
+    mMediaCtrl->setVisible(false);
+    if (mMediaCtrl->getMediaPlugin())
+    {
+        mMediaCtrl->getMediaPlugin()->stop();
+    }
+    mMediaCtrl->unloadMediaSource();
+}
+
+// static
+void LLProgressView::onWelcomeMessageFetched(S32 request_id, const std::string& msg)
+{
+    if (!sInstance ||
+        sInstance->mWelcomeRequestId != request_id ||
+        sInstance->mStartupComplete ||
+        LLStartUp::getStartupState() >= STATE_STARTED ||
+        msg.empty())
+    {
+        return;
+    }
+
+    sInstance->setTasiaWelcomeMessage(msg);
 }
 
 void LLProgressView::loadLogo(const std::string &path,
@@ -727,6 +950,12 @@ void LLProgressView::handleMediaEvent(LLPluginClassMedia* self, EMediaEvent even
     // the intro web content calls javascript::window.close() when it's done
     if( event == MEDIA_EVENT_CLOSE_REQUEST )
     {
+        if (mLoadingYouTubeActive)
+        {
+            stopLoadingYouTube();
+            return;
+        }
+
         if (mStartupComplete)
         {
             //make sure other timer has stopped

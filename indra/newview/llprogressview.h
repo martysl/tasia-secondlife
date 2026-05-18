@@ -93,6 +93,7 @@ protected:
     LLTextBox* mMessageText = nullptr;
     F32 mPercentDone;
     std::string mMessage;
+    std::string mServerMessage;
     LLButton*   mCancelBtn;
     LLFrameTimer mFadeToWorldTimer;
     LLFrameTimer mFadeFromLoginTimer;
@@ -106,6 +107,10 @@ protected:
 
     bool mMouseDownInActiveArea;
     bool mStartupComplete;
+    bool mWelcomeRequested = false;
+    bool mHasTasiaWelcomeMessage = false;
+    bool mLoadingYouTubeActive = false;
+    S32 mWelcomeRequestId = 0;
 
     // The LLEventStream mUpdateEvents depends upon this class being a singleton
     // to avoid pump name conflicts.
@@ -114,6 +119,12 @@ protected:
 
     bool handleUpdate(const LLSD& event_data);
     static void onIdle(void* user_data);
+    void requestWelcomeMessage();
+    void setMessageText(const std::string& msg);
+    void setTasiaWelcomeMessage(const std::string& msg);
+    void maybeStartLoadingYouTube();
+    void stopLoadingYouTube();
+    static void onWelcomeMessageFetched(S32 request_id, const std::string& msg);
     void loadLogo(const std::string &path, const U8 image_codec, const LLRect &pos_rect, const LLRectf &clip_rect, const LLRectf &offset_rect);
     // logos have unusual location and need to be preloaded to not appear grey, then deleted
     void initLogos();

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater
+ name="floater_giphy_picker"
+ title="GIPHY Picker"
+ width="560"
+ height="420"
+ min_width="440"
+ min_height="320">
+
+  <text
+   name="instructions_text"
+   font="SansSerifSmall"
+   follows="top|left|right"
+   layout="topleft"
+   left="10"
+   top="10"
+   width="540"
+   height="18">
+Search for a GIF, then choose a result.
+  </text>
+
+  <line_editor
+   name="search_edit"
+   follows="top|left|right"
+   layout="topleft"
+   left="10"
+   top="35"
+   width="345"
+   height="24"
+   max_length="128"
+   length="1" />
+
+  <button
+   name="search_btn"
+   label="Search"
+   follows="top|right"
+   layout="topleft"
+   left_pad="8"
+   top_delta="0"
+   width="80"
+   height="24" />
+
+  <button
+   name="trending_btn"
+   label="Trending"
+   follows="top|right"
+   layout="topleft"
+   left_pad="8"
+   top_delta="0"
+   width="90"
+   height="24" />
+
+  <scroll_list
+   name="results_list"
+   follows="top|left|right|bottom"
+   layout="topleft"
+   left="10"
+   top="70"
+   width="540"
+   height="275"
+   draw_heading="true"
+   multi_select="false">
+    <scroll_list.columns
+     name="title"
+     label="Title"
+     width="220" />
+    <scroll_list.columns
+     name="url"
+     label="URL"
+     width="300" />
+  </scroll_list>
+
+  <text
+   name="status_text"
+   font="SansSerifSmall"
+   follows="left|right|bottom"
+   layout="topleft"
+   left="10"
+   bottom="38"
+   width="350"
+   height="18">
+Powered by GIPHY
+  </text>
+
+  <text
+   name="powered_by_giphy_text"
+   font="SansSerifSmall"
+   follows="right|bottom"
+   layout="topleft"
+   right="-110"
+   bottom="38"
+   width="120"
+   height="18">
+Powered by GIPHY
+  </text>
+
+  <button
+   name="use_btn"
+   label="Use Selected"
+   follows="right|bottom"
+   layout="topleft"
+   right="-10"
+   bottom="10"
+   width="100"
+   height="24" />
+</floater>

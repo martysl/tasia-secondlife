@@ -309,6 +309,25 @@
                width="10"/>
             </layout_panel>
             <layout_panel
+              visibility_control="TasiaGiphyEnabled"
+              auto_resize="false"
+              user_resize="false"
+              name="giphy_button_layout_panel"
+              width="37">
+              <button
+               follows="right|bottom"
+               bottom="-1"
+               height="24"
+               width="33"
+               label="GIF"
+               image_hover_unselected="Toolbar_Middle_Over"
+               image_selected="Toolbar_Middle_Selected"
+               image_unselected="Toolbar_Middle_Off"
+               left="0"
+               name="giphy_picker_btn"
+               tool_tip="Search GIPHY" />
+            </layout_panel>
+            <layout_panel
               visibility_control="FSShowChatChannel"
               auto_resize="false"
               user_resize="false"

@@ -162,7 +162,21 @@
                          line_spacing.pixels="2"
                          name="logos_lbl"
                          text_color="LoginProgressBoxTextColor">
-                          [APP_NAME] uses
+                          Tasia Viewer uses
+                        </text>
+                        <text
+                         follows="right|top"
+                         layout="topleft"
+                         font="SansSerifSmall"
+                         font_shadow="none"
+                         halign="right"
+                         height="16"
+                         width="180"
+                         right="-47"
+                         top="9"
+                         name="tasia_giphy_powered_lbl"
+                         text_color="LoginProgressBoxTextColor">
+                          Powered by GIPHY
                         </text>
                       </layout_panel>
                     </layout_stack>
