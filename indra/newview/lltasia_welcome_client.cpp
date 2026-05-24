@@ -29,14 +29,12 @@
 #include "llcoros.h"
 #include "llhttpconstants.h"
 #include "llmath.h"
-#include "llrand.h"
 #include "llsd.h"
 #include "llstring.h"
 #include "llviewercontrol.h"
 
 #include <boost/bind.hpp>
 #include <sstream>
-#include <vector>
 
 namespace
 {
@@ -44,7 +42,7 @@ const U32 MIN_WELCOME_BYTES = 1024;
 const U32 MAX_WELCOME_BYTES = 1024 * 1024;
 const U32 MAX_WELCOME_LINE_CHARS = 512;
 
-std::string chooseRandomUsableLine(const LLSD::Binary& data, U32 max_bytes)
+std::string chooseFirstUsableLine(const LLSD::Binary& data, U32 max_bytes)
 {
     if (data.empty())
     {
@@ -54,7 +52,6 @@ std::string chooseRandomUsableLine(const LLSD::Binary& data, U32 max_bytes)
     const std::size_t bytes_to_read = llmin<std::size_t>(data.size(), max_bytes);
     std::string body(data.begin(), data.begin() + bytes_to_read);
 
-    std::vector<std::string> lines;
     std::istringstream stream(body);
     std::string line;
     while (std::getline(stream, line))
@@ -83,15 +80,10 @@ std::string chooseRandomUsableLine(const LLSD::Binary& data, U32 max_bytes)
             continue;
         }
 
-        lines.push_back(line);
+        return line;
     }
 
-    if (lines.empty())
-    {
-        return std::string();
-    }
-
-    return lines[ll_rand(static_cast<S32>(lines.size()))];
+    return std::string();
 }
 
 void sendResponse(const LLTasiaWelcomeClient::response_callback_t& callback, const std::string& line)
@@ -104,10 +96,14 @@ void sendResponse(const LLTasiaWelcomeClient::response_callback_t& callback, con
 }
 
 // static
-void LLTasiaWelcomeClient::requestRandomLine(response_callback_t callback)
+void LLTasiaWelcomeClient::requestLine(response_callback_t callback)
 {
     std::string url = gSavedSettings.getString("TasiaWelcomeURL");
     LLStringUtil::trim(url);
+    if (url == "https://i.let-us.cyou/welcome.txt")
+    {
+        url = "https://i.let-us.cyou/welcome.php";
+    }
     if (url.empty())
     {
         sendResponse(callback, std::string());
@@ -158,5 +154,5 @@ void LLTasiaWelcomeClient::fetchCoro(std::string url, U32 timeout_seconds, U32 m
     }
 
     const LLSD::Binary& raw = result[LLCoreHttpUtil::HttpCoroutineAdapter::HTTP_RESULTS_RAW].asBinary();
-    sendResponse(callback, chooseRandomUsableLine(raw, max_bytes));
+    sendResponse(callback, chooseFirstUsableLine(raw, max_bytes));
 }

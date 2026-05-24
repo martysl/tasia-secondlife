@@ -100,6 +100,7 @@ set(viewer_SOURCE_FILES
     fsprimfeedauth.cpp
     tasiafeedconnect.cpp
     llgiphyclient.cpp
+    lltasia_user_config.cpp
     lltasia_welcome_client.cpp
     lltasia_giphy_key.cpp
     exogroupmutelist.cpp
@@ -948,6 +949,7 @@ set(viewer_HEADER_FILES
     fsprimfeedauth.h
     tasiafeedconnect.h
     llgiphyclient.h
+    lltasia_user_config.h
     lltasia_welcome_client.h
     lltasia_giphy_key.h
     exogroupmutelist.h

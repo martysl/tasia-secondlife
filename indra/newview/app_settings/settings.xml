@@ -5,13 +5,65 @@
   <key>TasiaWelcomeURL</key>
   <map>
     <key>Comment</key>
-    <string>URL containing one welcome message per line for the loading progress panel.</string>
+    <string>URL containing the welcome message for the loading progress panel.</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
     <string>String</string>
     <key>Value</key>
-    <string>https://i.let-us.cyou/welcome.txt</string>
+    <string>https://i.let-us.cyou/welcome.php</string>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaRemoteUserConfigEnabled</key>
+  <map>
+    <key>Comment</key>
+    <string>Enable one-shot remote Tasia user badge/title configuration fetch.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaRemoteUserConfigURL</key>
+  <map>
+    <key>Comment</key>
+    <string>URL of the remote Tasia JSON config containing user badges, titles, and tag colors.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>https://i.let-us.cyou/hg/config.json</string>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaRemoteUserConfigTimeout</key>
+  <map>
+    <key>Comment</key>
+    <string>Timeout in seconds for fetching the remote Tasia JSON user config.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>5.0</real>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaRemoteUserConfigMaxBytes</key>
+  <map>
+    <key>Comment</key>
+    <string>Maximum number of bytes to read from the remote Tasia JSON user config.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <integer>262144</integer>
     <key>Backup</key>
     <integer>0</integer>
   </map>

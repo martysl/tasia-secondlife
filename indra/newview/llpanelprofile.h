@@ -175,6 +175,7 @@ protected:
      * Fills user name, display name, age.
      */
     void fillAgeData(const LLAvatarData* avatar_data);
+    void fillTasiaUserData(const LLAvatarData* avatar_data, std::string& account_text);
 
     void onImageLoaded(bool success, LLViewerFetchedTexture *imagep);
     static void onImageLoaded(bool success,
@@ -230,6 +231,7 @@ private:
     };
     void updateButtons();
     void setBadge(std::string_view icon_name, std::string_view tooltip, BadgeLocation location);
+    void setBadgeRawTooltip(std::string_view icon_name, const std::string& tooltip, BadgeLocation location);
 
 private:
     typedef std::map<std::string, LLUUID> group_map_t;

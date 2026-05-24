@@ -62,6 +62,7 @@
 #include "llhudmanager.h"
 #include "llhudnametag.h"
 #include "llhudtext.h"              // for mText/mDebugText
+#include "lltasia_user_config.h"
 #include "llimview.h"
 #include "llinitparam.h"
 #include "llkeyframefallmotion.h"
@@ -4273,6 +4274,21 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
                 else
                 {
                     addNameTagLine(full_name, name_tag_color, LLFontGL::NORMAL, font, true, true);
+                }
+            }
+        }
+
+        if ((fRlvShowAvName || isSelf()))
+        {
+            LLTasiaUserConfig::User tasia_user;
+            if (LLTasiaUserConfig::getUser(getID(), tasia_user))
+            {
+                std::string tasia_title = tasia_user.getNametagTitle();
+                if (!tasia_title.empty())
+                {
+                    LLColor4 title_color = tasia_user.has_tag_color ? tasia_user.tag_color : name_tag_color;
+                    addNameTagLine(tasia_title, title_color, LLFontGL::BOLD,
+                        LLFontGL::getFontSansSerifSmall(), true);
                 }
             }
         }

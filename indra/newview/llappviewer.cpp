@@ -104,6 +104,7 @@
 #include "llvelopack.h"
 #endif
 #include "llprogressview.h"
+#include "lltasia_user_config.h"
 #include "llvocache.h"
 #include "lldiskcache.h"
 #include "llvopartgroup.h"
@@ -1017,6 +1018,8 @@ bool LLAppViewer::init()
 
     initThreads();
     LL_INFOS("InitInfo") << "Threads initialized." << LL_ENDL ;
+
+    LLTasiaUserConfig::requestOnce();
 
     // Initialize settings early so that the defaults for ignorable dialogs are
     // picked up and then correctly re-saved after launching the updater (STORM-1268).

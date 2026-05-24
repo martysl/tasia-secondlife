@@ -1,5 +1,34 @@
 # Build Notes
 
+## 2026-05-24: Remote Tasia user config
+
+- New files:
+  - `indra/newview/lltasia_user_config.h`
+  - `indra/newview/lltasia_user_config.cpp`
+- Settings:
+  - `TasiaRemoteUserConfigEnabled` default true
+  - `TasiaRemoteUserConfigURL` default `https://i.let-us.cyou/hg/config.json`
+  - `TasiaRemoteUserConfigTimeout` default 5 seconds
+  - `TasiaRemoteUserConfigMaxBytes` default 262144
+- Startup behavior:
+  - Fetch is non-blocking via coroutine.
+  - Fetch is one-shot per viewer run.
+  - Failures only log a warning and do not block login.
+- Rendering behavior:
+  - Nametag adds custom title line from `custom_title`, `title`, `rank_title`, or fallback `badge_name`.
+  - Nametag title color accepts `tag_color` or `color` as `#RRGGBB`/`#RRGGBBAA`.
+  - Profile account area shows badge/profile text and tooltip; profile uses existing local badge icon slot.
+- Welcome behavior:
+  - Default changed from `welcome.txt` to `welcome.php`.
+  - Existing persisted old URL is mapped to `welcome.php` at runtime.
+  - First usable line is used; no randomization.
+  - Fetch resets per visible login/teleport progress screen.
+
+### Focused checks
+- `git diff --check`: passed.
+- `indra/newview/app_settings/settings.xml` XML parse: passed.
+- Strict conflict-marker scan in `indra/newview` cpp/h/xml: passed.
+
 ## Build Environment
 - **Platform**: Ubuntu 22.04 (GitHub Actions runner)
 - **Compiler**: GCC 11+ 

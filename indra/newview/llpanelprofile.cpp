@@ -73,6 +73,7 @@
 #include "llpanelprofileclassifieds.h"
 #include "llpanelprofilepicks.h"
 #include "llthumbnailctrl.h"
+#include "lltasia_user_config.h"
 #include "lltrans.h"
 #include "llviewercontrol.h"
 #include "llviewermenu.h" //is_agent_mappable
@@ -1078,6 +1079,10 @@ void LLPanelProfileSecondLife::resetData()
     //childSetVisible("partner_layout", false);
     //childSetVisible("badge_layout", false);
     //childSetVisible("partner_spacer_layout", true);
+    childSetVisible("badge_layout", false);
+    childSetVisible("top_badge_layout", false);
+    childSetVisible("bottom_badge_layout", false);
+    getChild<LLUICtrl>("account_info")->setToolTip(std::string());
     // <FS:Zi> Always show the online status text, just set it to "offline" when a friend is hiding
     // mStatusText->setVisible(false);
     mCopyMenuButton->setVisible(false);
@@ -1523,7 +1528,6 @@ void LLPanelProfileSecondLife::fillAccountStatus(const LLAvatarData* avatar_data
     // </FS:Ansariel>
 
     std::string caption_text = getString("CaptionTextAcctInfo", args);
-    getChild<LLUICtrl>("account_info")->setValue(caption_text);
 
     constexpr S32 LINDEN_EMPLOYEE_INDEX = 3;
     LLDate sl_release;
@@ -1597,14 +1601,80 @@ void LLPanelProfileSecondLife::fillAccountStatus(const LLAvatarData* avatar_data
         setBadge("Profile_Badge_Team", "BadgeTeam", BadgeLocation::top);
     }
     // </FS:Ansariel>
+
+    fillTasiaUserData(avatar_data, caption_text);
+    getChild<LLUICtrl>("account_info")->setValue(caption_text);
+}
+
+void LLPanelProfileSecondLife::fillTasiaUserData(const LLAvatarData* avatar_data, std::string& account_text)
+{
+    LLTasiaUserConfig::User tasia_user;
+    LLUICtrl* account_info = getChild<LLUICtrl>("account_info");
+    account_info->setToolTip(std::string());
+
+    if (!LLTasiaUserConfig::getUser(avatar_data->avatar_id, tasia_user) || !tasia_user.hasProfileBadge())
+    {
+        return;
+    }
+
+    const std::string title = tasia_user.getNametagTitle();
+    std::string line;
+    if (!tasia_user.badge_name.empty())
+    {
+        line = tasia_user.badge_name;
+    }
+    else if (!title.empty())
+    {
+        line = title;
+    }
+
+    if (!tasia_user.profile_text.empty())
+    {
+        if (!line.empty())
+        {
+            line += ": ";
+        }
+        line += tasia_user.profile_text;
+    }
+
+    if (!line.empty())
+    {
+        account_text += "\n";
+        account_text += line;
+    }
+
+    std::string tooltip = tasia_user.tooltip;
+    if (tooltip.empty())
+    {
+        tooltip = tasia_user.profile_text.empty() ? tasia_user.badge_name : tasia_user.profile_text;
+    }
+    if (!tasia_user.badge_icon.empty())
+    {
+        if (!tooltip.empty())
+        {
+            tooltip += "\n";
+        }
+        tooltip += tasia_user.badge_icon;
+    }
+    if (!tooltip.empty())
+    {
+        account_info->setToolTip(tooltip);
+    }
+
+    setBadgeRawTooltip("Profile_Badge_Team", tooltip.empty() ? line : tooltip, BadgeLocation::top);
 }
 
 // <FS:Ansariel> Fix LL UI/UX design accident
 void LLPanelProfileSecondLife::setBadge(std::string_view icon_name, std::string_view tooltip, BadgeLocation location)
 {
+    setBadgeRawTooltip(icon_name, getString(tooltip.data()), location);
+}
+
+void LLPanelProfileSecondLife::setBadgeRawTooltip(std::string_view icon_name, const std::string& tooltip, BadgeLocation location)
+{
     auto iconctrl = getChild<LLIconCtrl>(location == BadgeLocation::top ? "top_badge_icon" : "bottom_badge_icon");
     iconctrl->setValue(icon_name.data());
-    iconctrl->setToolTip(getString(tooltip.data()));
+    iconctrl->setToolTip(tooltip);
     childSetVisible(location == BadgeLocation::top ? "top_badge_layout" : "bottom_badge_layout", true);
     childSetVisible("badge_layout", true);
 }

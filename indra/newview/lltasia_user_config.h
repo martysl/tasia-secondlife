@@ -1,6 +1,6 @@
 /**
- * @file lltasia_welcome_client.h
- * @brief Async client for loading Tasia welcome text.
+ * @file lltasia_user_config.h
+ * @brief Runtime Tasia user badge/title configuration.
  *
  * $LicenseInfo:firstyear=2026&license=viewerlgpl$
  * Copyright (C) 2026, Tasia Viewer Project
@@ -21,23 +21,39 @@
  * $/LicenseInfo$
  */
 
-#ifndef LL_TASIA_WELCOME_CLIENT_H
-#define LL_TASIA_WELCOME_CLIENT_H
+#ifndef LL_TASIA_USER_CONFIG_H
+#define LL_TASIA_USER_CONFIG_H
 
 #include "stdtypes.h"
+#include "lluuid.h"
+#include "v4color.h"
 
-#include <boost/function.hpp>
 #include <string>
 
-class LLTasiaWelcomeClient
+class LLTasiaUserConfig
 {
 public:
-    typedef boost::function<void(const std::string&)> response_callback_t;
+    struct User
+    {
+        std::string custom_title;
+        std::string badge_name;
+        std::string badge_icon;
+        std::string profile_text;
+        std::string tooltip;
+        LLColor4 tag_color;
+        bool has_tag_color = false;
 
-    static void requestLine(response_callback_t callback);
+        std::string getNametagTitle() const;
+        bool hasProfileBadge() const;
+    };
+
+    static void requestOnce();
+    static bool getUser(const LLUUID& agent_id, User& user);
+    static bool isRequested();
+    static bool isLoaded();
 
 private:
-    static void fetchCoro(std::string url, U32 timeout_seconds, U32 max_bytes, response_callback_t callback);
+    static void fetchCoro(std::string url, U32 timeout_seconds, U32 max_bytes);
 };
 
-#endif // LL_TASIA_WELCOME_CLIENT_H
+#endif // LL_TASIA_USER_CONFIG_H
