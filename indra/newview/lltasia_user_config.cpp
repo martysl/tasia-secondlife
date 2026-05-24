@@ -30,6 +30,7 @@
 #include "llhttpconstants.h"
 #include "llmath.h"
 #include "llsd.h"
+#include "llsecapi.h"
 #include "llstring.h"
 #include "llviewercontrol.h"
 #include "llvoavatar.h"
@@ -260,6 +261,13 @@ void LLTasiaUserConfig::requestOnce()
     {
         return;
     }
+
+    if (!gSecAPIHandler)
+    {
+        LL_DEBUGS("TasiaConfig") << "Remote user config fetch deferred until security handler is initialized" << LL_ENDL;
+        return;
+    }
+
     sRequested = true;
 
     if (!gSavedSettings.getBOOL("TasiaRemoteUserConfigEnabled"))
