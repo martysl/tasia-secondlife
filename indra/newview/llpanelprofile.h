@@ -36,8 +36,6 @@
 #include "llvoiceclient.h"
 #include "rlvhandler.h"
 
-#include <set> // <FS:PP> FIRE-32401: Contact Sets on groups list in profile
-
 // class LLPanelProfileClassifieds;
 // class LLTabContainer;
 
@@ -127,13 +125,12 @@ public:
 
     void setProfileImageUploading(bool loading);
     void setProfileImageUploaded(const LLUUID &image_asset_id);
+    void onTasiaRemoteBadgeDownloaded(const std::string& icon_url, const std::string& mime_type, const LLSD::Binary& body);
 
     bool hasUnsavedChanges() override;
     void commitUnsavedChanges() override;
 
     void processProperties(void* data, EAvatarProcessorType type) override;
-
-    void setAllowEdit(bool allow_edit) { mAllowEdit = allow_edit; }
 
     // <FS:Zi> FIRE-32184: Online/Offline status not working for non-friends
     void onAvatarProperties(const LLAvatarData* data);
@@ -149,7 +146,6 @@ protected:
      */
     // <FS> OpenSim
     void processGroupProperties(const LLAvatarGroups* avatar_groups);
-    void refreshGroupAndContactSetList(); // <FS:PP> FIRE-32401: Contact Sets on groups list in profile
 
     /**
      * Fills common for Avatar profile and My Profile fields.
@@ -176,6 +172,9 @@ protected:
      */
     void fillAgeData(const LLAvatarData* avatar_data);
     void fillTasiaUserData(const LLAvatarData* avatar_data, std::string& account_text);
+    bool setTasiaRemoteBadgeIcon(const std::string& icon_url, const std::string& tooltip, const std::string& fallback_badge_name);
+    void updateTasiaBadgeIconSize(LLViewerFetchedTexture* imagep);
+    void showTasiaBadgeFallback();
 
     void onImageLoaded(bool success, LLViewerFetchedTexture *imagep);
     static void onImageLoaded(bool success,
@@ -185,6 +184,16 @@ protected:
                               S32 discard_level,
                               bool final,
                               void* userdata);
+    static void onTasiaBadgeIconLoaded(bool success,
+                                      LLViewerFetchedTexture *src_vi,
+                                      LLImageRaw* src,
+                                      LLImageRaw* aux_src,
+                                      S32 discard_level,
+                                      bool final,
+                                      void* userdata);
+    std::string mTasiaBadgeFallbackName;
+    std::string mTasiaBadgeFallbackTooltip;
+    std::string mTasiaBadgeIconUrl;
 
     /**
      * Displays avatar's online status if possible.
@@ -236,7 +245,6 @@ private:
 private:
     typedef std::map<std::string, LLUUID> group_map_t;
     group_map_t             mGroups;
-    std::set<std::string>   mProfileContactSets; // <FS:PP> FIRE-32401: Contact Sets on groups list in profile
     void                    openGroupProfile();
 
     LLTextBox*          mStatusText; // <FS:Ansariel> Fix LL UI/UX design accident
@@ -289,13 +297,11 @@ private:
     bool                mAllowPublish;
     bool                mPreview; // <AS:Chanayane> Preview button
     bool                mHideAge;
-    bool                mAllowEdit;
     std::string         mDescriptionText;
     std::string         mOriginalDescriptionText; // <AS:Chanayane> Preview button
     LLUUID              mImageId;
 
     boost::signals2::connection mAvatarNameCacheConnection;
-    boost::signals2::connection mMenuNameCacheConnection;
 
     // <FS:Ansariel> RLVa support
     boost::signals2::connection mRlvBehaviorCallbackConnection;

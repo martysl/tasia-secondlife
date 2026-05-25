@@ -29,6 +29,9 @@
 
 // Common
 #include "llavatarnamecache.h"
+#include "llcorehttputil.h"
+#include "llcoros.h"
+#include "llhttpconstants.h"
 #include "llsdutil.h"
 #include "llslurl.h"
 #include "lldateutil.h" //ageFromDate
@@ -66,6 +69,7 @@
 #include "llfilepicker.h"
 #include "llfirstuse.h"
 #include "llgroupactions.h"
+#include "lllayoutstack.h"
 #include "lllogchat.h"
 #include "llmutelist.h"
 #include "llnotificationsutil.h"
@@ -82,7 +86,6 @@
 #include "llvoiceclient.h"
 #include "llweb.h"
 #include "llviewernetwork.h" // <FS:Beq> For LLGridManager
-#include "lggcontactsets.h" // <FS:PP> FIRE-32401: Contact Sets on groups list in profile
 
 #include "fsdata.h"
 #include "fsradar.h"        // <FS:Zi> Update notes in radar when edited
@@ -105,6 +108,88 @@ static const std::string PANEL_PROFILE_VIEW = "panel_profile_view";
 
 static const std::string PROFILE_PROPERTIES_CAP = "AgentProfile";
 static const std::string PROFILE_IMAGE_UPLOAD_CAP = "UploadAgentProfileImage";
+static const U32 TASIA_PROFILE_BADGE_MAX_BYTES = 10 * 1024 * 1024;
+
+static std::string tasia_badge_mime_from_url(const std::string& url)
+{
+    std::string path = url;
+    std::string::size_type query_pos = path.find_first_of("?#");
+    if (query_pos != std::string::npos)
+    {
+        path.erase(query_pos);
+    }
+    LLStringUtil::toLower(path);
+
+    if (LLStringUtil::endsWith(path, ".png")) return "image/png";
+    if (LLStringUtil::endsWith(path, ".jpg") || LLStringUtil::endsWith(path, ".jpeg")) return "image/jpeg";
+    if (LLStringUtil::endsWith(path, ".gif")) return "image/gif";
+    if (LLStringUtil::endsWith(path, ".bmp")) return "image/bmp";
+    if (LLStringUtil::endsWith(path, ".tga")) return "image/tga";
+    return "image/png";
+}
+
+static std::string tasia_badge_clean_mime(const std::string& content_type, const std::string& url)
+{
+    std::string mime = content_type;
+    std::string::size_type semicolon = mime.find(';');
+    if (semicolon != std::string::npos)
+    {
+        mime.erase(semicolon);
+    }
+    LLStringUtil::trim(mime);
+    LLStringUtil::toLower(mime);
+    return mime.empty() ? tasia_badge_mime_from_url(url) : mime;
+}
+
+static void tasia_fetch_profile_badge_coro(std::string icon_url, LLHandle<LLPanel> handle)
+{
+    LLCore::HttpRequest::ptr_t http_request(new LLCore::HttpRequest);
+    LLCoreHttpUtil::HttpCoroutineAdapter::ptr_t http_adapter(
+        new LLCoreHttpUtil::HttpCoroutineAdapter("TasiaProfileBadgeFetch", LLCore::HttpRequest::DEFAULT_POLICY_ID));
+    LLCore::HttpHeaders::ptr_t http_headers(new LLCore::HttpHeaders);
+    LLCore::HttpOptions::ptr_t http_options(new LLCore::HttpOptions);
+
+    http_options->setTimeout(60);
+    http_options->setTransferTimeout(60);
+    http_options->setRetries(0);
+    http_options->setFollowRedirects(true);
+    http_headers->append(HTTP_OUT_HEADER_ACCEPT, "image/png, image/jpeg, image/gif, image/*;q=0.9, */*;q=0.1");
+    http_headers->append(HTTP_OUT_HEADER_RANGE, "bytes=0-10485759");
+
+    LLSD result = http_adapter->getRawAndSuspend(http_request, icon_url, http_options, http_headers);
+    LLSD http_results = result[LLCoreHttpUtil::HttpCoroutineAdapter::HTTP_RESULTS];
+    LLCore::HttpStatus status = LLCoreHttpUtil::HttpCoroutineAdapter::getStatusFromLLSD(http_results);
+
+    if (handle.isDead())
+    {
+        return;
+    }
+
+    LLPanelProfileSecondLife* panel = static_cast<LLPanelProfileSecondLife*>(handle.get());
+    if (!panel)
+    {
+        return;
+    }
+
+    if (!status || !result.has(LLCoreHttpUtil::HttpCoroutineAdapter::HTTP_RESULTS_RAW))
+    {
+        LL_WARNS("TasiaProfile") << "Profile badge fetch failed for " << icon_url << ": " << status.toString() << LL_ENDL;
+        panel->onTasiaRemoteBadgeDownloaded(icon_url, std::string(), LLSD::Binary());
+        return;
+    }
+
+    const LLSD::Binary& raw = result[LLCoreHttpUtil::HttpCoroutineAdapter::HTTP_RESULTS_RAW].asBinary();
+    if (raw.empty() || raw.size() > TASIA_PROFILE_BADGE_MAX_BYTES)
+    {
+        LL_WARNS("TasiaProfile") << "Profile badge fetch returned invalid size for " << icon_url << ": " << raw.size() << LL_ENDL;
+        panel->onTasiaRemoteBadgeDownloaded(icon_url, std::string(), LLSD::Binary());
+        return;
+    }
+
+    LLSD result_headers = http_results[LLCoreHttpUtil::HttpCoroutineAdapter::HTTP_RESULTS_HEADERS];
+    const std::string mime = tasia_badge_clean_mime(result_headers[HTTP_IN_HEADER_CONTENT_TYPE].asString(), icon_url);
+    panel->onTasiaRemoteBadgeDownloaded(icon_url, mime, raw);
+}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -112,11 +197,11 @@ LLUUID post_profile_image(std::string cap_url, const LLSD &first_data, std::stri
 {
     LLCore::HttpRequest::policy_t httpPolicy(LLCore::HttpRequest::DEFAULT_POLICY_ID);
     LLCoreHttpUtil::HttpCoroutineAdapter::ptr_t
-        httpAdapter = std::make_shared<LLCoreHttpUtil::HttpCoroutineAdapter>("post_profile_image_coro", httpPolicy);
-    LLCore::HttpRequest::ptr_t httpRequest = std::make_shared<LLCore::HttpRequest>();
+        httpAdapter(new LLCoreHttpUtil::HttpCoroutineAdapter("post_profile_image_coro", httpPolicy));
+    LLCore::HttpRequest::ptr_t httpRequest(new LLCore::HttpRequest);
     LLCore::HttpHeaders::ptr_t httpHeaders;
 
-    LLCore::HttpOptions::ptr_t httpOpts = std::make_shared<LLCore::HttpOptions>();
+    LLCore::HttpOptions::ptr_t httpOpts(new LLCore::HttpOptions);
     httpOpts->setFollowRedirects(true);
 
     LLSD result = httpAdapter->postAndSuspend(httpRequest, cap_url, first_data, httpOpts, httpHeaders);
@@ -144,9 +229,9 @@ LLUUID post_profile_image(std::string cap_url, const LLSD &first_data, std::stri
     }
 
     // Upload the image
-    LLCore::HttpRequest::ptr_t uploaderhttpRequest = std::make_shared<LLCore::HttpRequest>();
-    LLCore::HttpHeaders::ptr_t uploaderhttpHeaders = std::make_shared<LLCore::HttpHeaders>();
-    LLCore::HttpOptions::ptr_t uploaderhttpOpts = std::make_shared<LLCore::HttpOptions>();
+    LLCore::HttpRequest::ptr_t uploaderhttpRequest(new LLCore::HttpRequest);
+    LLCore::HttpHeaders::ptr_t uploaderhttpHeaders(new LLCore::HttpHeaders);
+    LLCore::HttpOptions::ptr_t uploaderhttpOpts(new LLCore::HttpOptions);
     S64 length;
 
     {
@@ -335,8 +420,8 @@ public:
 
         const std::string verb = params[1].asString();
         // <FS:Ansariel> FIRE-9045: Inspect links always open full profile
-        //if (verb == "about" || verb == "mention")
-        if (verb == "about" || verb == "mention" || (gSavedSettings.getBOOL("FSInspectAvatarSlurlOpensProfile") && verb == "inspect"))
+        //if (verb == "about")
+        if (verb == "about" || (gSavedSettings.getBOOL("FSInspectAvatarSlurlOpensProfile") && verb == "inspect"))
         // </FS:Ansariel>
         {
             LLAvatarActions::showProfile(avatar_id);
@@ -718,7 +803,6 @@ LLPanelProfileSecondLife::LLPanelProfileSecondLife()
     , mWaitingForImageUpload(false)
     , mAllowPublish(false)
     , mHideAge(false)
-    , mAllowEdit(true)
     , mRlvBehaviorCallbackConnection() // <FS:Ansariel> RLVa support
     , mPreview(false)                  // <AS:Chanayane> Preview button
 {
@@ -738,10 +822,6 @@ LLPanelProfileSecondLife::~LLPanelProfileSecondLife()
     if (mAvatarNameCacheConnection.connected())
     {
         mAvatarNameCacheConnection.disconnect();
-    }
-    if (mMenuNameCacheConnection.connected())
-    {
-        mMenuNameCacheConnection.disconnect();
     }
 
     // <FS:Ansariel> RLVa support
@@ -857,21 +937,20 @@ void LLPanelProfileSecondLife::onOpen(const LLSD& key)
     LLUUID avatar_id = getAvatarId();
 
     bool own_profile = getSelfProfile();
-    bool allow_edit = own_profile && mAllowEdit;
 
     mGroupList->setShowNone(!own_profile);
 
-    //childSetVisible("notes_panel", !allow_edit); // <FS:Ansariel> Doesn't exist (anymore)
+    //childSetVisible("notes_panel", !own_profile); // <FS:Ansariel> Doesn't exist (anymore)
     // <FS:Ansariel> Fix LL UI/UX design accident
-    //childSetVisible("settings_panel", allow_edit);
-    //childSetVisible("about_buttons_panel", allow_edit);
-    mSaveDescriptionChanges->setVisible(allow_edit);
-    mDiscardDescriptionChanges->setVisible(allow_edit);
-    mShowInSearchCheckbox->setVisible(allow_edit);
+    //childSetVisible("settings_panel", own_profile);
+    //childSetVisible("about_buttons_panel", own_profile);
+    mSaveDescriptionChanges->setVisible(own_profile);
+    mDiscardDescriptionChanges->setVisible(own_profile);
+    mShowInSearchCheckbox->setVisible(own_profile);
     // </FS:Ansariel>
-    mPreviewButton->setVisible(allow_edit); // <AS:Chanayane> Preview button
+    mPreviewButton->setVisible(own_profile); // <AS:Chanayane> Preview button
 
-    if (allow_edit)
+    if (own_profile)
     {
         // Group list control cannot toggle ForAgent loading
         // Less than ideal, but viewing own profile via search is edge case
@@ -920,7 +999,7 @@ void LLPanelProfileSecondLife::onOpen(const LLSD& key)
     mCopyMenuButton->setMenu("menu_fs_profile_name_field.xml", LLMenuButton::MP_BOTTOM_RIGHT);
     // </FS:Ansariel>
 
-    mDescriptionEdit->setParseHTML(!allow_edit);
+    mDescriptionEdit->setParseHTML(!own_profile);
 
     if (!own_profile)
     {
@@ -989,18 +1068,14 @@ void LLPanelProfileSecondLife::updateData()
 #ifdef OPENSIM
     if (LLGridManager::instance().isInOpenSim() && gAgent.getRegionCapability(PROFILE_PROPERTIES_CAP).empty())
     {
-        LLUUID avatar_id = getAvatarId();
-        if (!getStarted() && avatar_id.notNull())
-        {
-            setIsLoading();
-            if (!getSelfProfile())
-            {
+    LLUUID avatar_id = getAvatarId();
+        if (!getStarted() && avatar_id.notNull() && gAgent.getRegionCapability(PROFILE_PROPERTIES_CAP).empty() && !getSelfProfile())
+    {
+        setIsLoading();
                 LLAvatarPropertiesProcessor::getInstance()->sendAvatarGroupsRequest(avatar_id);
             }
-            LLAvatarPropertiesProcessor::getInstance()->sendAvatarLegacyPropertiesRequest(avatar_id);
-        }
     }
-    else
+            else
 #endif
     {
         LLPanelProfilePropertiesProcessorTab::updateData();
@@ -1038,7 +1113,7 @@ void LLPanelProfileSecondLife::resetData()
 
     // Set default image and 1:1 dimensions for it
     // <FS:Ansariel> Retain texture picker for profile images
-    //mSecondLifePic->setValue(LLUUID());
+    //mSecondLifePic->setValue("Generic_Person_Large");
     mSecondLifePic->setImageAssetID(LLUUID::null);
     mImageId = LLUUID::null;
 
@@ -1049,10 +1124,7 @@ void LLPanelProfileSecondLife::resetData()
 
     setDescriptionText(LLStringUtil::null);
     mGroups.clear();
-    // <FS:PP> FIRE-32401: Contact Sets on groups list in profile
-    // mGroupList->setGroups(mGroups);
-    refreshGroupAndContactSetList();
-    // </FS:PP>
+    mGroupList->setGroups(mGroups);
 
     bool own_profile = getSelfProfile();
     mCanSeeOnlineIcon->setVisible(false);
@@ -1082,6 +1154,13 @@ void LLPanelProfileSecondLife::resetData()
     childSetVisible("badge_layout", false);
     childSetVisible("top_badge_layout", false);
     childSetVisible("bottom_badge_layout", false);
+    childSetVisible("tasia_badge_layout", false);
+    getChild<LLThumbnailCtrl>("tasia_badge_icon")->clearTexture();
+    mTasiaBadgeFallbackName.clear();
+    mTasiaBadgeFallbackTooltip.clear();
+    mTasiaBadgeIconUrl.clear();
+    getChild<LLLayoutPanel>("tasia_badge_layout")->setTargetDim(1);
+    getChild<LLLayoutPanel>("tasia_badge_layout")->setMinDim(1);
     getChild<LLUICtrl>("account_info")->setToolTip(std::string());
     // <FS:Zi> Always show the online status text, just set it to "offline" when a friend is hiding
     // mStatusText->setVisible(false);
@@ -1089,8 +1168,8 @@ void LLPanelProfileSecondLife::resetData()
     mGroupInviteButton->setVisible(!own_profile);
     if (own_profile && LLAvatarName::useDisplayNames())
     {
-        mDisplayNameButton->setVisible(mAllowEdit);
-        mDisplayNameButton->setEnabled(mAllowEdit);
+        mDisplayNameButton->setVisible(true);
+        mDisplayNameButton->setEnabled(true);
     }
     mShowOnMapButton->setVisible(!own_profile);
     mPayButton->setVisible(!own_profile);
@@ -1182,11 +1261,7 @@ void LLPanelProfileSecondLife::processProfileProperties(const LLAvatarData* avat
         mGroups[group_data.group_name] = group_data.group_id;
     }
 
-    // <FS:PP> FIRE-32401: Contact Sets on groups list in profile
-    // mGroupList->setGroups(mGroups);
-    refreshGroupAndContactSetList();
-    // </FS:PP>
-
+    mGroupList->setGroups(mGroups);
     } // </FS>
 
 // <FS:Beq> Restore UDP profiles
@@ -1194,17 +1269,19 @@ void LLPanelProfileSecondLife::processProfileProperties(const LLAvatarData* avat
     if (LLGridManager::instance().isInOpenSim())
     {
         LLFloater* floater_profile = LLFloaterReg::findInstance("profile", LLSD().with("id", getAvatarId()));
-        if (floater_profile)
+        if (!floater_profile)
         {
-            LLPanelProfile* panel_profile = floater_profile->findChild<LLPanelProfile>(PANEL_PROFILE_VIEW, true);
-            if (panel_profile)
-            {
-                panel_profile->setAvatarData(avatar_data);
-            }
-            else
-            {
-                LL_WARNS() << PANEL_PROFILE_VIEW << " not found" << LL_ENDL;
-            }
+            // floater is dead, so panels are dead as well
+            return;
+        }
+        LLPanelProfile* panel_profile = floater_profile->findChild<LLPanelProfile>(PANEL_PROFILE_VIEW, true);
+        if (panel_profile)
+        {
+            panel_profile->setAvatarData(avatar_data);
+        }
+        else
+        {
+            LL_WARNS() << PANEL_PROFILE_VIEW << " not found" << LL_ENDL;
         }
     }
 #endif
@@ -1228,73 +1305,15 @@ void LLPanelProfileSecondLife::processGroupProperties(const LLAvatarGroups* avat
         mGroups[group_data.group_name] = group_data.group_id;
     }
 
-    // <FS:PP> FIRE-32401: Contact Sets on groups list in profile
-    // mGroupList->setGroups(mGroups);
-    refreshGroupAndContactSetList();
-    // </FS:PP>
-
+    mGroupList->setGroups(mGroups);
 }
 // </FS>
 
-// <FS:PP> FIRE-32401: Contact Sets on groups list in profile
-void LLPanelProfileSecondLife::refreshGroupAndContactSetList()
-{
-    std::vector<std::string> profile_contact_sets = LGGContactSets::instance().getFriendSets(getAvatarId());
-    std::vector<std::string> filtered_contact_sets;
-    std::map<std::string, LLColor4> profile_contact_set_colors;
-
-    mProfileContactSets.clear();
-    for (const std::string& set_name : profile_contact_sets)
-    {
-        if (set_name.empty() || LGGContactSets::instance().isInternalSetName(set_name))
-        {
-            continue;
-        }
-        filtered_contact_sets.push_back(set_name);
-        mProfileContactSets.insert(set_name);
-    }
-
-    static LLCachedControl<bool> fsContactSetsColorizeFriends(gSavedSettings, "FSContactSetsColorizeFriends", false);
-    if (fsContactSetsColorizeFriends)
-    {
-        for (const std::string& set_name : filtered_contact_sets)
-        {
-            profile_contact_set_colors[set_name] = LGGContactSets::instance().getSetColor(set_name);
-        }
-    }
-
-    mGroupList->setShowFavoritesSeparator(!getSelfProfile());
-    mGroupList->setGroups(mGroups);
-    mGroupList->setSecondaryGroups(filtered_contact_sets, profile_contact_set_colors);
-}
-
-// void LLPanelProfileSecondLife::openGroupProfile()
-// {
-//     LLUUID group_id = mGroupList->getSelectedUUID();
-//     LLGroupActions::show(group_id);
-// }
-
 void LLPanelProfileSecondLife::openGroupProfile()
 {
-    const std::string selected_name = mGroupList->getSelectedGroupName();
-    if (selected_name.empty())
-    {
-        return;
-    }
-
     LLUUID group_id = mGroupList->getSelectedUUID();
-    if (group_id.notNull())
-    {
-        LLGroupActions::show(group_id);
-        return;
-    }
-
-    if (!selected_name.empty() && mProfileContactSets.find(selected_name) != mProfileContactSets.end())
-    {
-        LLFloaterReg::showInstance("imcontacts", LLSD("contact_sets"));
-    }
+    LLGroupActions::show(group_id);
 }
-// </FS:PP>
 
 void LLPanelProfileSecondLife::onAvatarNameCache(const LLUUID& agent_id, const LLAvatarName& av_name)
 {
@@ -1434,7 +1453,7 @@ void LLPanelProfileSecondLife::fillCommonData(const LLAvatarData* avatar_data)
     {
         mAllowPublish = avatar_data->flags & AVATAR_ALLOW_PUBLISH;
         // <FS:Ansariel> Fix LL UI/UX design accident
-        //mShowInSearchCombo->setValue(mAllowPublish ? LLSD::Integer(1) : LLSD::Integer(0));
+        //mShowInSearchCombo->setValue(mAllowPublish);
         mShowInSearchCheckbox->setValue(mAllowPublish);
         // </FS:Ansariel>
     }
@@ -1661,7 +1680,140 @@ void LLPanelProfileSecondLife::fillTasiaUserData(const LLAvatarData* avatar_data
         account_info->setToolTip(tooltip);
     }
 
-    setBadgeRawTooltip("Profile_Badge_Team", tooltip.empty() ? line : tooltip, BadgeLocation::top);
+    if (!setTasiaRemoteBadgeIcon(tasia_user.badge_icon, tooltip.empty() ? line : tooltip, tasia_user.badge_name))
+    {
+        setBadgeRawTooltip("Profile_Badge_Team", tooltip.empty() ? line : tooltip, BadgeLocation::top);
+    }
+}
+
+bool LLPanelProfileSecondLife::setTasiaRemoteBadgeIcon(const std::string& icon_url, const std::string& tooltip, const std::string& fallback_badge_name)
+{
+    if (icon_url.empty() ||
+        (!LLStringUtil::startsWith(icon_url, "https://") && !LLStringUtil::startsWith(icon_url, "http://")))
+    {
+        return false;
+    }
+
+    LLThumbnailCtrl* icon_ctrl = getChild<LLThumbnailCtrl>("tasia_badge_icon");
+    icon_ctrl->clearTexture();
+    icon_ctrl->setToolTip(tooltip);
+
+    childSetVisible("tasia_badge_layout", false);
+    mTasiaBadgeFallbackName = fallback_badge_name;
+    mTasiaBadgeFallbackTooltip = tooltip;
+    mTasiaBadgeIconUrl = icon_url;
+
+    LLCoros::instance().launch("TasiaProfileBadgeFetch",
+        boost::bind(tasia_fetch_profile_badge_coro, icon_url, getHandle()));
+
+    return true;
+}
+
+void LLPanelProfileSecondLife::onTasiaRemoteBadgeDownloaded(const std::string& icon_url, const std::string& mime_type, const LLSD::Binary& body)
+{
+    if (icon_url != mTasiaBadgeIconUrl)
+    {
+        return;
+    }
+
+    if (body.empty() || mime_type.empty())
+    {
+        showTasiaBadgeFallback();
+        return;
+    }
+
+    LLViewerFetchedTexture* imagep = gTextureList.getImageFromMemory(&body[0], static_cast<U32>(body.size()), mime_type);
+    if (!imagep)
+    {
+        LL_WARNS("TasiaProfile") << "Failed to decode profile badge image from " << icon_url << " as " << mime_type << LL_ENDL;
+        showTasiaBadgeFallback();
+        return;
+    }
+
+    LLThumbnailCtrl* icon_ctrl = getChild<LLThumbnailCtrl>("tasia_badge_icon");
+    icon_ctrl->setTexture(imagep, true);
+    icon_ctrl->setToolTip(mTasiaBadgeFallbackTooltip);
+    childSetVisible("tasia_badge_layout", true);
+
+    updateTasiaBadgeIconSize(imagep);
+}
+
+void LLPanelProfileSecondLife::showTasiaBadgeFallback()
+{
+    mTasiaBadgeIconUrl.clear();
+    childSetVisible("tasia_badge_layout", false);
+    getChild<LLThumbnailCtrl>("tasia_badge_icon")->clearTexture();
+    setBadgeRawTooltip("Profile_Badge_Team",
+        mTasiaBadgeFallbackTooltip.empty() ? mTasiaBadgeFallbackName : mTasiaBadgeFallbackTooltip,
+        BadgeLocation::top);
+}
+
+void LLPanelProfileSecondLife::updateTasiaBadgeIconSize(LLViewerFetchedTexture* imagep)
+{
+    if (!imagep || imagep->getFullWidth() <= 0 || imagep->getFullHeight() <= 0)
+    {
+        return;
+    }
+
+    const S32 image_width = imagep->getFullWidth();
+    const S32 image_height = imagep->getFullHeight();
+    const S32 panel_width = image_width + 4;
+    const S32 row_height = llmax(44, image_height + 4);
+
+    LLThumbnailCtrl* icon_ctrl = getChild<LLThumbnailCtrl>("tasia_badge_icon");
+    icon_ctrl->reshape(image_width, image_height);
+
+    LLLayoutPanel* badge_layout = getChild<LLLayoutPanel>("tasia_badge_layout");
+    badge_layout->setMinDim(panel_width);
+    badge_layout->setTargetDim(panel_width);
+    badge_layout->reshape(panel_width, row_height);
+
+    LLLayoutStack* badge_positioner = getChild<LLLayoutStack>("badgepositioner");
+    badge_positioner->reshape(badge_positioner->getRect().getWidth(), row_height);
+    badge_positioner->updateLayout();
+
+    getChild<LLUICtrl>("info_border_acc_status_text")->reshape(
+        getChild<LLUICtrl>("info_border_acc_status_text")->getRect().getWidth(),
+        row_height + 1);
+    getChild<LLUICtrl>("account_info")->reshape(
+        getChild<LLUICtrl>("account_info")->getRect().getWidth(),
+        row_height);
+}
+
+void LLPanelProfileSecondLife::onTasiaBadgeIconLoaded(bool success,
+                                                     LLViewerFetchedTexture *src_vi,
+                                                     LLImageRaw* src,
+                                                     LLImageRaw* aux_src,
+                                                     S32 discard_level,
+                                                     bool final,
+                                                     void* userdata)
+{
+    if (!userdata) return;
+
+    LLHandle<LLPanel>* handle = (LLHandle<LLPanel>*)userdata;
+    if (!handle->isDead())
+    {
+        LLPanelProfileSecondLife* panel = static_cast<LLPanelProfileSecondLife*>(handle->get());
+        if (panel)
+        {
+            if (success)
+            {
+                panel->updateTasiaBadgeIconSize(src_vi);
+            }
+            else
+            {
+                panel->childSetVisible("tasia_badge_layout", false);
+                panel->setBadgeRawTooltip("Profile_Badge_Team",
+                    panel->mTasiaBadgeFallbackTooltip.empty() ? panel->mTasiaBadgeFallbackName : panel->mTasiaBadgeFallbackTooltip,
+                    BadgeLocation::top);
+            }
+        }
+    }
+
+    if (final || !success)
+    {
+        delete handle;
+    }
 }
 
 // <FS:Ansariel> Fix LL UI/UX design accident
@@ -1934,14 +2086,14 @@ void LLPanelProfileSecondLife::setLoaded()
         //if (mHideAgeCombo->getVisible())
         //{
         //    mHideAgeCombo->setEnabled(true);
-        mShowInSearchCheckbox->setEnabled(mAllowEdit);
-        mPreviewButton->setEnabled(mAllowEdit); // <AS:Chanayane> Preview button
+        mShowInSearchCheckbox->setEnabled(true);
+        mPreviewButton->setEnabled(true); // <AS:Chanayane> Preview button
         if (mHideAgeCheckbox->getVisible())
         {
-            mHideAgeCheckbox->setEnabled(mAllowEdit);
+            mHideAgeCheckbox->setEnabled(true);
         // </FS:Ansariel>
         }
-        mDescriptionEdit->setEnabled(mAllowEdit);
+        mDescriptionEdit->setEnabled(true);
     }
 }
 
@@ -1950,13 +2102,13 @@ void LLPanelProfileSecondLife::updateButtons()
 {
     if (getSelfProfile())
     {
-        mShowInSearchCheckbox->setVisible(mAllowEdit);
-        mShowInSearchCheckbox->setEnabled(mAllowEdit);
+        mShowInSearchCheckbox->setVisible(true);
+        mShowInSearchCheckbox->setEnabled(true);
 // <AS:Chanayane> Preview button
-        mPreviewButton->setVisible(mAllowEdit);
-        mPreviewButton->setEnabled(mAllowEdit);
+        mPreviewButton->setVisible(true);
+        mPreviewButton->setEnabled(true);
 // </AS:Chanayane>
-        mDescriptionEdit->setEnabled(mAllowEdit);
+        mDescriptionEdit->setEnabled(true);
     }
     else
     {
@@ -2024,7 +2176,7 @@ private:
 };
 
 LLProfileImagePicker::LLProfileImagePicker(EProfileImageType type, LLHandle<LLPanel> *handle)
-    : LLFilePickerThread(LLFilePicker::FFLOAD_IMAGE),
+    : LLFilePickerThread(FFLOAD_IMAGE),
     mHandle(handle),
     mType(type)
 {
@@ -2187,7 +2339,7 @@ void LLPanelProfileSecondLife::onCommitMenu(const LLSD& userdata)
     }
     else if (item_name == "edit_display_name")
     {
-        mMenuNameCacheConnection = LLAvatarNameCache::get(getAvatarId(), boost::bind(&LLPanelProfileSecondLife::onAvatarNameCacheSetName, this, _1, _2));
+        LLAvatarNameCache::get(getAvatarId(), boost::bind(&LLPanelProfileSecondLife::onAvatarNameCacheSetName, this, _1, _2));
         LLFirstUse::setDisplayName(false);
     }
     else if (item_name == "edit_partner")
@@ -2445,13 +2597,6 @@ void LLPanelProfileSecondLife::onHideAgeCallback()
 
 void LLPanelProfileSecondLife::onSaveDescriptionChanges()
 {
-    // <FS:Trish> Fix applying changes when exiting profile causing the preview text to apply if preview mode is active
-    if (mPreview)
-    {
-        onCommitMenu(LLSD("preview"));
-    }
-    // </FS:Trish>
-
     mDescriptionText = mDescriptionEdit->getValue().asString();
     if (!gAgent.getRegionCapability(PROFILE_PROPERTIES_CAP).empty())
     {
@@ -2751,11 +2896,6 @@ bool LLPanelProfileWeb::postBuild()
     mWebBrowser->addObserver(this);
     mWebBrowser->setHomePageUrl("about:blank");
 
-    // <FS:PP> Load cookies in the profile, in feed tab
-    mWebBrowser->setErrorPageURL(gSavedSettings.getString("GenericErrorPageURL"));
-    LLViewerMedia::getInstance()->getOpenIDCookie(mWebBrowser);
-    // </FS:PP>
-
     return true;
 }
 
@@ -3015,7 +3155,6 @@ void LLPanelProfileFirstLife::onChangePhoto()
                 }
             });
             texture_floaterp->setLocalTextureEnabled(false);
-            texture_floaterp->setBakeTextureEnabled(false);
             texture_floaterp->setCanApply(false, true, false);
 
             parent_floater->addDependentFloater(mFloaterTexturePickerHandle);
@@ -3117,13 +3256,6 @@ void LLPanelProfileFirstLife::onSetDescriptionDirty()
 
 void LLPanelProfileFirstLife::onSaveDescriptionChanges()
 {
-    // <FS:Trish> Fix applying changes when exiting profile causing the preview text to apply if preview mode is active
-    if (mPreview)
-    {
-        onClickPreview();
-    }
-    // </FS:Trish>
-
     mCurrentDescription = mDescriptionEdit->getValue().asString();
     if (!gAgent.getRegionCapability(PROFILE_PROPERTIES_CAP).empty())
     {
@@ -3534,13 +3666,19 @@ void LLPanelProfile::updateData()
         mPanelNotes->setIsLoading();
         } // <FS:Beq/> restore udp profiles
 
-        // <FS:Beq> Restore UDP profiles
+// <FS:Beq> Restore UDP profiles
         //LLAvatarPropertiesProcessor::getInstance()->sendAvatarPropertiesRequest(getAvatarId());
         if (!gAgent.getRegionCapability(PROFILE_PROPERTIES_CAP).empty())
         {
             LLAvatarPropertiesProcessor::getInstance()->sendAvatarPropertiesRequest(getAvatarId());
         }
-        // </FS:Beq>
+#ifdef OPENSIM
+        else if (LLGridManager::instance().isInOpenSim())
+        {
+            LLAvatarPropertiesProcessor::getInstance()->sendAvatarLegacyPropertiesRequest(avatar_id);
+        }
+#endif
+// </FS:Beq>
     }
 }
 

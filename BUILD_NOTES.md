@@ -1,5 +1,23 @@
 # Build Notes
 
+## 2026-05-25: Profile remote badge image loading
+
+- Branch/worktree: `feature/tasia-tag-badge-fix` at `/mnt/a/2026/tasia-tag-badge-fix`.
+- Changed profile remote badge loading away from `LLViewerTextureManager::getFetchedTextureFromUrl(...)`.
+- New flow:
+  - coroutine downloads raw image bytes with redirects enabled
+  - timeout/transfer timeout: 60 seconds
+  - retries: 0
+  - range request/max accepted body: 10 MiB
+  - content type is cleaned from response headers, with URL extension fallback
+  - image is decoded with `gTextureList.getImageFromMemory(...)`
+  - `LLThumbnailCtrl::setTexture(...)` displays the decoded in-memory texture
+- Fallback remains `Profile_Badge_Team` if fetch/decode fails.
+
+### Focused checks
+- `git diff --check`: passed.
+- Static review: handle lifetime, stale URL response guard, redirect/range support checked.
+
 ## 2026-05-24: Remote Tasia user config
 
 - New files:
