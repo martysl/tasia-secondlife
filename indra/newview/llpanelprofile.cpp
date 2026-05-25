@@ -82,6 +82,7 @@
 #include "llviewercontrol.h"
 #include "llviewermenu.h" //is_agent_mappable
 #include "llviewermenufile.h"
+#include "llviewertexture.h"
 #include "llviewertexturelist.h"
 #include "llvoiceclient.h"
 #include "llweb.h"
@@ -1667,14 +1668,6 @@ void LLPanelProfileSecondLife::fillTasiaUserData(const LLAvatarData* avatar_data
     {
         tooltip = tasia_user.profile_text.empty() ? tasia_user.badge_name : tasia_user.profile_text;
     }
-    if (!tasia_user.badge_icon.empty())
-    {
-        if (!tooltip.empty())
-        {
-            tooltip += "\n";
-        }
-        tooltip += tasia_user.badge_icon;
-    }
     if (!tooltip.empty())
     {
         account_info->setToolTip(tooltip);
@@ -1722,7 +1715,7 @@ void LLPanelProfileSecondLife::onTasiaRemoteBadgeDownloaded(const std::string& i
         return;
     }
 
-    LLViewerFetchedTexture* imagep = gTextureList.getImageFromMemory(&body[0], static_cast<U32>(body.size()), mime_type);
+    LLViewerFetchedTexture* imagep = LLViewerTextureManager::getFetchedTextureFromMemory(&body[0], static_cast<U32>(body.size()), mime_type);
     if (!imagep)
     {
         LL_WARNS("TasiaProfile") << "Failed to decode profile badge image from " << icon_url << " as " << mime_type << LL_ENDL;

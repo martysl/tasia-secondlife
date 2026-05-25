@@ -10,13 +10,14 @@
   - retries: 0
   - range request/max accepted body: 10 MiB
   - content type is cleaned from response headers, with URL extension fallback
-  - image is decoded with `gTextureList.getImageFromMemory(...)`
+  - image is decoded with `LLViewerTextureManager::getFetchedTextureFromMemory(...)`
   - `LLThumbnailCtrl::setTexture(...)` displays the decoded in-memory texture
 - Fallback remains `Profile_Badge_Team` if fetch/decode fails.
+- Profile badge hover text no longer includes the badge image URL.
 
 ### Focused checks
-- `git diff --check`: passed.
-- Static review: handle lifetime, stale URL response guard, redirect/range support checked.
+- Initial CI failed because `LLViewerTextureList::getImageFromMemory(...)` is private.
+- Follow-up fix switches to public `LLViewerTextureManager::getFetchedTextureFromMemory(...)`.
 
 ## 2026-05-24: Remote Tasia user config
 
