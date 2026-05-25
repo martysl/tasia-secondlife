@@ -14,6 +14,8 @@
   - `LLThumbnailCtrl::setTexture(...)` displays the decoded in-memory texture
 - Fallback remains `Profile_Badge_Team` if fetch/decode fails.
 - Profile badge hover text no longer includes the badge image URL.
+- Fallback team badge now shows immediately while the remote badge image is fetched/decoded.
+- Added `TasiaProfile` log lines for fetch/decode/display status.
 
 ### Focused checks
 - Initial CI failed because `LLViewerTextureList::getImageFromMemory(...)` is private.

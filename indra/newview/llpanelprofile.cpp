@@ -189,6 +189,7 @@ static void tasia_fetch_profile_badge_coro(std::string icon_url, LLHandle<LLPane
 
     LLSD result_headers = http_results[LLCoreHttpUtil::HttpCoroutineAdapter::HTTP_RESULTS_HEADERS];
     const std::string mime = tasia_badge_clean_mime(result_headers[HTTP_IN_HEADER_CONTENT_TYPE].asString(), icon_url);
+    LL_INFOS("TasiaProfile") << "Profile badge fetched from " << icon_url << " as " << mime << ", bytes=" << raw.size() << LL_ENDL;
     panel->onTasiaRemoteBadgeDownloaded(icon_url, mime, raw);
 }
 
@@ -1696,6 +1697,10 @@ bool LLPanelProfileSecondLife::setTasiaRemoteBadgeIcon(const std::string& icon_u
     mTasiaBadgeFallbackTooltip = tooltip;
     mTasiaBadgeIconUrl = icon_url;
 
+    setBadgeRawTooltip("Profile_Badge_Team",
+        mTasiaBadgeFallbackTooltip.empty() ? mTasiaBadgeFallbackName : mTasiaBadgeFallbackTooltip,
+        BadgeLocation::top);
+
     LLCoros::instance().launch("TasiaProfileBadgeFetch",
         boost::bind(tasia_fetch_profile_badge_coro, icon_url, getHandle()));
 
@@ -1727,6 +1732,8 @@ void LLPanelProfileSecondLife::onTasiaRemoteBadgeDownloaded(const std::string& i
     icon_ctrl->setTexture(imagep, true);
     icon_ctrl->setToolTip(mTasiaBadgeFallbackTooltip);
     childSetVisible("tasia_badge_layout", true);
+    LL_INFOS("TasiaProfile") << "Profile badge decoded and displayed from " << icon_url
+                              << ", size=" << imagep->getFullWidth() << "x" << imagep->getFullHeight() << LL_ENDL;
 
     updateTasiaBadgeIconSize(imagep);
 }
