@@ -94,6 +94,7 @@ Next work:
 
 ## Completed Milestones
 
+<<<<<<< HEAD
 - v0.1.0 release (tagged) - Linux builds and runs with FMOD
 - FMOD integration working (private deps pipeline)
 - KDU removed
@@ -103,3 +104,71 @@ Next work:
 - GCC -Wmaybe-uninitialized fixed (real fix, not suppression)
 - **Grid Lock added**: I-Grid Beta included, SL grids blocked programmatically at all entry points, startup purge of existing SL grids
 - **Version bumped to 8.0.1**: Display version 8.0.1.<GitHub run number>, commit SHA visible in About window
+=======
+## What is broken
+- Full viewer build has not been run for this badge image loading patch yet.
+
+## What was last attempted
+- Focused code review/static sanity pass on profile badge image loading patch.
+- CI builds were triggered after commit `4ed7ac0c21`.
+- Removed profile badge URL from hover tooltip; hover now uses configured tooltip/profile text only.
+
+## Exact last failing step
+- Linux run `26417570550` and Windows run `26417571261` failed compiling `indra/newview/llpanelprofile.cpp` because `LLViewerTextureList::getImageFromMemory(...)` is private.
+
+## What must not be changed
+- Existing GIPHY/welcome/chat preview behavior.
+- Existing remote config JSON schema and fallback badge behavior.
+
+## Next exact action
+- Commit and push fix to use public `LLViewerTextureManager::getFetchedTextureFromMemory(...)`, then rerun focused Linux/Windows CI builds.
+
+## 2026-05-26 Badge release
+
+## What is done
+- Latest badge fallback builds passed:
+  - Linux run `26422421054` / commit `fbec75918c`
+  - Windows run `26422421559` / commit `bef3638071`
+- Published prereleases:
+  - Linux `v8.0.1-20`: `https://github.com/martysl/tasia-viewer/releases/tag/v8.0.1-20`
+  - Windows `v8.0.1-47-windows`: `https://github.com/martysl/tasia-viewer/releases/tag/v8.0.1-47-windows`
+- Deleted older visible releases `v8.0.1-17` and `v8.0.1-44-windows`.
+- Deleted older current-viewer Actions runs, keeping latest Linux/Windows release runs visible.
+
+## What is broken
+- Nothing release-blocking currently known.
+
+## What was last attempted
+- Posted formatted Discord message with separator lines using Mom-provided webhook.
+
+## Exact last failing step
+- Earlier local webhook from `~/.config/opencode/token.txt` returned HTTP 403; Mom-provided webhook succeeded with HTTP 204 when sent with a User-Agent header.
+
+## What must not be changed
+- Published release tags/assets unless replacing with a new build.
+
+## Next exact action
+- Runtime-test the new release builds, especially profile badge fallback/loading behavior.
+
+## 2026-05-26 Built-in profile badge names
+
+## What is done
+- Added support for using built-in profile badge texture names directly in `badge_name`.
+- Supported names: `Profile_Badge_Beta`, `Profile_Badge_Beta_Lifetime`, `Profile_Badge_Lifetime`, `Profile_Badge_Linden`, `Profile_Badge_Pplus_Lifetime`, `Profile_Badge_Premium_Lifetime`, `Profile_Badge_Team`.
+- Remote `badge_icon` URL still takes priority; built-in `badge_name` is used as fallback while remote image loads or if no URL is provided.
+
+## What is broken
+- Not built yet after the built-in badge-name change.
+
+## What was last attempted
+- Static patch and whitespace checks.
+
+## Exact last failing step
+- None yet for this change.
+
+## What must not be changed
+- Existing URL-based remote badge behavior and fallback team badge behavior.
+
+## Next exact action
+- Commit/push Linux and Windows badge branches and run CI.
+>>>>>>> 4b7e6eedcca (Support built-in profile badge names)

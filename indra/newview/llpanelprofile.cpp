@@ -111,6 +111,17 @@ static const std::string PROFILE_PROPERTIES_CAP = "AgentProfile";
 static const std::string PROFILE_IMAGE_UPLOAD_CAP = "UploadAgentProfileImage";
 static const U32 TASIA_PROFILE_BADGE_MAX_BYTES = 10 * 1024 * 1024;
 
+static bool tasia_is_builtin_profile_badge(const std::string& badge_name)
+{
+    return badge_name == "Profile_Badge_Beta" ||
+           badge_name == "Profile_Badge_Beta_Lifetime" ||
+           badge_name == "Profile_Badge_Lifetime" ||
+           badge_name == "Profile_Badge_Linden" ||
+           badge_name == "Profile_Badge_Pplus_Lifetime" ||
+           badge_name == "Profile_Badge_Premium_Lifetime" ||
+           badge_name == "Profile_Badge_Team";
+}
+
 static std::string tasia_badge_mime_from_url(const std::string& url)
 {
     std::string path = url;
@@ -1639,8 +1650,9 @@ void LLPanelProfileSecondLife::fillTasiaUserData(const LLAvatarData* avatar_data
     }
 
     const std::string title = tasia_user.getNametagTitle();
+    const bool has_builtin_badge = tasia_is_builtin_profile_badge(tasia_user.badge_name);
     std::string line;
-    if (!tasia_user.badge_name.empty())
+    if (!tasia_user.badge_name.empty() && !has_builtin_badge)
     {
         line = tasia_user.badge_name;
     }
@@ -1676,7 +1688,9 @@ void LLPanelProfileSecondLife::fillTasiaUserData(const LLAvatarData* avatar_data
 
     if (!setTasiaRemoteBadgeIcon(tasia_user.badge_icon, tooltip.empty() ? line : tooltip, tasia_user.badge_name))
     {
-        setBadgeRawTooltip("Profile_Badge_Team", tooltip.empty() ? line : tooltip, BadgeLocation::top);
+        setBadgeRawTooltip(has_builtin_badge ? tasia_user.badge_name : "Profile_Badge_Team",
+            tooltip.empty() ? line : tooltip,
+            BadgeLocation::top);
     }
 }
 
@@ -1697,7 +1711,7 @@ bool LLPanelProfileSecondLife::setTasiaRemoteBadgeIcon(const std::string& icon_u
     mTasiaBadgeFallbackTooltip = tooltip;
     mTasiaBadgeIconUrl = icon_url;
 
-    setBadgeRawTooltip("Profile_Badge_Team",
+    setBadgeRawTooltip(tasia_is_builtin_profile_badge(mTasiaBadgeFallbackName) ? mTasiaBadgeFallbackName : "Profile_Badge_Team",
         mTasiaBadgeFallbackTooltip.empty() ? mTasiaBadgeFallbackName : mTasiaBadgeFallbackTooltip,
         BadgeLocation::top);
 
@@ -1743,7 +1757,7 @@ void LLPanelProfileSecondLife::showTasiaBadgeFallback()
     mTasiaBadgeIconUrl.clear();
     childSetVisible("tasia_badge_layout", false);
     getChild<LLThumbnailCtrl>("tasia_badge_icon")->clearTexture();
-    setBadgeRawTooltip("Profile_Badge_Team",
+    setBadgeRawTooltip(tasia_is_builtin_profile_badge(mTasiaBadgeFallbackName) ? mTasiaBadgeFallbackName : "Profile_Badge_Team",
         mTasiaBadgeFallbackTooltip.empty() ? mTasiaBadgeFallbackName : mTasiaBadgeFallbackTooltip,
         BadgeLocation::top);
 }
@@ -1803,7 +1817,7 @@ void LLPanelProfileSecondLife::onTasiaBadgeIconLoaded(bool success,
             else
             {
                 panel->childSetVisible("tasia_badge_layout", false);
-                panel->setBadgeRawTooltip("Profile_Badge_Team",
+                panel->setBadgeRawTooltip(tasia_is_builtin_profile_badge(panel->mTasiaBadgeFallbackName) ? panel->mTasiaBadgeFallbackName : "Profile_Badge_Team",
                     panel->mTasiaBadgeFallbackTooltip.empty() ? panel->mTasiaBadgeFallbackName : panel->mTasiaBadgeFallbackTooltip,
                     BadgeLocation::top);
             }
