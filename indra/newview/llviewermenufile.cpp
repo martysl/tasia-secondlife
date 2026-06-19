@@ -70,6 +70,8 @@
 #include "llviewerassetupload.h"
 
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
 
 // linden libraries
 #include "llfilesystem.h"
@@ -975,20 +977,24 @@ bool file_has_content(const std::string& filename)
     return LLFile::stat(filename, &stat_info) == 0 && stat_info.st_size > 0;
 }
 
-bool run_clipboard_image_command(const std::string& filename, const std::string& mime_type)
+bool run_clipboard_command_to_file(const std::string& filename, const std::string& mime_type)
 {
 #if LL_LINUX
     LLFile::remove(filename);
     const std::string output = shell_quote(filename);
     const std::string mime = shell_quote(mime_type);
     const std::string script =
-        "if command -v wl-paste >/dev/null 2>&1; then "
-            "wl-paste --no-newline --type " + mime + " > " + output + " 2>/dev/null; "
-        "elif command -v xclip >/dev/null 2>&1; then "
-            "xclip -selection clipboard -t " + mime + " -o > " + output + " 2>/dev/null; "
-        "else "
-            "exit 127; "
-        "fi";
+        "found=0; "
+        "for helper in wl-paste /usr/bin/wl-paste /usr/local/bin/wl-paste xclip /usr/bin/xclip /usr/local/bin/xclip; do "
+            "if ! command -v \"$helper\" >/dev/null 2>&1; then continue; fi; "
+            "found=1; "
+            "case \"$helper\" in "
+                "*wl-paste) \"$helper\" --no-newline --type " + mime + " > " + output + " 2>/dev/null && test -s " + output + " && exit 0 ;; "
+                "*xclip) \"$helper\" -selection clipboard -t " + mime + " -o > " + output + " 2>/dev/null && test -s " + output + " && exit 0 ;; "
+            "esac; "
+        "done; "
+        "if test \"$found\" = 0; then exit 127; fi; "
+        "exit 1";
     const std::string command = "sh -c " + shell_quote(script);
 
     const int rc = std::system(command.c_str());
@@ -996,6 +1002,167 @@ bool run_clipboard_image_command(const std::string& filename, const std::string&
 #else
     return false;
 #endif
+}
+
+bool read_text_file(const std::string& filename, std::string& content)
+{
+    std::ifstream input(filename.c_str(), std::ios::in | std::ios::binary);
+    if (!input.is_open())
+    {
+        return false;
+    }
+
+    std::ostringstream buffer;
+    buffer << input.rdbuf();
+    content = buffer.str();
+    return !content.empty();
+}
+
+int hex_value(char ch)
+{
+    if (ch >= '0' && ch <= '9') return ch - '0';
+    if (ch >= 'a' && ch <= 'f') return 10 + ch - 'a';
+    if (ch >= 'A' && ch <= 'F') return 10 + ch - 'A';
+    return -1;
+}
+
+std::string percent_decode(const std::string& value)
+{
+    std::string decoded;
+    decoded.reserve(value.size());
+
+    for (std::string::size_type i = 0; i < value.size(); ++i)
+    {
+        if (value[i] == '%' && i + 2 < value.size())
+        {
+            const int high = hex_value(value[i + 1]);
+            const int low = hex_value(value[i + 2]);
+            if (high >= 0 && low >= 0)
+            {
+                decoded.push_back(static_cast<char>((high << 4) | low));
+                i += 2;
+                continue;
+            }
+        }
+        decoded.push_back(value[i]);
+    }
+
+    return decoded;
+}
+
+bool is_supported_clipboard_image_file(const std::string& filename)
+{
+    if (!gDirUtilp->fileExists(filename))
+    {
+        return false;
+    }
+
+    std::string ext = gDirUtilp->getExtension(filename);
+    LLStringUtil::toLower(ext);
+    return ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "bmp" || ext == "tga";
+}
+
+bool parse_clipboard_file_uri_line(std::string line, std::string& filename)
+{
+    LLStringUtil::trim(line);
+    if (line.empty() || line[0] == '#')
+    {
+        return false;
+    }
+
+    // Some file managers use x-special/gnome-copied-files:
+    // first line is "copy" or "cut", following lines are file:// URIs.
+    if (line == "copy" || line == "cut")
+    {
+        return false;
+    }
+
+    const std::string file_prefix("file://");
+    if (line.compare(0, file_prefix.size(), file_prefix) == 0)
+    {
+        line = line.substr(file_prefix.size());
+        const std::string localhost_prefix("localhost/");
+        if (line.compare(0, localhost_prefix.size(), localhost_prefix) == 0)
+        {
+            line = line.substr(std::string("localhost").size());
+        }
+        filename = percent_decode(line);
+        return is_supported_clipboard_image_file(filename);
+    }
+
+    filename = percent_decode(line);
+    return is_supported_clipboard_image_file(filename);
+}
+
+bool extract_clipboard_image_file(const std::string& clipboard_text, std::string& filename)
+{
+    std::istringstream lines(clipboard_text);
+    std::string line;
+    while (std::getline(lines, line))
+    {
+        if (!line.empty() && line[line.size() - 1] == '\r')
+        {
+            line.erase(line.size() - 1);
+        }
+        if (parse_clipboard_file_uri_line(line, filename))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool run_clipboard_image_command(std::string& filename)
+{
+#if LL_LINUX
+    struct ClipboardMime
+    {
+        const char* mMimeType;
+        const char* mExtension;
+    };
+
+    static const ClipboardMime image_mimes[] =
+    {
+        { "image/png",  ".png" },
+        { "image/jpeg", ".jpg" },
+        { "image/jpg",  ".jpg" },
+        { "image/bmp",  ".bmp" }
+    };
+
+    for (const ClipboardMime& mime : image_mimes)
+    {
+        filename = gDirUtilp->getTempFilename() + mime.mExtension;
+        if (run_clipboard_command_to_file(filename, mime.mMimeType))
+        {
+            return true;
+        }
+        LLFile::remove(filename);
+    }
+
+    static const char* file_mimes[] =
+    {
+        "text/uri-list",
+        "x-special/gnome-copied-files",
+        "text/plain"
+    };
+
+    for (const char* mime : file_mimes)
+    {
+        const std::string text_filename = gDirUtilp->getTempFilename() + ".txt";
+        if (run_clipboard_command_to_file(text_filename, mime))
+        {
+            std::string clipboard_text;
+            if (read_text_file(text_filename, clipboard_text) && extract_clipboard_image_file(clipboard_text, filename))
+            {
+                LLFile::remove(text_filename);
+                return true;
+            }
+        }
+        LLFile::remove(text_filename);
+    }
+#endif
+    return false;
 }
 }
 
@@ -1043,15 +1210,11 @@ private:
             gAgentCamera.changeCameraToDefault();
         }
 
-        std::string filename = gDirUtilp->getTempFilename() + ".png";
-        if (!run_clipboard_image_command(filename, "image/png"))
+        std::string filename;
+        if (!run_clipboard_image_command(filename))
         {
-            filename = gDirUtilp->getTempFilename() + ".jpg";
-            if (!run_clipboard_image_command(filename, "image/jpeg"))
-            {
-                setStatus("No PNG/JPEG image found in clipboard. Install wl-clipboard or xclip if paste is unavailable.");
-                return;
-            }
+            setStatus("No supported image found. Use Copy Image, or copy a PNG/JPEG/BMP/TGA file. Requires wl-paste or xclip in PATH.");
+            return;
         }
 
         setStatus("Clipboard image captured. Opening upload preview...");
