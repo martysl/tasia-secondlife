@@ -1006,6 +1006,8 @@ bool run_clipboard_command_to_file(const std::string& filename, const std::strin
     const std::string output = shell_quote(filename);
     const std::string mime = shell_quote(mime_type);
     const std::string script =
+        "unset LD_LIBRARY_PATH LD_PRELOAD; "
+        "PATH=/usr/local/bin:/usr/bin:/bin:$PATH; export PATH; "
         "found=0; "
         "for helper in wl-paste /usr/bin/wl-paste /usr/local/bin/wl-paste xclip /usr/bin/xclip /usr/local/bin/xclip; do "
             "if ! command -v \"$helper\" >/dev/null 2>&1; then continue; fi; "
@@ -1036,6 +1038,8 @@ void log_clipboard_targets()
     const std::string targets_filename = gDirUtilp->getTempFilename() + ".targets.txt";
     const std::string output = shell_quote(targets_filename);
     const std::string script =
+        "unset LD_LIBRARY_PATH LD_PRELOAD; "
+        "PATH=/usr/local/bin:/usr/bin:/bin:$PATH; export PATH; "
         "{ "
             "if command -v wl-paste >/dev/null 2>&1; then "
                 "printf 'wl-paste types:\n'; wl-paste --list-types 2>/dev/null || true; "
@@ -1070,6 +1074,8 @@ bool convert_clipboard_image_to_png(const std::string& input_filename, std::stri
     const std::string input = shell_quote(input_filename);
     const std::string output = shell_quote(output_filename);
     const std::string script =
+        "unset LD_LIBRARY_PATH LD_PRELOAD; "
+        "PATH=/usr/local/bin:/usr/bin:/bin:$PATH; export PATH; "
         "if command -v magick >/dev/null 2>&1; then "
             "magick " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
         "fi; "
