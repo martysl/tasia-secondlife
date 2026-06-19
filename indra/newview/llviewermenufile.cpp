@@ -977,10 +977,32 @@ bool file_has_content(const std::string& filename)
     return LLFile::stat(filename, &stat_info) == 0 && stat_info.st_size > 0;
 }
 
+bool read_text_file(const std::string& filename, std::string& content)
+{
+    std::ifstream input(filename.c_str(), std::ios::in | std::ios::binary);
+    if (!input.is_open())
+    {
+        return false;
+    }
+
+    std::ostringstream buffer;
+    buffer << input.rdbuf();
+    content = buffer.str();
+    return !content.empty();
+}
+
+void remove_if_exists(const std::string& filename)
+{
+    if (gDirUtilp->fileExists(filename))
+    {
+        LLFile::remove(filename);
+    }
+}
+
 bool run_clipboard_command_to_file(const std::string& filename, const std::string& mime_type)
 {
 #if LL_LINUX
-    LLFile::remove(filename);
+    remove_if_exists(filename);
     const std::string output = shell_quote(filename);
     const std::string mime = shell_quote(mime_type);
     const std::string script =
@@ -998,24 +1020,83 @@ bool run_clipboard_command_to_file(const std::string& filename, const std::strin
     const std::string command = "sh -c " + shell_quote(script);
 
     const int rc = std::system(command.c_str());
-    return rc == 0 && file_has_content(filename);
+    const bool success = rc == 0 && file_has_content(filename);
+    LL_INFOS("UploadClipboard") << "Clipboard read type " << mime_type
+                                 << " rc=" << rc
+                                 << " success=" << success << LL_ENDL;
+    return success;
 #else
     return false;
 #endif
 }
 
-bool read_text_file(const std::string& filename, std::string& content)
+void log_clipboard_targets()
 {
-    std::ifstream input(filename.c_str(), std::ios::in | std::ios::binary);
-    if (!input.is_open())
-    {
-        return false;
-    }
+#if LL_LINUX
+    const std::string targets_filename = gDirUtilp->getTempFilename() + ".targets.txt";
+    const std::string output = shell_quote(targets_filename);
+    const std::string script =
+        "{ "
+            "if command -v wl-paste >/dev/null 2>&1; then "
+                "printf 'wl-paste types:\n'; wl-paste --list-types 2>/dev/null || true; "
+            "fi; "
+            "if command -v xclip >/dev/null 2>&1; then "
+                "printf 'xclip TARGETS:\n'; xclip -selection clipboard -t TARGETS -o 2>/dev/null || true; "
+            "fi; "
+        "} > " + output;
+    const std::string command = "sh -c " + shell_quote(script);
+    const int rc = std::system(command.c_str());
 
-    std::ostringstream buffer;
-    buffer << input.rdbuf();
-    content = buffer.str();
-    return !content.empty();
+    std::string targets;
+    if (rc == 0 && read_text_file(targets_filename, targets))
+    {
+        LLStringUtil::replaceChar(targets, '\n', '|');
+        LL_INFOS("UploadClipboard") << "Available clipboard targets: " << targets << LL_ENDL;
+    }
+    else
+    {
+        LL_WARNS("UploadClipboard") << "Unable to list clipboard targets rc=" << rc << LL_ENDL;
+    }
+    remove_if_exists(targets_filename);
+#endif
+}
+
+bool convert_clipboard_image_to_png(const std::string& input_filename, std::string& output_filename)
+{
+#if LL_LINUX
+    output_filename = gDirUtilp->getTempFilename() + ".png";
+    remove_if_exists(output_filename);
+
+    const std::string input = shell_quote(input_filename);
+    const std::string output = shell_quote(output_filename);
+    const std::string script =
+        "if command -v magick >/dev/null 2>&1; then "
+            "magick " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+        "fi; "
+        "if command -v convert >/dev/null 2>&1; then "
+            "convert " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+        "fi; "
+        "if command -v ffmpeg >/dev/null 2>&1; then "
+            "ffmpeg -y -v error -i " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+        "fi; "
+        "if command -v dwebp >/dev/null 2>&1; then "
+            "dwebp " + input + " -o " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+        "fi; "
+        "exit 1";
+    const std::string command = "sh -c " + shell_quote(script);
+    const int rc = std::system(command.c_str());
+    const bool success = rc == 0 && file_has_content(output_filename);
+    LL_INFOS("UploadClipboard") << "Clipboard image PNG conversion rc=" << rc
+                                 << " success=" << success << LL_ENDL;
+    if (!success)
+    {
+        remove_if_exists(output_filename);
+        output_filename.clear();
+    }
+    return success;
+#else
+    return false;
+#endif
 }
 
 int hex_value(char ch)
@@ -1120,24 +1201,42 @@ bool run_clipboard_image_command(std::string& filename)
     {
         const char* mMimeType;
         const char* mExtension;
+        bool mNeedsPngConversion;
     };
 
     static const ClipboardMime image_mimes[] =
     {
-        { "image/png",  ".png" },
-        { "image/jpeg", ".jpg" },
-        { "image/jpg",  ".jpg" },
-        { "image/bmp",  ".bmp" }
+        { "image/png",  ".png",  false },
+        { "image/jpeg", ".jpg",  false },
+        { "image/jpg",  ".jpg",  false },
+        { "image/bmp",  ".bmp",  false },
+        { "image/webp", ".webp", true  }
     };
+
+    log_clipboard_targets();
 
     for (const ClipboardMime& mime : image_mimes)
     {
         filename = gDirUtilp->getTempFilename() + mime.mExtension;
         if (run_clipboard_command_to_file(filename, mime.mMimeType))
         {
+            if (mime.mNeedsPngConversion)
+            {
+                std::string converted_filename;
+                if (convert_clipboard_image_to_png(filename, converted_filename))
+                {
+                    remove_if_exists(filename);
+                    filename = converted_filename;
+                    return true;
+                }
+                LL_WARNS("UploadClipboard") << "Clipboard image type " << mime.mMimeType
+                                            << " was found but could not be converted to PNG" << LL_ENDL;
+                remove_if_exists(filename);
+                continue;
+            }
             return true;
         }
-        LLFile::remove(filename);
+        remove_if_exists(filename);
     }
 
     static const char* file_mimes[] =
@@ -1155,11 +1254,11 @@ bool run_clipboard_image_command(std::string& filename)
             std::string clipboard_text;
             if (read_text_file(text_filename, clipboard_text) && extract_clipboard_image_file(clipboard_text, filename))
             {
-                LLFile::remove(text_filename);
+                remove_if_exists(text_filename);
                 return true;
             }
         }
-        LLFile::remove(text_filename);
+        remove_if_exists(text_filename);
     }
 #endif
     return false;
