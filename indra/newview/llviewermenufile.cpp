@@ -1022,7 +1022,7 @@ int run_clipboard_helper_script(const std::string& script, const std::string& de
     }
 
     int status = 0;
-    for (S32 i = 0; i < 20; ++i)
+    for (S32 i = 0; i < 30; ++i)
     {
         const pid_t result = waitpid(pid, &status, WNOHANG);
         if (result == pid)
@@ -1063,13 +1063,14 @@ bool run_clipboard_command_to_file(const std::string& filename, const std::strin
     const std::string script =
         "unset LD_LIBRARY_PATH LD_PRELOAD; "
         "PATH=/usr/local/bin:/usr/bin:/bin:$PATH; export PATH; "
+        "run_with_timeout() { if command -v timeout >/dev/null 2>&1; then timeout 1s \"$@\"; else \"$@\"; fi; }; "
         "found=0; "
         "for helper in wl-paste /usr/bin/wl-paste /usr/local/bin/wl-paste xclip /usr/bin/xclip /usr/local/bin/xclip; do "
             "if ! command -v \"$helper\" >/dev/null 2>&1; then continue; fi; "
             "found=1; "
             "case \"$helper\" in "
-                "*wl-paste) \"$helper\" --no-newline --type " + mime + " > " + output + " 2>/dev/null && test -s " + output + " && exit 0 ;; "
-                "*xclip) \"$helper\" -selection clipboard -t " + mime + " -o > " + output + " 2>/dev/null && test -s " + output + " && exit 0 ;; "
+                "*wl-paste) run_with_timeout \"$helper\" --no-newline --type " + mime + " > " + output + " 2>/dev/null && test -s " + output + " && exit 0 ;; "
+                "*xclip) run_with_timeout \"$helper\" -selection clipboard -t " + mime + " -o > " + output + " 2>/dev/null && test -s " + output + " && exit 0 ;; "
             "esac; "
         "done; "
         "if test \"$found\" = 0; then exit 127; fi; "
@@ -1093,12 +1094,13 @@ void log_clipboard_targets()
     const std::string script =
         "unset LD_LIBRARY_PATH LD_PRELOAD; "
         "PATH=/usr/local/bin:/usr/bin:/bin:$PATH; export PATH; "
+        "run_with_timeout() { if command -v timeout >/dev/null 2>&1; then timeout 1s \"$@\"; else \"$@\"; fi; }; "
         "{ "
             "if command -v wl-paste >/dev/null 2>&1; then "
-                "printf 'wl-paste types:\n'; wl-paste --list-types 2>/dev/null || true; "
+                "printf 'wl-paste types:\n'; run_with_timeout wl-paste --list-types 2>/dev/null || true; "
             "fi; "
             "if command -v xclip >/dev/null 2>&1; then "
-                "printf 'xclip TARGETS:\n'; xclip -selection clipboard -t TARGETS -o 2>/dev/null || true; "
+                "printf 'xclip TARGETS:\n'; run_with_timeout xclip -selection clipboard -t TARGETS -o 2>/dev/null || true; "
             "fi; "
         "} > " + output;
     const int rc = run_clipboard_helper_script(script, "Tasia clipboard target list");
@@ -1128,17 +1130,18 @@ bool convert_clipboard_image_to_png(const std::string& input_filename, std::stri
     const std::string script =
         "unset LD_LIBRARY_PATH LD_PRELOAD; "
         "PATH=/usr/local/bin:/usr/bin:/bin:$PATH; export PATH; "
+        "run_with_timeout() { if command -v timeout >/dev/null 2>&1; then timeout 5s \"$@\"; else \"$@\"; fi; }; "
         "if command -v magick >/dev/null 2>&1; then "
-            "magick " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+            "run_with_timeout magick " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
         "fi; "
         "if command -v convert >/dev/null 2>&1; then "
-            "convert " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+            "run_with_timeout convert " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
         "fi; "
         "if command -v ffmpeg >/dev/null 2>&1; then "
-            "ffmpeg -y -v error -i " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+            "run_with_timeout ffmpeg -y -v error -i " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
         "fi; "
         "if command -v dwebp >/dev/null 2>&1; then "
-            "dwebp " + input + " -o " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+            "run_with_timeout dwebp " + input + " -o " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
         "fi; "
         "exit 1";
     const int rc = run_clipboard_helper_script(script, "Tasia clipboard image conversion");
