@@ -1267,9 +1267,9 @@ bool run_clipboard_image_command(std::string& filename)
     static const ClipboardMime image_mimes[] =
     {
         { "image/png",  ".png",  false },
-        { "image/jpeg", ".jpg",  false },
-        { "image/jpg",  ".jpg",  false },
-        { "image/bmp",  ".bmp",  false },
+        { "image/jpeg", ".jpg",  true  },
+        { "image/jpg",  ".jpg",  true  },
+        { "image/bmp",  ".bmp",  true  },
         { "image/webp", ".webp", true  }
     };
 
