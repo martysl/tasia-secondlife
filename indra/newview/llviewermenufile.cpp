@@ -76,7 +76,6 @@
 // linden libraries
 #include "llfilesystem.h"
 #include "llnotificationsutil.h"
-#include "llprocess.h"
 #include "llsdserialize.h"
 #include "llsdutil.h"
 #include "llstring.h"
@@ -88,6 +87,12 @@
 
 // system libraries
 #include <boost/tokenizer.hpp>
+
+#if LL_LINUX
+#include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
 #include "llinventorydefines.h"
 
@@ -1004,43 +1009,46 @@ void remove_if_exists(const std::string& filename)
 int run_clipboard_helper_script(const std::string& script, const std::string& desc)
 {
 #if LL_LINUX
-    LLProcess::Params params;
-    params.executable = "/bin/sh";
-    params.args.add("-c");
-    params.args.add(script);
-    params.autokill = true;
-    params.attached = false;
-    params.desc = desc;
-
-    LLProcessPtr process = LLProcess::create(params);
-    if (!process)
+    const pid_t pid = fork();
+    if (pid < 0)
     {
-        LL_WARNS("UploadClipboard") << "Failed to launch clipboard helper: " << desc << LL_ENDL;
+        LL_WARNS("UploadClipboard") << "Failed to fork clipboard helper: " << desc << LL_ENDL;
         return -1;
     }
-
-    for (S32 i = 0; i < 50 && process->isRunning(); ++i)
+    if (pid == 0)
     {
-        ms_sleep(100);
+        execl("/bin/sh", "sh", "-c", script.c_str(), static_cast<char*>(NULL));
+        _exit(127);
     }
 
-    if (process->isRunning())
+    int status = 0;
+    for (S32 i = 0; i < 20; ++i)
     {
-        LL_WARNS("UploadClipboard") << "Clipboard helper timed out: " << desc << LL_ENDL;
-        process->kill("clipboard helper timeout");
-        return -2;
+        const pid_t result = waitpid(pid, &status, WNOHANG);
+        if (result == pid)
+        {
+            if (WIFEXITED(status))
+            {
+                return WEXITSTATUS(status);
+            }
+            if (WIFSIGNALED(status))
+            {
+                return 128 + WTERMSIG(status);
+            }
+            return -3;
+        }
+        if (result < 0)
+        {
+            LL_WARNS("UploadClipboard") << "Clipboard helper wait failed: " << desc << LL_ENDL;
+            return -1;
+        }
+        ms_sleep(50);
     }
 
-    const LLProcess::Status status = process->getStatus();
-    if (status.mState == LLProcess::EXITED)
-    {
-        return status.mData;
-    }
-    if (status.mState == LLProcess::KILLED)
-    {
-        return 128 + status.mData;
-    }
-    return -3;
+    LL_WARNS("UploadClipboard") << "Clipboard helper timed out: " << desc << LL_ENDL;
+    kill(pid, SIGKILL);
+    waitpid(pid, &status, 0);
+    return -2;
 #else
     return -1;
 #endif
