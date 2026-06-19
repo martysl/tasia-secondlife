@@ -33,6 +33,7 @@
 #include "llagentbenefits.h"
 #include "llagentcamera.h"
 #include "llfilepicker.h"
+#include "llfloater.h"
 #include "llfloaterreg.h"
 #include "llbuycurrencyhtml.h"
 #include "llfloatermap.h"
@@ -67,6 +68,8 @@
 #include "lltrans.h"
 #include "llfloaterbuycurrency.h"
 #include "llviewerassetupload.h"
+
+#include <cstdlib>
 
 // linden libraries
 #include "llfilesystem.h"
@@ -946,6 +949,132 @@ class LLFileUploadImage : public view_listener_t
     }
 };
 
+namespace
+{
+std::string shell_quote(const std::string& value)
+{
+    std::string quoted("'");
+    for (char ch : value)
+    {
+        if (ch == '\'')
+        {
+            quoted += "'\\''";
+        }
+        else
+        {
+            quoted += ch;
+        }
+    }
+    quoted += "'";
+    return quoted;
+}
+
+bool file_has_content(const std::string& filename)
+{
+    llstat stat_info;
+    return LLFile::stat(filename, &stat_info) == 0 && stat_info.st_size > 0;
+}
+
+bool run_clipboard_image_command(const std::string& filename, const std::string& mime_type)
+{
+#if LL_LINUX
+    LLFile::remove(filename);
+    const std::string output = shell_quote(filename);
+    const std::string mime = shell_quote(mime_type);
+    const std::string script =
+        "if command -v wl-paste >/dev/null 2>&1; then "
+            "wl-paste --no-newline --type " + mime + " > " + output + " 2>/dev/null; "
+        "elif command -v xclip >/dev/null 2>&1; then "
+            "xclip -selection clipboard -t " + mime + " -o > " + output + " 2>/dev/null; "
+        "else "
+            "exit 127; "
+        "fi";
+    const std::string command = "sh -c " + shell_quote(script);
+
+    const int rc = std::system(command.c_str());
+    return rc == 0 && file_has_content(filename);
+#else
+    return false;
+#endif
+}
+}
+
+class LLFloaterUploadClipboard final : public LLFloater
+{
+public:
+    explicit LLFloaterUploadClipboard(const LLSD& key)
+        : LLFloater(key)
+    {
+    }
+
+    bool postBuild() override
+    {
+        childSetAction("paste_btn", boost::bind(&LLFloaterUploadClipboard::onPaste, this));
+        childSetAction("close_btn", boost::bind(&LLFloaterUploadClipboard::onClose, this));
+        return true;
+    }
+
+    bool handleKeyHere(KEY key, MASK mask) override
+    {
+        if (key == 'V' && (mask & MASK_CONTROL))
+        {
+            onPaste();
+            return true;
+        }
+        return LLFloater::handleKeyHere(key, mask);
+    }
+
+private:
+    void setStatus(const std::string& message)
+    {
+        childSetText("status_text", message);
+    }
+
+    void onClose()
+    {
+        closeFloater(false);
+    }
+
+    void onPaste()
+    {
+#if LL_LINUX
+        if (gAgentCamera.cameraMouselook())
+        {
+            gAgentCamera.changeCameraToDefault();
+        }
+
+        std::string filename = gDirUtilp->getTempFilename() + ".png";
+        if (!run_clipboard_image_command(filename, "image/png"))
+        {
+            filename = gDirUtilp->getTempFilename() + ".jpg";
+            if (!run_clipboard_image_command(filename, "image/jpeg"))
+            {
+                setStatus("No PNG/JPEG image found in clipboard. Install wl-clipboard or xclip if paste is unavailable.");
+                return;
+            }
+        }
+
+        setStatus("Clipboard image captured. Opening upload preview...");
+        LLFloaterReg::showInstance("upload_image", LLSD(filename));
+#else
+        setStatus("Clipboard image upload is currently implemented for Linux builds.");
+#endif
+    }
+};
+
+class LLFileUploadClipboard : public view_listener_t
+{
+    bool handleEvent(const LLSD& userdata) override
+    {
+        if (gAgentCamera.cameraMouselook())
+        {
+            gAgentCamera.changeCameraToDefault();
+        }
+        LLFloaterReg::showInstance("upload_clipboard");
+        return true;
+    }
+};
+
 class LLFileUploadModel : public view_listener_t
 {
     bool handleEvent(const LLSD& userdata)
@@ -1656,6 +1785,7 @@ class FSFileEnableImportWindlightBulk : public view_listener_t
 void init_menu_file()
 {
     view_listener_t::addCommit(new LLFileUploadImage(), "File.UploadImage");
+    view_listener_t::addCommit(new LLFileUploadClipboard(), "File.UploadClipboard");
     view_listener_t::addCommit(new LLFileUploadSound(), "File.UploadSound");
     view_listener_t::addCommit(new LLFileUploadAnim(), "File.UploadAnim");
     view_listener_t::addCommit(new LLFileUploadModel(), "File.UploadModel");
@@ -1686,4 +1816,9 @@ void init_menu_file()
     // </FS:Ansariel>
 
     // "File.SaveTexture" moved to llpanelmaininventory so that it can be properly handled.
+}
+
+void register_file_menu_floaters()
+{
+    LLFloaterReg::add("upload_clipboard", "floater_upload_clipboard.xml", &LLFloaterReg::build<LLFloaterUploadClipboard>, "upload");
 }

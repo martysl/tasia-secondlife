@@ -42,6 +42,7 @@ class LLPluginClassMedia;
 
 
 void init_menu_file();
+void register_file_menu_floaters();
 
 
 LLUUID upload_new_resource(

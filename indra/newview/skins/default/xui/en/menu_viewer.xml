@@ -2439,6 +2439,16 @@
                  parameter="Upload Image,texture" />
             </menu_item_call>
             <menu_item_call
+             label="Clipboard..."
+             layout="topleft"
+             name="Upload Clipboard">
+                <menu_item_call.on_click
+                 function="File.UploadClipboard"
+                 parameter="" />
+                <menu_item_call.on_enable
+                 function="File.EnableUpload" />
+            </menu_item_call>
+            <menu_item_call
              label="Sound (L$[COST])..."
              layout="topleft"
              name="Upload Sound">

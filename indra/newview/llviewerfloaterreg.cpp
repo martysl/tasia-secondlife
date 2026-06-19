@@ -29,6 +29,7 @@
 
 #include "llfloaterreg.h"
 #include "llviewerfloaterreg.h"
+#include "llviewermenufile.h"
 
 #include "llcommandhandler.h"
 #include "llcompilequeue.h"
@@ -286,6 +287,7 @@ public:
                 "outfit_snapshot",
                 "upload_anim_bvh",
                 "upload_anim_anim",
+                "upload_clipboard",
                 "upload_image",
                 "upload_model",
                 "upload_script",
@@ -337,6 +339,7 @@ public:
                 "outfit_snapshot",
                 "upload_anim_bvh",
                 "upload_anim_anim",
+                "upload_clipboard",
                 "upload_image",
                 "upload_model",
                 "upload_script",
@@ -615,6 +618,7 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("upload_anim_bvh", "floater_animation_bvh_preview.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterBvhPreview>, "upload");
     LLFloaterReg::add("upload_anim_anim", "floater_animation_anim_preview.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterAnimPreview>, "upload");
     LLFloaterReg::add("upload_image", "floater_image_preview.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterImagePreview>, "upload");
+    register_file_menu_floaters();
     LLFloaterReg::add("upload_model", "floater_model_preview.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterModelPreview>, "upload");
     LLFloaterReg::add("upload_script", "floater_script_preview.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterScriptPreview>, "upload");
     LLFloaterReg::add("upload_sound", "floater_sound_preview.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterSoundPreview>, "upload");
