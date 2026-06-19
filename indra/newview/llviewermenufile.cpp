@@ -76,9 +76,11 @@
 // linden libraries
 #include "llfilesystem.h"
 #include "llnotificationsutil.h"
+#include "llprocess.h"
 #include "llsdserialize.h"
 #include "llsdutil.h"
 #include "llstring.h"
+#include "lltimer.h"
 #include "lltransactiontypes.h"
 #include "lluuid.h"
 #include "llvorbisencode.h"
@@ -999,6 +1001,51 @@ void remove_if_exists(const std::string& filename)
     }
 }
 
+int run_clipboard_helper_script(const std::string& script, const std::string& desc)
+{
+#if LL_LINUX
+    LLProcess::Params params;
+    params.executable = "/bin/sh";
+    params.args.add("-c");
+    params.args.add(script);
+    params.autokill = true;
+    params.attached = false;
+    params.desc = desc;
+
+    LLProcessPtr process = LLProcess::create(params);
+    if (!process)
+    {
+        LL_WARNS("UploadClipboard") << "Failed to launch clipboard helper: " << desc << LL_ENDL;
+        return -1;
+    }
+
+    for (S32 i = 0; i < 50 && process->isRunning(); ++i)
+    {
+        ms_sleep(100);
+    }
+
+    if (process->isRunning())
+    {
+        LL_WARNS("UploadClipboard") << "Clipboard helper timed out: " << desc << LL_ENDL;
+        process->kill("clipboard helper timeout");
+        return -2;
+    }
+
+    const LLProcess::Status status = process->getStatus();
+    if (status.mState == LLProcess::EXITED)
+    {
+        return status.mData;
+    }
+    if (status.mState == LLProcess::KILLED)
+    {
+        return 128 + status.mData;
+    }
+    return -3;
+#else
+    return -1;
+#endif
+}
+
 bool run_clipboard_command_to_file(const std::string& filename, const std::string& mime_type)
 {
 #if LL_LINUX
@@ -1019,9 +1066,7 @@ bool run_clipboard_command_to_file(const std::string& filename, const std::strin
         "done; "
         "if test \"$found\" = 0; then exit 127; fi; "
         "exit 1";
-    const std::string command = "sh -c " + shell_quote(script);
-
-    const int rc = std::system(command.c_str());
+    const int rc = run_clipboard_helper_script(script, "Tasia clipboard read " + mime_type);
     const bool success = rc == 0 && file_has_content(filename);
     LL_INFOS("UploadClipboard") << "Clipboard read type " << mime_type
                                  << " rc=" << rc
@@ -1048,8 +1093,7 @@ void log_clipboard_targets()
                 "printf 'xclip TARGETS:\n'; xclip -selection clipboard -t TARGETS -o 2>/dev/null || true; "
             "fi; "
         "} > " + output;
-    const std::string command = "sh -c " + shell_quote(script);
-    const int rc = std::system(command.c_str());
+    const int rc = run_clipboard_helper_script(script, "Tasia clipboard target list");
 
     std::string targets;
     if (rc == 0 && read_text_file(targets_filename, targets))
@@ -1089,8 +1133,7 @@ bool convert_clipboard_image_to_png(const std::string& input_filename, std::stri
             "dwebp " + input + " -o " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
         "fi; "
         "exit 1";
-    const std::string command = "sh -c " + shell_quote(script);
-    const int rc = std::system(command.c_str());
+    const int rc = run_clipboard_helper_script(script, "Tasia clipboard image conversion");
     const bool success = rc == 0 && file_has_content(output_filename);
     LL_INFOS("UploadClipboard") << "Clipboard image PNG conversion rc=" << rc
                                  << " success=" << success << LL_ENDL;
