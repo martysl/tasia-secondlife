@@ -1076,7 +1076,9 @@ bool run_clipboard_command_to_file(const std::string& filename, const std::strin
         "if test \"$found\" = 0; then exit 127; fi; "
         "exit 1";
     const int rc = run_clipboard_helper_script(script, "Tasia clipboard read " + mime_type);
-    const bool success = rc == 0 && file_has_content(filename);
+    // Some viewer/runtime code may reap child processes before waitpid() sees
+    // them. Treat a non-empty output file as authoritative success.
+    const bool success = file_has_content(filename);
     LL_INFOS("UploadClipboard") << "Clipboard read type " << mime_type
                                  << " rc=" << rc
                                  << " success=" << success << LL_ENDL;
@@ -1106,7 +1108,7 @@ void log_clipboard_targets()
     const int rc = run_clipboard_helper_script(script, "Tasia clipboard target list");
 
     std::string targets;
-    if (rc == 0 && read_text_file(targets_filename, targets))
+    if (read_text_file(targets_filename, targets))
     {
         LLStringUtil::replaceChar(targets, '\n', '|');
         LL_INFOS("UploadClipboard") << "Available clipboard targets: " << targets << LL_ENDL;
@@ -1145,7 +1147,8 @@ bool convert_clipboard_image_to_png(const std::string& input_filename, std::stri
         "fi; "
         "exit 1";
     const int rc = run_clipboard_helper_script(script, "Tasia clipboard image conversion");
-    const bool success = rc == 0 && file_has_content(output_filename);
+    // See run_clipboard_command_to_file(): output file is authoritative.
+    const bool success = file_has_content(output_filename);
     LL_INFOS("UploadClipboard") << "Clipboard image PNG conversion rc=" << rc
                                  << " success=" << success << LL_ENDL;
     if (!success)
