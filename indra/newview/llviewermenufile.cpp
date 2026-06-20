@@ -1132,10 +1132,10 @@ bool convert_clipboard_image_to_png(const std::string& input_filename, std::stri
         "PATH=/usr/local/bin:/usr/bin:/bin:$PATH; export PATH; "
         "run_with_timeout() { if command -v timeout >/dev/null 2>&1; then timeout 5s \"$@\"; else \"$@\"; fi; }; "
         "if command -v magick >/dev/null 2>&1; then "
-            "run_with_timeout magick " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+            "run_with_timeout magick " + input + " -resize '2048x2048>' " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
         "fi; "
         "if command -v convert >/dev/null 2>&1; then "
-            "run_with_timeout convert " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
+            "run_with_timeout convert " + input + " -resize '2048x2048>' " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
         "fi; "
         "if command -v ffmpeg >/dev/null 2>&1; then "
             "run_with_timeout ffmpeg -y -v error -i " + input + " " + output + " >/dev/null 2>&1 && test -s " + output + " && exit 0; "
@@ -1266,7 +1266,7 @@ bool run_clipboard_image_command(std::string& filename)
 
     static const ClipboardMime image_mimes[] =
     {
-        { "image/png",  ".png",  false },
+        { "image/png",  ".png",  true  },
         { "image/jpeg", ".jpg",  true  },
         { "image/jpg",  ".jpg",  true  },
         { "image/bmp",  ".bmp",  true  },
