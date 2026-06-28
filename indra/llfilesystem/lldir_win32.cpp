@@ -309,7 +309,17 @@ void LLDir_Win32::initAppDirs(const std::string &app_name,
         mSkinBaseDir = add(mAppRODataDir, "skins");
     }
     mAppName = app_name;
-    mOSUserAppDir = add(mOSUserDir, app_name);
+
+    // Portable mode: if "data" directory exists next to executable, use it
+    std::string portable_dir = add(mExecutableDir, "data");
+    if (fileExists(portable_dir))
+    {
+        mOSUserAppDir = portable_dir;
+    }
+    else
+    {
+        mOSUserAppDir = add(mOSUserDir, app_name);
+    }
 
     int res = LLFile::mkdir(mOSUserAppDir);
     if (res == -1)

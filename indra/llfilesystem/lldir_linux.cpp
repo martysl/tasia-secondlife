@@ -157,24 +157,36 @@ void LLDir_Linux::initAppDirs(const std::string &app_name,
     }
     mAppName = app_name;
 
-    std::string upper_app_name(app_name);
-    LLStringUtil::toUpper(upper_app_name);
+    // Portable mode: if "data" directory exists next to executable, use it
+    std::string portable_dir = add(mExecutableDir, "data");
+    std::string::size_type build_dir_pos = mExecutableDir.rfind("/build-linux-");
+    bool is_dev_checkout = (build_dir_pos != std::string::npos);
 
-    auto app_home_env(LLStringUtil::getoptenv(upper_app_name + "_USER_DIR"));
-    if (app_home_env)
+    if (!is_dev_checkout && fileExists(portable_dir))
     {
-        // user has specified own userappdir i.e. $SECONDLIFE_USER_DIR
-        mOSUserAppDir = *app_home_env;
+        mOSUserAppDir = portable_dir;
     }
     else
     {
-        // traditionally on unixoids, MyApp gets ~/.myapp dir for data
-        mOSUserAppDir = mOSUserDir;
-        mOSUserAppDir += "/";
-        mOSUserAppDir += ".";
-        std::string lower_app_name(app_name);
-        LLStringUtil::toLower(lower_app_name);
-        mOSUserAppDir += lower_app_name;
+        std::string upper_app_name(app_name);
+        LLStringUtil::toUpper(upper_app_name);
+
+        auto app_home_env(LLStringUtil::getoptenv(upper_app_name + "_USER_DIR"));
+        if (app_home_env)
+        {
+            // user has specified own userappdir i.e. $SECONDLIFE_USER_DIR
+            mOSUserAppDir = *app_home_env;
+        }
+        else
+        {
+            // traditionally on unixoids, MyApp gets ~/.myapp dir for data
+            mOSUserAppDir = mOSUserDir;
+            mOSUserAppDir += "/";
+            mOSUserAppDir += ".";
+            std::string lower_app_name(app_name);
+            LLStringUtil::toLower(lower_app_name);
+            mOSUserAppDir += lower_app_name;
+        }
     }
 
     // create any directories we expect to write to.
