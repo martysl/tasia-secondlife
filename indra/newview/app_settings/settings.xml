@@ -7967,13 +7967,24 @@
     <key>MaxHeapSize64</key>
     <map>
       <key>Comment</key>
-      <string>Maximum heap size on 64-bit builds (GB)</string>
+      <string>Viewer RAM limit on 64-bit builds (GB). This is enforced by viewer memory-pressure logic, not by the operating system.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>16.0</real>
+      <real>2.0</real>
+    </map>
+    <key>TasiaMemoryLimitsMigrated</key>
+    <map>
+      <key>Comment</key>
+      <string>One-time migration flag for Tasia default 2GB RAM and 2GB texture VRAM limits.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
     </map>
     <key>MaxPersistentNotifications</key>
     <map>
@@ -11438,7 +11449,7 @@ Change of this parameter will affect the layout of buttons in notification toast
     <key>Type</key>
     <string>U32</string>
     <key>Value</key>
-    <integer>768</integer>
+    <integer>2048</integer>
   </map>
   <key>RenderTextureVRAMDivisor</key>
   <map>
@@ -11526,7 +11537,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
       <key>Backup</key>
       <integer>0</integer>
     </map>

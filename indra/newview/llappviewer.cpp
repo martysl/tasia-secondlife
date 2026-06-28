@@ -1491,6 +1491,15 @@ void LLAppViewer::overrideDetectedHardware()
 
 void LLAppViewer::initMaxHeapSize()
 {
+    if (!gSavedSettings.getBOOL("TasiaMemoryLimitsMigrated"))
+    {
+        gSavedSettings.setF32("MaxHeapSize64", 2.0f);
+        gSavedSettings.setBOOL("FSLimitTextureVRAMUsage", true);
+        gSavedSettings.setU32("RenderMaxVRAMBudget", 2048);
+        gSavedSettings.setBOOL("TasiaMemoryLimitsMigrated", true);
+        LL_INFOS("AppInit") << "Applied Tasia default memory limits: RAM 2GB, texture VRAM 2048MB" << LL_ENDL;
+    }
+
     //set the max heap size.
     //here is some info regarding to the max heap size:
     //------------------------------------------------------------------------------------------

@@ -157,7 +157,14 @@ void LLMemory::updateMemoryInfo()
 #endif
     sample(sAllocatedMem, sAllocatedMemInKB);
 
-    sAvailPhysicalMemInKB = llmin(sAvailPhysicalMemInKB, sMaxHeapSizeInKB - sAllocatedMemInKB);
+    if (sAllocatedMemInKB >= sMaxHeapSizeInKB)
+    {
+        sAvailPhysicalMemInKB = U32Kilobytes(0);
+    }
+    else
+    {
+        sAvailPhysicalMemInKB = llmin(sAvailPhysicalMemInKB, sMaxHeapSizeInKB - sAllocatedMemInKB);
+    }
 
     return ;
 }
