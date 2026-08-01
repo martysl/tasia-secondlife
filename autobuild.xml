@@ -3433,6 +3433,8 @@ Copyright (c) 2012, 2014, 2015, 2016 nghttp2 contributors</string>
                   <string>--config</string>
                   <string>--version</string>
                   <string>--opensim</string>
+                  <string>--chan</string>
+                  <string>TasiaViewer</string>
                 </array>
               </map>
               <key>name</key>
