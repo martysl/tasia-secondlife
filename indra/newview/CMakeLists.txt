@@ -2216,6 +2216,7 @@ set(viewer_APPSETTINGS_FILES
     app_settings/graphic_preset_controls.xml
     app_settings/grass.xml
     app_settings/grids.xml
+    app_settings/grids_os.xml
     app_settings/growl_notifications.xml
     app_settings/ignorable_dialogs.xml
     app_settings/key_bindings.xml
