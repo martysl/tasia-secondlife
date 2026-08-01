@@ -29,6 +29,10 @@
 
 #include <string>
 
+class LLButton;
+class LLMediaCtrl;
+class LLTextBox;
+
 struct TasiaGiphyPreview
 {
     std::string id;
