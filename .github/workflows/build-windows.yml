@@ -34,9 +34,19 @@ env:
 
 jobs:
   build:
-    name: Build Tasia Viewer - Windows
+    name: Build Tasia Viewer - Windows ${{ matrix.label }}
     runs-on: windows-2022
     timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - config: ReleaseFS_open
+            label: OpenSim
+            zip_name: Tasia-Viewer-Windows-OpenSim
+          - config: ReleaseFS_SL
+            label: SecondLife
+            zip_name: Tasia-Viewer-Windows-SL
 
     steps:
       - name: Checkout viewer source
@@ -126,7 +136,7 @@ jobs:
           mkdir -p "$LOCAL_DIST_DIR"
 
           autobuild configure \
-            -c ReleaseFS_open \
+            -c ${{ matrix.config }} \
             -A ${{ env.AUTOBUILD_ADDRSIZE }} \
             -- \
             --openal \
@@ -139,7 +149,7 @@ jobs:
         run: |
           set -euo pipefail
           autobuild build \
-            -c ReleaseFS_open \
+            -c ${{ matrix.config }} \
             -A ${{ env.AUTOBUILD_ADDRSIZE }} \
             --no-configure \
             -- \
@@ -158,16 +168,16 @@ jobs:
           dist = Path('build-vc170-64/newview/unpacked')
           if not dist.is_dir():
               raise SystemExit(f'Missing unpacked Windows dist: {dist}')
-          archive = shutil.make_archive('Tasia-Viewer-Windows', 'zip', dist)
+          archive = shutil.make_archive('${{ matrix.zip_name }}', 'zip', dist)
           print(f'Created {archive}')
           PY
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Tasia-Viewer-Windows
+          name: ${{ matrix.zip_name }}
           if-no-files-found: error
-          path: Tasia-Viewer-Windows.zip
+          path: ${{ matrix.zip_name }}.zip
 
       - name: Publish GitHub prerelease - Windows
         if: inputs.publish_release == 'true'
@@ -178,7 +188,7 @@ jobs:
           set -euo pipefail
 
           TAG="v7.2.4-${GITHUB_RUN_NUMBER}"
-          TITLE="Tasia Viewer 7.2.4.${GITHUB_RUN_NUMBER} Windows Beta"
+          TITLE="Tasia Viewer 7.2.4.${GITHUB_RUN_NUMBER} Windows ${{ matrix.label }} Beta"
           NOTES="$(mktemp)"
 
           cat > "$NOTES" <<EOF
@@ -187,6 +197,7 @@ jobs:
           Version: 7.2.4.${GITHUB_RUN_NUMBER}
           Commit: ${GITHUB_SHA:0:7}
           Channel: Tasia Viewer
+          Flavor: ${{ matrix.label }}
           Audio: OpenAL
           KDU: removed
 
@@ -194,9 +205,9 @@ jobs:
           EOF
 
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$TAG" Tasia-Viewer-Windows.zip --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$TAG" ${{ matrix.zip_name }}.zip --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$TAG" Tasia-Viewer-Windows.zip \
+            gh release create "$TAG" ${{ matrix.zip_name }}.zip \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
               --title "$TITLE" \
