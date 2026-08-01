@@ -66,7 +66,7 @@ bool LLFloaterGiphyPicker::postBuild()
     mResultsList->setCommitCallback(boost::bind(&LLFloaterGiphyPicker::onResultSelected, this));
     mCategoryList->setCommitCallback(boost::bind(&LLFloaterGiphyPicker::onCategorySelected, this));
     mSuggestionList->setCommitCallback(boost::bind(&LLFloaterGiphyPicker::onSuggestionSelected, this));
-    mSearchEditor->setKeystrokeCallback(boost::bind(&LLFloaterGiphyPicker::onSearchKeystroke, this));
+    mSearchEditor->setKeystrokeCallback([this](LLLineEditor*, void*) { onSearchKeystroke(); }, NULL);
 
     setStatus("Search GIPHY or load trending GIFs.");
     refreshControls();
