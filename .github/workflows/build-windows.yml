@@ -87,6 +87,12 @@ jobs:
         run: |
           autobuild source_environment > .source_env
           . .source_env
+          # ReleaseFS_SL has no LL_BUILD_WINDOWS_RELEASEFS_SL mapping in fs-build-variables;
+          # fall back to the Release flags so CMake's LL_BUILD check passes.
+          if [ -z "${LL_BUILD:-}" ]; then
+            echo "LL_BUILD was empty; using LL_BUILD_RELEASE"
+            LL_BUILD="$LL_BUILD_RELEASE"
+          fi
           echo "LL_BUILD=$LL_BUILD" >> "$GITHUB_ENV"
           echo "LL_BUILD_RELEASE=$LL_BUILD_RELEASE" >> "$GITHUB_ENV"
 
