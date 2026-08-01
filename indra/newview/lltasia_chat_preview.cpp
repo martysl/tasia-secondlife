@@ -47,15 +47,6 @@ bool tasiaEndsWith(const std::string& value, const std::string& suffix)
     return value.compare(value.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
-bool tasiaStartsWith(const std::string& value, const std::string& prefix)
-{
-    if (prefix.size() > value.size())
-    {
-        return false;
-    }
-    return value.compare(0, prefix.size(), prefix) == 0;
-}
-
 bool tasiaIsYouTubeHost(std::string host)
 {
     return host == "youtube.com" ||
@@ -121,16 +112,6 @@ void tasiaStripTrailingUrlPunctuation(std::string& url)
             break;
         }
     }
-}
-
-std::string tasiaMakeImageDataURL(const std::string& image_url)
-{
-    const std::string html = "<!doctype html><html><head><meta charset=\"utf-8\">"
-        "<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;}"
-        "body{display:flex;align-items:center;justify-content:center;}"
-        "img{max-width:100%;max-height:100%;object-fit:contain;}</style></head>"
-        "<body><img src=\"" + image_url + "\"></body></html>";
-    return "data:text/html," + LLURI::escape(html);
 }
 
 std::string tasiaMakeHostedYouTubePlayerURL(const std::string& video_id)
@@ -264,6 +245,7 @@ bool tasiaExtractYouTubePreviewFromURL(std::string url, TasiaYouTubePreview& pre
     preview.page_url = "https://www.youtube.com/watch?v=" + video_id;
     preview.player_url = tasiaMakeHostedYouTubePlayerURL(video_id);
     return true;
+}
 }
 
 bool tasiaFindFirstGiphyPreview(const std::string& text, TasiaGiphyPreview& preview)
