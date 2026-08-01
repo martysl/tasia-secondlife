@@ -202,6 +202,16 @@ No tutorial is currently available.
 
   <notification
    icon="alertmodal.tga"
+   name="FoundLegacyNsisInstallation"
+   type="alertmodal">
+      [APP_NAME] found an installation of an older version [VERSION]. To uninstall the older version, please follow [https://community.secondlife.com/knowledgebase/english/how-to-uninstall-and-reinstall-second-life-r524 this manual].
+      <usetemplate
+       name="okbutton"
+       yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="LoginFailedNoNetwork"
    type="alertmodal">
     <tag>fail</tag>
@@ -1322,6 +1332,14 @@ Error encoding snapshot.
   
   <notification
    icon="alertmodal.tga"
+   name="ErrorEncodingImage"
+   type="alertmodal">
+    Failed to encode image, reason: [REASON]
+    <tag>fail</tag>
+  </notification>
+  
+  <notification
+   icon="alertmodal.tga"
    name="ErrorTextureCannotAfford"
    type="alertmodal">
     You need L$[COST] to save a texture to your inventory. You may either buy L$ or save the photo to your computer instead.
@@ -1461,28 +1479,21 @@ You need to enter either the Username or both the First and Last name of your av
 '[GRID]' is not a valid grid identifier.
   </notification>
   
-   <notification
-    name="GridBlockedSL"
-    type="alertmodal">
-    <tag>fail</tag>
-Second Life grids are not supported by Tasia Viewer. This viewer is configured for I-Grid/OpenSim only.
-   </notification>
-
-   <notification
-    name="TasiaFeedUploadComplete"
-    type="alertmodal">
-    <tag>success</tag>
+  <notification
+   name="TasiaFeedUploadComplete"
+   type="alertmodal">
+   <tag>success</tag>
 Snapshot uploaded to TasiaFeed!
 [URL]
-   </notification>
+  </notification>
 
-   <notification
-    name="TasiaFeedUploadFailed"
-    type="alertmodal">
-    <tag>fail</tag>
+  <notification
+   name="TasiaFeedUploadFailed"
+   type="alertmodal">
+   <tag>fail</tag>
 Snapshot upload to TasiaFeed failed.
 [MESSAGE]
-   </notification>
+  </notification>
 
   <notification
    icon="alertmodal.tga"
@@ -1733,7 +1744,7 @@ Would you like to shutdown the viewer and launch it manually again in order to a
    icon="alertmodal.tga"
    name="ChangeLanguage"
    type="alertmodal">
-The selected language will be applied after restarting [APP_NAME].
+The selected language or time format will be applied after restarting [APP_NAME].
   </notification>
 
   <notification
@@ -2348,6 +2359,25 @@ Could not open uploaded sound file for reading:
 
   <notification
    icon="alertmodal.tga"
+   name="ModelUploaderMissingPhysicsApple"
+   type="alertmodal">
+Model upload is not yet available on Apple Silicon, but will be supported in an upcoming release.
+
+Workaround: Right-click the [APP_NAME] app in Finder, select
+&apos;Get Info&apos;, then check &apos;Open using Rosetta&apos;
+  <tag>fail</tag>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="ModelUploaderMissingPhysics"
+   type="alertmodal">
+Physics library is not present, some of the model uploader's functionality might not work or might not work correctly.
+  <tag>fail</tag>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="SoundFileNotRIFF"
    type="alertmodal">
 File does not appear to be a RIFF WAVE file:
@@ -2550,6 +2580,17 @@ You have added "[LANDMARK_NAME]" to your [FOLDER_NAME] folder.
    name="LandmarkAlreadyExists"
    type="alert">
 You already have a landmark for this location.
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  <tag>fail</tag>
+  </notification>
+
+  <notification
+   icon="alert.tga"
+   name="LandmarkLocationUnknown"
+   type="alert">
+Viewer wasn't able to get region's location. Region might be temporarily unavailable or was removed.
     <usetemplate
      name="okbutton"
      yestext="OK"/>
@@ -3292,11 +3333,11 @@ Would you be my friend?
       <input name="listname" type="text"/>
       <button
        default="true"
-       index="0"
+       index="1"
        name="SetName"
        text="OK"/>
       <button
-       index="1"
+       index="0"
        name="Cancel"
        text="Cancel"/>
     </form>
@@ -3327,9 +3368,33 @@ Would you be my friend?
 
   <notification
    icon="alertmodal.tga"
+   label="Remove Auto-Replace List"
+   name="RemoveAutoReplaceList"
+   type="alertmodal">
+'[LIST_NAME]' contains [MAP_SIZE] entries.
+    
+Are you sure you want to delete this list?
+      <tag>confirm</tag>
+    <form name="form">
+      <button
+       default="true"
+       index="1"
+       name="DeleteList"
+       text="Delete"/>
+      <button
+       default="false"
+       index="0"
+       name="Cancel"
+       text="Cancel"/>
+    </form>
+  </notification>
+
+    <notification
+   icon="alertmodal.tga"
    name="InvalidAutoReplaceEntry"
    type="alertmodal">
-    The keyword must be a single word, and the replacement may not be empty.
+    The keyword must be a single word, and the replacement may not be empty. Allowed punctuation in keywords: 
+( ) . , - _
     <tag>fail</tag>
   </notification>
 
@@ -3970,7 +4035,7 @@ We&apos;re having trouble connecting. There may be a problem with your Internet 
 You can either check your Internet connection and try again in a few minutes, click Help to view the [SUPPORT_SITE], or click Teleport to attempt to teleport home.
     <url option="1" name="url">
 
-			mailto:009daw+viewersupport@gmail.com
+			https://www.firestormviewer.org/support/
     </url>
     <form name="form">
       <button
@@ -3998,33 +4063,7 @@ We&apos;re having trouble connecting. There may be a problem with your Internet 
 
 You can either check your Internet connection and try again in a few minutes or click Help to view the [SUPPORT_SITE].
     <url option="1" name="url">
-			mailto:009daw+viewersupport@gmail.com
-    </url>
-    <form name="form">
-      <button
-       default="true"
-       index="0"
-       name="OK"
-       text="OK"/>
-      <button
-       index="1"
-       name="Help"
-       text="Help"/>
-    </form>
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="LoginFailedQuic"
-   type="alertmodal">
-   <tag>fail</tag>
-We couldn&apos;t establish a secure (QUIC) session with [CURRENT_GRID].
-
-[REASON]
-
-You can check your Internet connection and try again in a few minutes, or click Help to view the [SUPPORT_SITE].
-    <url option="1" name="url">
-			mailto:009daw+viewersupport@gmail.com
+			https://www.firestormviewer.org/support/
     </url>
     <form name="form">
       <button
@@ -4541,6 +4580,14 @@ Click OK to download and install.
 
   <notification
    icon="alertmodal.tga"
+   name="DownloadingUpdate"
+   type="alertmodal">
+Downloading update [VERSION]...
+The viewer will restart once the download is complete.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="OptionalUpdateReady"
    type="alertmodal">
 Version [VERSION] has been downloaded and is ready to install.
@@ -4554,9 +4601,9 @@ Click OK to install.
   </notification>
 
   <notification
-   icon="alertmodal.tga"
+   icon="alert.tga"
    name="PromptOptionalUpdate"
-   type="alertmodal">
+   type="alert">
 Version [VERSION] has been downloaded and is ready to install.
 Release notes: [URL]
 
@@ -4812,13 +4859,12 @@ You already have blocked/muted this name.
 
   <notification
    icon="alert.tga"
-   name="RemoveItemWarn"
+   name="CantModifyContentInNoModTask"
    type="alert">
-Though permitted, deleting contents may damage the object. Do you want to delete that item?
+You don't have permission to modify content of this object
     <tag>confirm</tag>
     <usetemplate
-     name="okcancelbuttons"
-     notext="Cancel"
+     name="okbutton"
      yestext="OK"/>
   </notification>
 
@@ -6883,6 +6929,22 @@ Do you want to replace it with the selected object?
   </notification>
 
   <notification
+   icon="alertmodal.tga"
+   name="CantLinkNotecard"
+   type="alertmodal">
+    You must save the notecard before creating a link to it.
+    <tag>fail</tag>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="CantLinkMaterial"
+   type="alertmodal">
+    You must save the material before creating a link to it.
+    <tag>fail</tag>
+  </notification>
+
+  <notification
    icon="alert.tga"
    label="Unavailable Mode Warning"
    name="DoNotDisturbModePay"
@@ -7678,6 +7740,20 @@ You do not have permission to view this notecard.
    type="notifytip">
     You don&apos;t have permission to view this material.
     <tag>fail</tag>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="MaterialImagesWereScaled"
+   type="alertmodal">
+One or more textures in this material were scaled to be within the allowed limits.
+Textures must have power of two dimensions and must not exceed [MAX_SIZE]x[MAX_SIZE] pixels.
+    <unique/>
+    <tag>confirm</tag>
+    <usetemplate
+     ignoretext="Warn if textures will be scaled during upload."
+     name="okignore"
+     yestext="OK"/>
   </notification>
 
   <notification
@@ -10188,8 +10264,11 @@ Unable to upload texture: &apos;[NAME]&apos;
    icon="alertmodal.tga"
    name="CannotUploadMaterial"
    type="alertmodal">
-There was a problem uploading the file
+Unable to upload material file. The file may be corrupted, in an unsupported format, or contain invalid data. Please check that you're using a valid GLTF/GLB file with proper material definitions.
     <tag>fail</tag>
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
   </notification>
 
   <notification
@@ -11050,6 +11129,16 @@ The name may only contain ASCII characters, excluding ":" and "|".
      yestext="OK"/>
   </notification>
 
+  <notification
+   icon="alertmodal.tga"
+   name="NewAONameCantExist"
+   type="alertmodal">
+An animation set with this name already exists.
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+
 <notification
    icon="alertmodal.tga"
    name="RemoveAOSet"
@@ -11305,6 +11394,40 @@ Flight Assist is enabled
   </notification>
 <!-- Firestorm Reset Settings -->
 
+<!-- Firestorm Region Group Titles -->
+  <notification
+    icon="alertmodal.tga"
+    name="FSSetTitleRegion"
+    type="alertmodal">
+Enter the exact name of a region to assign to the selected group title.
+The name will be verified before the assignment is saved.
+    <tag>confirm</tag>
+    <form name="form">
+      <input name="region_name" type="text">
+      </input>
+      <button
+       default="true"
+       index="0"
+       name="OK"
+       text="OK"/>
+      <button
+       index="1"
+       name="Cancel"
+       text="Cancel"/>
+    </form>
+  </notification>
+
+  <notification
+    icon="alertmodal.tga"
+    name="FSSetTitleRegionNotFound"
+    type="alertmodal">
+The region '[REGION]' could not be found. Please check the name and try again.
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+<!-- Firestorm Region Group Titles -->
+
 <!-- AW: opensim -->
   <notification icon="alertmodal.tga"
 		name="CantAddGrid"
@@ -11474,7 +11597,7 @@ Your viewer cache is currently empty. Please be aware that you may experience sl
    icon="alertmodal.tga"
    name="FirstJoinSupportGroup2"
    type="alertmodal">
-Welcome to the Phoenix/Tasia Viewer Support Group!
+Welcome to the Phoenix/Firestorm Viewer Support Group!
 
 To make support easier, it is recommended to announce your viewer's version to the group. This information includes current viewer version, viewer skin, operating system and RLVa status. You can choose to display your viewer's version in front of any chat you send to the group. Our support members can give you more meaningful advice right away if they know the viewer version you are on.
 
@@ -11658,6 +11781,14 @@ You are now the owner of object [OBJECT_NAME]
   </notification>
 
   <notification
+   icon="alertmodal.tga"
+   name="NowOwnObjectInv"
+   type="notify">
+   <tag>fail</tag>
+You are now the owner of object [OBJECT_NAME] and it has been placed in your inventory.
+  </notification>
+
+    <notification
    icon="alertmodal.tga"
    name="CantRezOnLand"
    type="notify">
@@ -13465,6 +13596,17 @@ They can use http://opensimulator.org/wiki/inventory to fix the issues.
 
   <notification
    icon="alertmodal.tga"
+   name="PreferenceQualityWithLowMemory"
+   type="alert">
+Your system has [TOTAL_MEM]MB of memory, which might not be enough to run viewer at higher settings and might result in issues.
+      <usetemplate
+       name="okcancelbuttons"
+       notext="Cancel"
+       yestext="Continue"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="DefaultObjectPermissions"
    type="alert">
 	There was a problem saving the default object permissions: [REASON].  Please try setting the default permissions later.
@@ -13899,6 +14041,27 @@ Enter an alias for [AVATAR]:
 
   <notification
    icon="alertmodal.tga"
+   name="SetAvatarPseudonymMultiple"
+   type="alertmodal">
+    <tag>contact set</tag>
+Enter an alias for [COUNT] avatars:
+    <tag>confirm</tag>
+    <form name="form">
+      <input name="message" type="text" default="true" />
+      <button
+       default="true"
+       index="0"
+       name="Create"
+       text="Create"/>
+      <button
+       index="1"
+       name="Cancel"
+       text="Cancel"/>
+    </form>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="RenameContactSetFailure"
    type="alertmodal">
     <tag>contact set</tag>
@@ -14094,6 +14257,19 @@ the region &quot;[REGION]&quot;?
   </notification>
   <notification
    icon="alertmodal.tga"
+   name="ConfirmGlobalOnlineStatusToggle"
+   type="alertmodal">
+Are you sure you want to change your online status visibility for all friends at once?
+
+Due to server load, this mass change can take a while to become effective and may cause temporary issues for some friends seeing your online status.
+    <tag>confirm</tag>
+    <usetemplate
+     name="okcancelbuttons"
+     notext="Cancel"
+     yestext="OK"/>
+  </notification>
+  <notification
+   icon="alertmodal.tga"
    name="GlobalOnlineStatusToggle"
    type="alertmodal">
 Due to server load, mass toggling online status visibility can take a while to become effective. Please be patient.
@@ -14136,8 +14312,8 @@ This setting is intended for cases where VRAM detection is reporting incorrect v
    name="CurrencyURIOverrideReceived"
    type="alertmodal">
 This region has elected to specify a third-party currency portal. 
-Please note that currency purchases made through Tasia Viewer are transactions between you (the user) and the provider(s) or seller(s) of the currency. 
-Neither Tasia Viewer, the Phoenix Tasia Viewer Project Inc., nor its team shall be liable for any cost or damage arising either directly or indirectly from any such transaction. 
+Please note that currency purchases made through Firestorm Viewer are transactions between you (the user) and the provider(s) or seller(s) of the currency. 
+Neither Firestorm Viewer, the Phoenix Firestorm Viewer Project Inc., nor its team shall be liable for any cost or damage arising either directly or indirectly from any such transaction. 
 If you do not agree to these terms of use, then no financial transactions should be conducted using this viewer.
    <usetemplate
     ignoretext="When the region sets a new currency helper."
@@ -14600,6 +14776,26 @@ This will replace the items in the selected outfit with the items you are wearin
   </notification>
 
   <notification
+   icon="notify.tga"
+   name="WaterExclusionNoMaterial"
+   persist="true"
+   type="notify">
+    Unable to apply material to the water exclusion surface.
+    <tag>fail</tag>
+  </notification>
+
+  <notification
+   icon="notify.tga"
+   name="ImageUploadResized"
+   type="alertmodal">
+      The texture you are uploading has been resized from [ORIGINAL_WIDTH]x[ORIGINAL_HEIGHT] to [NEW_WIDTH]x[NEW_HEIGHT] in order to to fit the maximum size of [MAX_WIDTH]x[MAX_HEIGHT] pixels.
+      <usetemplate
+          ignoretext="Image Upload Resized"
+          name="okignore"
+          yestext="OK"/>
+  </notification>
+
+  <notification
    icon="alertmodal.tga"
    name="EnableAutoFPSWarning"
    type="alertmodal">
@@ -14739,6 +14935,18 @@ https://wiki.firestormviewer.org/antivirus_whitelisting
   </notification>
 
   <notification
+   icon="notifytip.tga"
+   name="FSLargeOutfitsWarningInThisSession"
+   type="alertmodal">
+    <unique/>
+    A large number of outfits were detected: [AMOUNT]. This may cause viewer hangs or disconnects. Consider reducing the number of outfits for better performance (below [MAX]). THIS IS ONLY A SUGGESTION - if your computer is functioning normally, you can safely ignore it.
+    <usetemplate
+     ignoretext="Outfit count warning"
+     name="okignore"
+     yestext="OK" />
+  </notification>
+
+  <notification
    icon="alertmodal.tga"
    name="PrimfeedLoginRequestFailed"
    persist="false"
@@ -14794,4 +15002,101 @@ You have already linked this account to Primfeed. Use the reset button if you wi
    type="alertmodal">
 Primfeed user login successful, but status checks have failed. Please check the Primfeed is working.
   </notification>
+<!-- <FS:Zi> generic error notifications for file system issues -->
+  <notification
+   icon="alertmodal.tga"
+   name="NotRegularFileError"
+   persist="false"
+   tag="fail"
+   type="alertmodal">
+Expected to find a regular file at:
+[FILE_NAME]
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="NotFolderError"
+   persist="false"
+   tag="fail"
+   type="alertmodal">
+Expected to find a regular folder at:
+[FILE_NAME]
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="GenericFileEmptyError"
+   persist="false"
+   tag="fail"
+   type="alertmodal">
+File exists but is empty:
+[FILE_NAME]
+
+Error message:
+[ERROR_MESSAGE] ([ERROR_CODE])
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="GenericFileOpenReadError"
+   persist="false"
+   tag="fail"
+   type="alertmodal">
+Could not open file for reading:
+[FILE_NAME]
+
+Error message:
+[ERROR_MESSAGE] ([ERROR_CODE])
+  </notification>
+  <notification
+   icon="alertmodal.tga"
+   name="GenericFileOpenWriteError"
+   persist="false"
+   tag="fail"
+   type="alertmodal">
+Could not open file for writing:
+[FILE_NAME]
+
+Error message:
+[ERROR_MESSAGE] ([ERROR_CODE])
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="GenericFileReadError"
+   persist="false"
+   tag="fail"
+   type="alertmodal">
+Could not read from file:
+[FILE_NAME]
+
+Error message:
+[ERROR_MESSAGE] ([ERROR_CODE])
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="GenericFileWriteError"
+   persist="false"
+   tag="fail"
+   type="alertmodal">
+Could not write to file:
+[FILE_NAME]
+
+Error message:
+[ERROR_MESSAGE] ([ERROR_CODE])
+  </notification>
+<!-- </FS:Zi> -->
+  <!-- <FS:TJ>-->
+  <notification
+   icon="alert.tga"
+   name="ChatHistoryIsMissing"
+   type="alertmodal">
+Chat transcript file is missing. Either there are no transcripts for this chat, or transcripts aren't being saved.
+You can enable saving transcripts under Preferences &gt; Privacy &gt; Logs &amp; Transcripts
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+  <!-- </FS:TJ>-->
 </notifications>
