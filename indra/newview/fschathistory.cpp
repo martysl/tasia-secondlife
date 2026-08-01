@@ -2538,7 +2538,7 @@ void FSChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
         setContentTrusted(is_trusted);
         setPlainText(use_plain_text_chat_history);
 
-        if (!use_plain_text_chat_history && !message_from_log)
+        if (!message_from_log)
         {
             bool preview_added = false;
 
