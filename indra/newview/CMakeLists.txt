@@ -52,13 +52,8 @@ include(Growl)
 include(ColladaDom)
 include(jemalloc)
 include(Discord)
-include(MsQuic)
 
-# <FS:ND> if using ndPhysicsstub this variable will be unset, we don't need to build any stub code viewer side in that case
-if (LLPHYSICSEXTENSIONS_SRC_DIR)
-# </FS:ND>
-
-if (NOT HAVOK_TPV)
+if (HAVOK)
    # When using HAVOK_TPV, the library is precompiled, so no need for this
 
    # Stub and probably havok lib itself is a hack, autobuild loads a 3p that really is a source tarball
@@ -67,6 +62,11 @@ if (NOT HAVOK_TPV)
    # which means we need to duct tape this togther ...
 
    add_subdirectory(${LLPHYSICSEXTENSIONS_SRC_DIR} llphysicsextensions)
+   if (NOT "${LLPHYSICSEXTENSIONS_STUB_DIR}" STREQUAL "")
+      # for darwin universal builds we need both real llphysicsextensions and the stub for aarch64 fallback
+      # this will only be set when HAVOK is ON, otherwise the normal stub fallback will be in effect
+      add_subdirectory(${LLPHYSICSEXTENSIONS_STUB_DIR} llphysicsextensionsstub)
+   endif()
 
    # Another hack that works with newer cmake versions:
    cmake_policy( SET CMP0079 NEW)
@@ -79,11 +79,7 @@ if (NOT HAVOK_TPV)
         target_compile_options( llphysicsextensions  PRIVATE -Wno-unused-local-typedef)
       endif (DARWIN)
    endif()
-endif (NOT HAVOK_TPV)
-
-# <FS:ND>
-endif (LLPHYSICSEXTENSIONS_SRC_DIR)
-# </FS:ND>
+endif ()
 
 set(viewer_SOURCE_FILES
 # <Add FS includes below this line>
