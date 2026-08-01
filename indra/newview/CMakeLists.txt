@@ -101,6 +101,7 @@ set(viewer_SOURCE_FILES
     llfloatergiphypicker.cpp
     llfloatertasiafeed.cpp
     llgiphyclient.cpp
+    lltasia_chat_preview.cpp
     lltasia_giphy_key.cpp
     lltasia_user_config.cpp
     lltasia_welcome_client.cpp
@@ -967,6 +968,7 @@ set(viewer_HEADER_FILES
     llfloatergiphypicker.h
     llfloatertasiafeed.h
     llgiphyclient.h
+    lltasia_chat_preview.h
     lltasia_giphy_key.h
     lltasia_user_config.h
     lltasia_welcome_client.h
