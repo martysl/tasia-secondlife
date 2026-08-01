@@ -5,6 +5,31 @@
 	</string>
 	<layout_stack name="login_widgets">
 		<layout_panel name="login">
+			<text
+				follows="left|top"
+				font="SansSerif"
+				font.style="BOLD"
+				font.size="Huge"
+				height="40"
+				left="20"
+				name="family_grids_text"
+				text_color="0.35 0.65 0.90 1"
+				top="25"
+				width="400">
+			Family Grids
+			</text>
+			<text
+				follows="left|top"
+				font="SansSerif"
+				font.size="Medium"
+				height="24"
+				left="20"
+				name="tasia_subtitle"
+				text_color="White_70"
+				top="62"
+				width="400">
+			powered by Tasia Viewer
+			</text>
 			<text name="log_in_text">
 				ZALOGUJ SIĘ
 			</text>

@@ -33,8 +33,8 @@
         top="16"
         width="434"
         wrap="true">
-For the latest information about Firestorm, visit 
-https://www.firestormviewer.org
+For the latest information about Tasia Viewer, visit 
+https://i.let-us.cyou/
       </text>
       <text_editor
         parse_urls="true"
@@ -44,14 +44,14 @@ https://www.firestormviewer.org
         bg_readonly_color="Transparent"
         left="5"
         max_length="65536"
-        name="support_editor"
+        name="fake_support_editor"
         top_pad="5"
         width="489"
         word_wrap="true" />
       <button
         follows="left|top" 
-        label="Copy to Clipboard"
-        name="copy_btn"
+        label="Copy Fake Info to Clipboard"
+        name="fake_copy_btn"
         left="5"
         top_pad="5"
         height="25"
@@ -71,7 +71,9 @@ https://www.firestormviewer.org
         top="16"
         width="489"
         wrap="true">
-Firestorm would not be possible without the decision from Linden Lab to make their Second Life viewer source code available.
+Tasia Viewer is made possible by the open source community.
+
+Our thanks go first to Linden Lab for making their Second Life viewer source code available — without that foundation, none of this would exist.
 
 Second Life is brought to you by the Lindens, 
 with open source contributions from:
@@ -93,7 +95,7 @@ Dummy Name replaced at run time
     <panel
       height="920"
       border="true"
-      label="Firestorm Credits"
+      label="Credits"
       help_topic="about_fscredits_tab"
       name="fs_credits_panel">
         <scroll_container
@@ -124,6 +126,15 @@ Dummy Name replaced at run time
                  top="0"
                  width="450"
                  wrap="true">
+Tasia Viewer is created with ♥ by Tasia and Marty Mouse, from EasierIT and Misfitz Interactive. We extend our deepest gratitude to the Firestorm team — this viewer would not exist without their incredible work as our foundation.
+
+Thank you, Firestorm team, for everything you've built and shared with the community!
+
+Tasia Viewer Developers:
+  Tasia, Marty Mouse — EasierIT / Misfitz Interactive
+
+---
+
 Firestorm is a community development project to improve the SecondLife(tm) Viewer experience. We package contributions from various community developers along with code from Linden Lab and ourselves to bring you a quality, feature-rich viewer experience backed up by a large volunteer support team. Firestorm is brought to you by The Phoenix Firestorm Project, Inc., a non-profit organization.
 
 The Firestorm Development Team:
@@ -239,9 +250,19 @@ Adam Frisby, Alexandrea Fride, DarkAgent Baphomet, David Rowe, Digital Scribe, D
        top="16"
        width="474"
        word_wrap="true">
-3Dconnexion SDK Copyright (C) 1992-2009 3Dconnexion
-APR Copyright (C) 2011 The Apache Software Foundation
-Collada DOM Copyright 2006 Sony Computer Entertainment Inc.
+ Tasia Viewer
+ Copyright (c) 2026 Tasia and Marty Mouse — EasierIT / Misfitz Interactive
+ All rights reserved.
+
+ This viewer is based on the Phoenix Tasia Viewer source code.
+ Phoenix Tasia Viewer is Copyright (c) The Phoenix Firestorm Project, Inc.
+ Licensed under the LGPL. See licenses.txt for details.
+
+---
+
+ 3Dconnexion SDK Copyright (C) 1992-2009 3Dconnexion
+ APR Copyright (C) 2011 The Apache Software Foundation
+ Collada DOM Copyright 2006 Sony Computer Entertainment Inc.
 cURL Copyright (C) 1996-2010, Daniel Stenberg, (daniel@haxx.se)
 DBus/dbus-glib Copyright (C) 2002, 2003 CodeFactory AB / Copyright (C) 2003, 2004 Red Hat, Inc.
 expat Copyright (C) 1998, 1999, 2000 Thai Open Source Software Center Ltd.

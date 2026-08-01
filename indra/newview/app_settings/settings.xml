@@ -6244,7 +6244,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>https://wiki.firestormviewer.org/[TOPIC]</string>
+      <string>https://i.let-us.cyou/[TOPIC]</string>
       <key>Backup</key>
       <integer>0</integer>
     </map>
@@ -14071,7 +14071,7 @@ Change of this parameter will affect the layout of buttons in notification toast
 			<key>Type</key>
 			<string>String</string>
 			<key>Value</key>
-			<string>https://phoenixviewer.com/app/file-a-jira/?environment=[ENVIRONMENT]</string>
+			<string>mailto:009daw+viewersupport@gmail.com?subject=Tasia%20Viewer%20Bug%20Report&amp;body=Environment:%20[ENVIRONMENT]%0ALocation:%20[LOCATION]%0A%0ADescribe%20the%20issue:%0A</string>
 		</map>
 	<key>RevokePermsOnStopAnimation</key>
     <map>

@@ -12,7 +12,7 @@ class FSViewerManifest:
             'version' : '.'.join(self.args['version']),
             'version_short' : '.'.join(self.args['version'][:-1]),
             'version_dashes' : '-'.join(self.args['version']),
-            'app_name':self.app_name(),
+            'app_name':self.app_name_oneword(),
             'optimized': opt_string,
             'app_name_oneword':self.app_name_oneword()
             }

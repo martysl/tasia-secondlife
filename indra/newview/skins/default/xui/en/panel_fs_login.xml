@@ -25,17 +25,42 @@
     An existing grid or a grid URI
   </string>
   <web_browser
-      tab_stop="false"
-      trusted_content="true"
-      bg_opaque_color="Black"
-      border_visible="false"
-      follows="all"
-      left="0"
-      name="login_html"
-      start_url=""
-      top="18"
-      height="670"
-      width="1024" />
+     tab_stop="false"
+     trusted_content="true"
+     bg_opaque_color="Black"
+     border_visible="false"
+     follows="all"
+     left="0"
+     name="login_html"
+     start_url=""
+     top="18"
+     height="670"
+     width="1024" />
+  <text
+      follows="left|top"
+      font="SansSerif"
+      font.style="BOLD"
+      font.size="Huge"
+      height="40"
+      left="20"
+      name="family_grids_text"
+      text_color="0.35 0.65 0.90 1"
+      top="25"
+      width="400">
+    Family Grids
+  </text>
+  <text
+      follows="left|top"
+      font="SansSerif"
+      font.size="Medium"
+      height="24"
+      left="20"
+      name="tasia_subtitle"
+      text_color="White_70"
+      top="62"
+      width="400">
+    powered by Tasia Viewer
+  </text>
   <layout_stack
       animate="false"
       clip="false"
@@ -330,8 +355,8 @@
           name="mode_combo"
           width="110">
            <combo_box.item
-            label="Firestorm"
-            name="Firestorm"
+            label="Tasia Viewer"
+            name="TasiaViewer"
             value="settings_firestorm.xml" />
            <combo_box.item
             label="Phoenix"

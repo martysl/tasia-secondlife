@@ -2,7 +2,7 @@
 <panel
  border="true"
  follows="all"
- height="480"
+ height="440"
  layout="topleft"
  left="1"
  top="1"
@@ -19,7 +19,7 @@
      top="30"
      width="250"
      height="16"
-     label="Send crash reports to firestormviewer.org"
+     label="Send crash reports to Tasia Viewer support"
      name="checkSendCrashReports"
      enabled="false" />
 

@@ -7,28 +7,30 @@
 
 	<!-- Default Args - these arguments will be replaced in all strings -->
 	<string name="SECOND_LIFE">[CURRENT_GRID]</string>
-	<string name="APP_NAME">Firestorm</string>
-	<string name="CAPITALIZED_APP_NAME">FIRESTORM</string>
+	<string name="APP_NAME">Tasia</string>
+	<string name="CAPITALIZED_APP_NAME">TASIA</string>
 	<string name="SECOND_LIFE_GRID">Second Life Grid</string>
-	<string name="SUPPORT_SITE">Firestorm Support Portal</string>
-	<string name="DOWNLOAD_URL">https://www.firestormviewer.org/choose-your-platform/</string>
+	<string name="SUPPORT_SITE">Tasia Viewer Support</string>
+	<string name="DOWNLOAD_URL">https://i.let-us.cyou/</string>
 	<string name="CURRENT_GRID"/> <!-- Will be set in fsgridhandler.cpp / llviewernetwork.cpp -->
 	<string name="VIEWER_GENERATION">Viewer [VERSION]</string>
 	<string name="SHORT_VIEWER_GENERATION">V[VERSION]</string>
-	<string name="APP_NAME_ABBR">FS</string>
+	<string name="APP_NAME_ABBR">TASIA</string>
 
 	<!-- starting up -->
-	<string name="StartupLoading">Loading [APP_NAME]...</string>
-	<string name="StartupClearingCache">Clearing cache...</string>
-	<string name="StartupClearingTextureCache">Clearing texture cache...</string>
-	<string name="StartupInitializingTextureCache">Initializing texture cache...</string>
-	<string name="StartupRequireDriverUpdate">Graphics initialization failed. Please update your graphics driver!</string>
+	<string name="StartupDetectingHardware">> DETECTING HARDWARE...</string>
+	<string name="StartupLoading">> LOADING [APP_NAME] VIEWER...</string>
+	<string name="StartupClearingCache">> CLEARING CACHE...</string>
+	<string name="StartupClearingTextureCache">> CLEARING TEXTURE CACHE...</string>
+	<string name="StartupInitializingTextureCache">> INITIALIZING TEXTURE CACHE...</string>
+	<string name="StartupRequireDriverUpdate">! ERROR: Graphics initialization failed. Please update your graphics driver!</string>
+	<string name="StartupWelcome">>> TASIA VIEWER READY — WELCOME</string>
 
 	<!-- about dialog/support string-->
 	<string name="AboutHeader">
-[APP_NAME] [VIEWER_VERSION_0].[VIEWER_VERSION_1].[VIEWER_VERSION_2] ([VIEWER_VERSION_3]) [BUILD_DATE] [BUILD_TIME] ([ADDRESS_SIZE]bit / [SIMD]) ([CHANNEL]) [BUILD_TYPE]
+[APP_NAME] [VIEWER_VERSION_0].[VIEWER_VERSION_1].[VIEWER_VERSION_2].[VIEWER_VERSION_3] [BUILD_DATE] [BUILD_TIME] ([ADDRESS_SIZE]bit / [SIMD]) ([CHANNEL]) [BUILD_TYPE]
+Commit: [GIT_HASH_SHORT]
 [[VIEWER_RELEASE_NOTES_URL] [ReleaseNotes]]
-Parity with Second Life Viewer: [VIEWER_VERSION_LL]
 	</string>
 	<string name="AboutCompiler">Built with [COMPILER] version [COMPILER_VERSION]</string>
     <string name="BuildConfig">Build Configuration [BUILD_CONFIG]</string>
@@ -175,20 +177,20 @@ Check www.secondlife.com/status for updates.</string>
 People with free accounts will not be able to access Second Life during this time, to make room for those who have paid for Second Life.</string>
 	<string name="LoginFailedComputerProhibited">Second Life cannot be accessed from this computer.
 If you feel this is an error, please contact
-support@secondlife.com.</string>
+009daw+viewersupport@gmail.com.</string>
   <!--'Pacific time' placeholder for [TIME] in case time from server can't be decoded-->
   <string name="PacificTime">Pacific Time</string>
 	<string name="LoginFailedAcountSuspended">Your account is not accessible until
 [TIME].
-If you feel this is an error, please contact support@secondlife.com.</string>
+If you feel this is an error, please contact 009daw+viewersupport@gmail.com.</string>
 	<string name="LoginFailedAccountDisabled">We are unable to complete your request at this time.
 Please contact Second Life support for assistance at http://support.secondlife.com.</string>
 	<string name="LoginFailedTransformError">Data inconsistency found during login.
-Please contact support@secondlife.com.</string>
+Please contact 009daw+viewersupport@gmail.com.</string>
 	<string name="LoginFailedAccountMaintenance">Your account is undergoing minor maintenance.
 Your account is not accessible until
 [TIME].
-If you feel this is an error, please contact support@secondlife.com.</string>
+If you feel this is an error, please contact 009daw+viewersupport@gmail.com.</string>
 	<string name="LoginFailedPendingLogoutFault">Request for logout responded with a fault from simulator.</string>
 	<string name="LoginFailedPendingLogout">The system is logging you out right now.
 Please wait a minute before you try logging in again.</string>
@@ -197,13 +199,13 @@ Please wait a minute before you try logging in again.</string>
 	<string name="LoginFailedRestrictedHours">Your account can only access Second Life
 between [START] and [END] Pacific Time.
 Please come back during those hours.
-If you feel this is an error, please contact support@secondlife.com.</string>
+If you feel this is an error, please contact 009daw+viewersupport@gmail.com.</string>
 	<string name="LoginFailedIncorrectParameters">Incorrect parameters.
-If you feel this is an error, please contact support@secondlife.com.</string>
+If you feel this is an error, please contact 009daw+viewersupport@gmail.com.</string>
 	<string name="LoginFailedFirstNameNotAlphanumeric">First name parameter must be alphanumeric.
-If you feel this is an error, please contact support@secondlife.com.</string>
+If you feel this is an error, please contact 009daw+viewersupport@gmail.com.</string>
 	<string name="LoginFailedLastNameNotAlphanumeric">Last name parameter must be alphanumeric.
-If you feel this is an error, please contact support@secondlife.com.</string>
+If you feel this is an error, please contact 009daw+viewersupport@gmail.com.</string>
 	<string name="LogoutFailedRegionGoingOffline">Region is going offline.
 Please try logging in again in a minute.</string>
 	<string name="LogoutFailedAgentNotInRegion">Agent not in region.
@@ -221,7 +223,7 @@ Please try logging in again in a minute.</string>
 	<string name="LoginFailedLoggingOutSession">The system has begun logging out your last session.
 Please try logging in again in a minute.</string>
         <string name="LoginFailedAuthenticationMFARequired">To continue logging in, enter a new token from your multifactor authentication app.
-If you feel this is an error, please contact support@secondlife.com</string>
+If you feel this is an error, please contact 009daw+viewersupport@gmail.com</string>
 
 	<!-- Disconnection -->
 	<string name="AgentLostConnection">This region may be experiencing trouble.  Please check your connection to the Internet.</string>
@@ -295,7 +297,7 @@ If you feel this is an error, please contact support@secondlife.com</string>
 	<string name="TooltipMustSingleDrop">Only a single item can be dragged here</string>
 	<string name="TooltipTooManyWearables">You can't wear a folder containing more than [AMOUNT] items.  You can change this limit in Advanced &gt; Show Debug Settings &gt; WearFolderLimit.</string>
 	<string name="TooltipPrice" value="L$[AMOUNT]: "/>
-	<string name="TooltipSLIcon">This links to a page on the official SecondLife.com, LindenLab.com, or firestormviewer.org domain.</string>
+	<string name="TooltipSLIcon">This links to a page on the official SecondLife.com or LindenLab.com domain.</string>
 	<string name="TooltipFlagScript">Script</string>
 	<string name="TooltipFlagPhysics">Physics</string>
 	<string name="TooltipFlagTouch">Touch</string>
@@ -325,7 +327,6 @@ If you feel this is an error, please contact support@secondlife.com</string>
 	<string name="TooltipOutboxMixedStock">All items in a stock folder must have the same type and permission</string>
 	<string name="TooltipOutfitNotInInventory">You can only put items or outfits from your personal inventory into "Outfits"</string>
 	<string name="TooltipCantCreateOutfit">One or more items can't be used inside "Outfits"</string>
-    <string name="TooltipCantMoveOutfitIntoOutfit">Can not move an outfit into another outfit</string>
 	
 	<string name="TooltipDragOntoOwnChild">You can't move a folder into its child</string>
 	<string name="TooltipDragOntoSelf">You can't move a folder into itself</string>
@@ -397,14 +398,13 @@ are allowed.
 	<!-- searching - generic -->
 	<string name="Searching">Searching...</string>
 	<string name="NoneFound">None found.</string>
-    <string name="ServerUnavailable">Service not available.</string>
 
 	<!-- Indicates that an avatar name or other similar datum is being retrieved. General usage. -->
 	<string name="RetrievingData">Retrieving...</string>
 
 	<string name="ReleaseNotes">Release Notes</string>
 	<!-- Always mark translate="false" for strings that are nothing but URLs, as they don't need translation. -->
-	<string name="RELEASE_NOTES_BASE_URL" translate="false">https://wiki.firestormviewer.org/changelog:firestorm_change_log_</string>
+	<string name="RELEASE_NOTES_BASE_URL" translate="false">https://i.let-us.cyou/changelog:firestorm_change_log_</string>
 
 	<!-- Indicates something is being loaded. Maybe should be merged with RetrievingData -->
 	<string name="LoadingData">Loading...</string>
@@ -445,7 +445,7 @@ are allowed.
 	<string name="AssetUploadServerUnavaliable">Service not available or upload timeout was reached.</string>
 	<string name="AssetUploadRequestInvalid">
 Error in upload request.  Please visit 
-https://www.firestormviewer.org/support for help fixing this problem.
+mailto:009daw+viewersupport@gmail.com for help fixing this problem.
 </string>
 
 	<!-- Settings errors -->
@@ -665,7 +665,6 @@ https://www.firestormviewer.org/support for help fixing this problem.
 	<string name="dictionary_files">Dictionaries</string>
 	<string name="backup_files">Object Backups</string>
 	<string name="collada_files">COLLADA Models</string>
-	<string name="model_files">Mesh Models</string>
 	<string name="csv_files">Comma separated values</string>
 	<string name="recompile_script_verb">Recompile</string>
 
@@ -794,9 +793,8 @@ https://www.firestormviewer.org/support for help fixing this problem.
 
 	<!-- inventory -->
 	<string name="InventoryNoMatchingItems">Didn't find what you're looking for? Try [secondlife:///app/search/all/[SEARCH_TERM] Search].</string>
-	<string name="InventoryNoMatchingRecentItems">Didn't find what you're looking for? Try [secondlife:///app/inventory/filters Show filters].</string>	
-  <string name="InventoryNoMatchingFavorites">You haven't marked any items as favorites.</string>
-	<string name="PlacesNoMatchingItems">To add a place to your landmarks, click the star to the right of the location name.</string>
+	<string name="InventoryNoMatchingRecentItems">Didn't find what you're looking for? Show [secondlife:///app/inventory/filters Filters].</string>
+	<string name="PlacesNoMatchingItems">Didn't find what you're looking for? Try [secondlife:///app/search/places/[SEARCH_TERM] Search].</string>
 	<string name="FavoritesNoMatchingItems">Drag a landmark here to add it to your favorites.</string>
 	<string name="MarketplaceNoListing">You have no listings yet.</string>
 	<string name="MarketplaceNoMatchingItems">No items found. Check the spelling of your search string and try again.</string>
@@ -968,12 +966,11 @@ If you continue to receive this message, please contact Second Life support for 
 	<string name="InvFolder Uncompressed Sounds">Uncompressed Sounds</string>
 	<string name="InvFolder Animations">Animations</string>
 	<string name="InvFolder Gestures">Gestures</string>
-	<string name="InvFolder Favorite">Favorites</string>
+	<string name="InvFolder Favorites">Favorites</string>
   <!-- historically default name of the Favorites folder can start from either "f" or "F" letter.
       Also, it can be written as "Favorite" or "Favorites".
   We should localize all variants of them with the same value -->
 	<string name="InvFolder favorite">Favorites</string>
-	<string name="InvFolder Favorites">Favorites</string>
 	<string name="InvFolder favorites">Favorites</string>
 	<string name="InvFolder Current Outfit">Current Outfit</string>
 	<string name="InvFolder Initial Outfits">Initial Outfits</string>
@@ -2241,10 +2238,6 @@ Please reinstall viewer from [DOWNLOAD_URL] and contact [SUPPORT_SITE] if issue 
   <string name="inventory_item_offered_rlv">
     Inventory item offered to [NAME]
   </string>
-  <string name="bot_warning">
-  You are chatting with a bot, [NAME]. Do not share any personal information.
-Learn more at https://second.life/scripted-agents.
-  </string>
   <string name="share_alert">
     Drag items from inventory here
   </string>
@@ -2498,7 +2491,6 @@ Abuse Report</string>
   <string name="AvatarBirthDateFormat_legacy">[mthnum,datetime,slt]/[day,datetime,slt]/[year,datetime,slt]</string>
 
   <string name="DefaultMimeType">none/none</string>
-  <string name="texture_load_area_error">Can't load images larger than [PIXELS] pixels</string>
   <string name="texture_load_dimensions_error">Can't load images larger than [WIDTH]*[HEIGHT]</string>
   <string name="texture_load_format_error">Incorrect image format.</string>
   <string name="texture_load_empty_file">File is empty.</string>
@@ -2705,7 +2697,6 @@ Try enclosing path to the editor with double quotes.
   <string name="BeaconScripted">Viewing scripted object beacons (red)</string>
   <string name="BeaconScriptedTouch">Viewing scripted object with touch function beacons (red)</string>
   <string name="BeaconSound">Viewing sound beacons (yellow)</string>
-  <string name="BeaconRegionCorners">Viewing region corners (yellow)</string>
   <string name="BeaconMedia">Viewing media beacons (white)</string>
   <string name="BeaconSun">Viewing sun direction beacon (orange)</string>
   <string name="BeaconMoon">Viewing moon direction beacon (purple)</string>
@@ -2717,7 +2708,7 @@ Try enclosing path to the editor with double quotes.
 name="Command_360_Capture_Label">360° Snapshot</string>
   <string name="Command_AboutLand_Label">About land</string>
   <string name="Command_Appearance_Label">Appearance</string>
-  <string name="Command_Avatar_Label">Avatar Welcome Pack</string>
+  <string name="Command_Avatar_Label">Avatar</string>
   <string name="Command_Build_Label">Build</string>
   <string name="Command_Chat_Label">Conversations</string>
   <string name="Command_Conversations_Label">Conversations</string>
@@ -2784,11 +2775,9 @@ name="Command_360_Capture_Label">360° Snapshot</string>
   <string name="Command_Poser_Tooltip">Pose your avatar and animated objects</string>
   <string name="Command_Primfeed_Label">Primfeed</string>
   <string name="Command_Primfeed_Tooltip">Post directly to your Primfeed account.</string>
-  <string name="Command_Omnifilter_Label">Omnifilter</string>
-  <string name="Command_AvatarAlign_Label">Avatar alignment</string>
-  <string name="Command_FaceNearest_Label">Face nearest avatar</string>
 
-  <string name="Command_360_Capture_Tooltip">Capture a 360° equirectangular image</string>
+  <string 
+name="Command_360_Capture_Tooltip">Capture a 360° equirectangular image</string>
   <string name="Command_AboutLand_Tooltip">Information about the land you're visiting</string>
   <string name="Command_Appearance_Tooltip">Change your avatar</string>
   <string name="Command_Avatar_Tooltip">Choose a complete avatar</string>
@@ -2846,16 +2835,11 @@ name="Command_360_Capture_Label">360° Snapshot</string>
   <string name="Command_Blocklist_Tooltip">Opens the block/mute list</string>
   <string name="Command_ResyncAnimations_Tooltip">Synchronizes avatar animations</string>
   <string name="Command_RegionTracker_Tooltip">Track various regions status</string>
-  <!-- [FS:Chanayane] Compass floater -->
-  <string name="Command_AvatarAlign_Tooltip">Align your avatar to a cardinal direction or face the nearest avatar</string>
-  <string name="Command_FaceNearest_Tooltip">Turn to face the nearest avatar within 20m</string>
-  <!-- [/FS:Chanayane] -->
   <string name="Command_Group_Titles_Tooltip">Change active group tag</string>
   <string name="Command_Wearable_Favorites_Tooltip">Open the list of favorite wearables</string>
   <string name="Command_RFO_Tooltip">Show only your friends in the viewer, all other avatars will be removed. Once enabled a TP is required to restore visibility of others.</string>
   <string name="Command_DAO_Tooltip">Derender Animated Objects (aka Animesh) - Temporarily derenders all currently visible Animesh (attached and free roaming). Derendered animesh will reappear after a TP</string>
   <string name="Command_Beacons_Tooltip">Show beacons</string>
-  <string name="Command_Omnifilter_Tooltip">Edit the Omnifilter rules</string>
 
   <string name="Toolbar_Bottom_Tooltip">currently in your bottom toolbar</string>
   <string name="Toolbar_Left_Tooltip"  >currently in your left toolbar</string>
@@ -3280,17 +3264,15 @@ Your current position: [AVATAR_POS]
   <string name="All Items">All Items</string>
   <string name="Recent Items">Recent Items</string>
   <string name="Worn Items">Worn Items</string>
-  <string name="Favorites">Favorites</string>
 
   <string name="InvOfferGroupNoticeName">A group member named [NAME]</string>
   <string name="CallingCardOnlineLabelSuffix">(online)</string>
   
   <string name="GroupNoticesPanelDateString">[year,datetime,local]/[mthnum,datetime,local]/[day,datetime,local] [hour,datetime,local]:[min,datetime,local]:[second,datetime,local]</string>
-  <string name="GroupNoticesPanelDateStringAMPM">[year,datetime,local]/[mthnum,datetime,local]/[day,datetime,local] [hour12,datetime,local]:[min,datetime,local]:[second,datetime,local] [timezone,datetime,local]</string>
-  <string name="GroupNoticesToastDateString">[wkday,datetime,slt], [mth,datetime,slt] [day,datetime,slt] [year,datetime,slt] [hour,datetime,slt]:[min,datetime,slt]:[second,datetime,slt] [timezone,datetime,slt]</string>
-  <string name="GroupNoticesToastDateStringAMPM">[wkday,datetime,slt], [mth,datetime,slt] [day,datetime,slt] [year,datetime,slt] [hour12,datetime,slt]:[min,datetime,slt]:[second,datetime,slt] [ampm,datetime,slt] [timezone,datetime,slt]</string>
-  <string name="NotificationItemDateString">[mth,datetime,utc]/[day,datetime,utc]/[year,datetime,utc] [hour,datetime,utc]:[min,datetime,utc] [timezone,datetime,utc]</string>
-  <string name="NotificationItemDateStringAMPM">[mth,datetime,utc]/[day,datetime,utc]/[year,datetime,utc] [hour12,datetime,utc]:[min,datetime,utc] [ampm,datetime,utc] [timezone,datetime,utc]</string>
+  <string name="GroupNoticesToastDateString">[wkday,datetime,slt], [mth,datetime,slt] [day,datetime,slt] [year,datetime,slt] [hour12,datetime,slt]:[min,datetime,slt]:[second,datetime,slt] [ampm,datetime,slt] [timezone,datetime,slt]</string>
+  <string name="NotificationItemDateStringLocal">[mthnum,datetime,local]/[day,datetime,local]/[year,datetime,local] [hour,datetime,local]:[min,datetime,local]</string>
+  <string name="NotificationItemDateStringUTC">[mth,datetime,utc]/[day,datetime,utc]/[year,datetime,utc] [hour,datetime,utc]:[min,datetime,utc] [timezone,datetime,utc]</string>
+  <string name="NotificationItemDateStringSLT">[mthnum,datetime,slt]/[day,datetime,slt]/[year,datetime,slt] [hour,datetime,slt]:[min,datetime,slt] [timezone,datetime,slt]</string>
 
   <string name="Pie_av_render_normally">Normally</string>
   <string name="Pie_av_render_never">Never</string>
@@ -3342,15 +3324,4 @@ Your current position: [AVATAR_POS]
   <string name="ImportListTooLarge">Too many entries. The CSV file has [COUNT] entries and there are [MAX] slots available.</string>
   <string name="ImportSuccessful">Successfully processed [COUNT] entries.</string>
 
-  <!-- VHACD enum strings -->
-  <string name="Flood">Flood</string>
-  <string name="Surface Only">Surface Only</string>
-  <string name="Raycast">Raycast</string>
-  <string name="Very High">Very High</string>
-  <string name="Ultra">Ultra</string>
-  <string name="Maximum">Maximum</string>
-
-  <string name="OmnifilterReplacement">Omnifilter Replacement: [REPLACEMENT]</string>
-  <string name="FSAvatarAlignToggleMini">Mini</string>
-  <string name="FSAvatarAlignToggleFull">Full</string>
 </strings>

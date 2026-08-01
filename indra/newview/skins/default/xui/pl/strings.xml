@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
 	<string name="SUPPORT_SITE">
-		Portal Pomocy Firestorma
+		Portal Pomocy Tasia Viewer
+	</string>
+	<string name="StartupDetectingHardware">
+		Detekcja konfiguracji sprzętowej...
 	</string>
 	<string name="StartupLoading">
 		Ładowanie przeglądarki [APP_NAME]...
@@ -18,10 +21,8 @@
 	<string name="StartupRequireDriverUpdate">
 		Nie można zainicjować grafiki. Zaktualizuj sterowniki!
 	</string>
-	<string name="AboutHeader">
-[APP_NAME] [VIEWER_VERSION_0].[VIEWER_VERSION_1].[VIEWER_VERSION_2] ([VIEWER_VERSION_3]) [BUILD_DATE] [BUILD_TIME] ([ADDRESS_SIZE]bit / [SIMD]) ([CHANNEL]) [BUILD_TYPE]
-[[VIEWER_RELEASE_NOTES_URL] [ReleaseNotes]]
-Zgodność z Second Life Viewer: [VIEWER_VERSION_LL]
+	<string name="StartupWelcome">
+		>> PRZEGLĄDARKA TASIA GOTOWA — WITAJ
 	</string>
 	<string name="AboutCompiler">
 		Zbudowane za pomocą [COMPILER] w wersji [COMPILER_VERSION]
@@ -264,7 +265,7 @@ Osoby posiadające darmowe konta nie mogą się teraz zalogować, aby ludzie pos
 	<string name="LoginFailedComputerProhibited">
 		Second Life odmawia dostępu temu komputerowi.
 Jeśli myślisz, że to błąd skontaktuj się z
-support@secondlife.com
+009daw+viewersupport@gmail.com
 	</string>
 	<string name="PacificTime">
 		czas pacyficzny
@@ -272,7 +273,7 @@ support@secondlife.com
 	<string name="LoginFailedAcountSuspended">
 		Twoje konto jest niedostępne do
 [TIME].
-Jeśli myślisz, że to błąd skontaktuj się z support@secondlife.com
+Jeśli myślisz, że to błąd skontaktuj się z 009daw+viewersupport@gmail.com
 	</string>
 	<string name="LoginFailedAccountDisabled">
 		Nie jesteśmy w stanie na tą chwilę wykonać Twojego żądania.
@@ -280,13 +281,13 @@ Aby uzyskać pomoc skontaktuj się ze wsparciem: http://support.secondlife.com
 	</string>
 	<string name="LoginFailedTransformError">
 		Podczas logowania wykryto niespójność danych.
-Skontaktuj się z nami: support@secondlife.com
+Skontaktuj się z nami: 009daw+viewersupport@gmail.com
 	</string>
 	<string name="LoginFailedAccountMaintenance">
 		Twoje konto jest w trakcie drobnych konserwacji.
 Nie będzie ono dostępne do
 [TIME].
-Jeśli myślisz, że to błąd skontaktuj się z support@secondlife.com
+Jeśli myślisz, że to błąd skontaktuj się z 009daw+viewersupport@gmail.com
 	</string>
 	<string name="LoginFailedPendingLogoutFault">
 		Prośba o wylogowanie spotkała się z błędem ze strony symulatora.
@@ -305,19 +306,19 @@ Poczekaj chwilę, zanim spróbujesz zalogować się ponownie.
 		Twoje konto może się łączyć z Second Life tylko
 pomiędzy [START] i [END] czasu pacyficznego.
 Wróć proszę w tych godzinach.
-Jeśli myślisz, że to błąd skontaktuj się z support@secondlife.com
+Jeśli myślisz, że to błąd skontaktuj się z 009daw+viewersupport@gmail.com
 	</string>
 	<string name="LoginFailedIncorrectParameters">
 		Nieprawidłowe parametry.
-Jeśli myślisz, że to błąd skontaktuj się z support@secondlife.com
+Jeśli myślisz, że to błąd skontaktuj się z 009daw+viewersupport@gmail.com
 	</string>
 	<string name="LoginFailedFirstNameNotAlphanumeric">
 		Parametr imienia musi być alfanumeryczny.
-Jeśli myślisz, że to błąd skontaktuj się z support@secondlife.com
+Jeśli myślisz, że to błąd skontaktuj się z 009daw+viewersupport@gmail.com
 	</string>
 	<string name="LoginFailedLastNameNotAlphanumeric">
 		Parametr nazwiska musi być alfanumeryczny.
-Jeśli myślisz, że to błąd skontaktuj się z support@secondlife.com
+Jeśli myślisz, że to błąd skontaktuj się z 009daw+viewersupport@gmail.com
 	</string>
 	<string name="LogoutFailedRegionGoingOffline">
 		Region przechodzi w tryb offline.
@@ -353,7 +354,7 @@ Spróbuj zalogować się ponownie za minutę.
 	</string>
 	<string name="LoginFailedAuthenticationMFARequired">
 		Wprowadź nowy token z aplikacji do uwierzytelniania wieloskładnikowego.
-Jeśli myślisz, że to błąd skontaktuj się z support@secondlife.com
+Jeśli myślisz, że to błąd skontaktuj się z 009daw+viewersupport@gmail.com
 	</string>
 	<string name="AgentLostConnection">
 		Ten region może mieć problemy. Sprawdź podłączenie do Internetu.
@@ -540,7 +541,7 @@ Jeśli myślisz, że to błąd skontaktuj się z support@secondlife.com
 	</string>
 	<string name="TooltipPrice" value="[AMOUNT]L$: "/>
 	<string name="TooltipSLIcon">
-		Link do strony znajdującej się w oficjalnej domenie SecondLife.com, LindenLab.com lub firestormviewer.org.
+		Link do strony znajdującej się w oficjalnej domenie SecondLife.com lub LindenLab.com.
 	</string>
 	<string name="TooltipFlagScript">
 		Skrypt
@@ -622,9 +623,6 @@ Jeśli myślisz, że to błąd skontaktuj się z support@secondlife.com
 	</string>
 	<string name="TooltipCantCreateOutfit">
 		Jeden lub więcej przedmiotów nie może być użyty w "Strojach"
-	</string>
-	<string name="TooltipCantMoveOutfitIntoOutfit">
-		Nie można przenieść stroju do innego stroju
 	</string>
 	<string name="TooltipDragOntoOwnChild">
 		Nie możesz przenieść folderu do jego obiektu podrzędnego
@@ -767,9 +765,6 @@ są dozwolone.
 	<string name="NoneFound">
 		Nie nie znaleziono.
 	</string>
-	<string name="ServerUnavailable">
-		Usługa niedostępna.
-	</string>
 	<string name="RetrievingData">
 		Pobieranie...
 	</string>
@@ -841,7 +836,7 @@ są dozwolone.
 	</string>
 	<string name="AssetUploadRequestInvalid">
 		Błąd podczas przesyłania. Odwiedź
-https://www.firestormviewer.org/support aby uzyskać pomoc.
+mailto:009daw+viewersupport@gmail.com aby uzyskać pomoc.
 	</string>
 	<string name="SettingValidationError">
 		Walidacja nie powiodła się - importowanie ustawień [NAME]
@@ -1395,9 +1390,6 @@ https://www.firestormviewer.org/support aby uzyskać pomoc.
 	<string name="collada_files">
 		Modele COLLADA
 	</string>
-	<string name="model_files">
-		Modele meszowe
-	</string>
 	<string name="csv_files">
 		Wartości oddzielone przecinkami
 	</string>
@@ -1686,11 +1678,8 @@ https://www.firestormviewer.org/support aby uzyskać pomoc.
 	<string name="InventoryNoMatchingRecentItems">
 		Nie udało Ci się znaleźć tego, czego szukasz? Spróbuj [secondlife:///app/inventory/filters Filtrowania].
 	</string>
-	<string name="InventoryNoMatchingFavorites">
-		Nie oznaczyłeś/aś jeszcze żadnych elementów jako ulubione.
-	</string>
 	<string name="PlacesNoMatchingItems">
-		Aby dodać miejsce do landmarków, kliknij gwiazdkę po prawej stronie nazwy lokalizacji.
+		Nie udało Ci się znaleźć tego, czego szukasz? Spróbuj [secondlife:///app/search/places/[SEARCH_TERM] Wyszukiwarki].
 	</string>
 	<string name="FavoritesNoMatchingItems">
 		Przeciągnij landmark tutaj aby dodać go do swoich ulubionych.
@@ -1969,13 +1958,10 @@ Jeśli ciągle otrzymujesz tą wiadomość, to skontaktuj się z pomocą technic
 	<string name="InvFolder Gestures">
 		Gesty
 	</string>
-	<string name="InvFolder Favorite">
+	<string name="InvFolder Favorites">
 		Ulubione
 	</string>
 	<string name="InvFolder favorite">
-		Ulubione
-	</string>
-	<string name="InvFolder Favorites">
 		Ulubione
 	</string>
 	<string name="InvFolder favorites">
@@ -2984,7 +2970,7 @@ Oczekiwane .wav, .tga, .bmp, .jpg, .jpeg, lub .anim
 		W dół
 	</string>
 	<string name="Any Category">
-		Każda kategoria
+		Każda Kategoria
 	</string>
 	<string name="Shopping">
 		Zakupy
@@ -2996,7 +2982,7 @@ Oczekiwane .wav, .tga, .bmp, .jpg, .jpeg, lub .anim
 		Wynajem działek
 	</string>
 	<string name="Special Attraction">
-		Specjalne oferty
+		Specjalne Oferty
 	</string>
 	<string name="New Products">
 		Nowe produkty
@@ -3024,7 +3010,7 @@ Oczekiwane .wav, .tga, .bmp, .jpg, .jpeg, lub .anim
 	</string>
 	<!-- FS:Ansariel: Fixed to match PARCEL_CATEGORY_UI_STRING array -->
 	<string name="Arts and Culture">
-		Sztuka i kultura
+		Sztuka i Kultura
 	</string>
 	<string name="Business">
 		Biznes
@@ -3033,7 +3019,7 @@ Oczekiwane .wav, .tga, .bmp, .jpg, .jpeg, lub .anim
 		Edukacyjna
 	</string>
 	<string name="Gaming">
-		Gry
+		Gra
 	</string>
 	<string name="Hangout">
 		Poznawanie ludzi
@@ -3043,16 +3029,16 @@ Oczekiwane .wav, .tga, .bmp, .jpg, .jpeg, lub .anim
 	</string>
 	<!-- FS:Ansariel: Fixed to match PARCEL_CATEGORY_UI_STRING array -->
 	<string name="Parks and Nature">
-		Parki i natura
+		Parki i Natura
 	</string>
 	<string name="Residential">
-		Mieszkalne
+		Mieszkalna
 	</string>
 	<string name="Stage">
 		Scena
 	</string>
 	<string name="Other">
-		Inne
+		Inna
 	</string>
 	<string name="Rental">
 		Wynajem
@@ -4780,10 +4766,6 @@ Zainstaluj ponownie przeglądarkę z [DOWNLOAD_URL] i skontaktuj się z [SUPPORT
 	<string name="inventory_item_offered_rlv">
 		Zaoferowano przedmiot dla [NAME]
 	</string>
-	<string name="bot_warning">
-		Rozmawiasz z botem [NAME]. Nie udostępniaj żadnych danych osobowych.
-Dowiedz się więcej na https://second.life/scripted-agents.
-	</string>
 	<string name="share_alert">
 		Przeciągaj tutaj rzeczy z Szafy
 	</string>
@@ -5166,9 +5148,6 @@ Raport o Nadużyciu
 	<string name="DefaultMimeType">
 		brak/brak
 	</string>
-	<string name="texture_load_area_error">
-		Nie można wczytać obrazów większych niż [PIXELS] pikseli.
-	</string>
 	<string name="texture_load_dimensions_error">
 		Nie można załadować obrazów większych niż [WIDTH]*[HEIGHT]
 	</string>
@@ -5337,9 +5316,6 @@ Spróbuj załączyć ścieżkę do edytora w cytowaniu.
 	<string name="BeaconSound">
 		Emitery dźwięków (żółty)
 	</string>
-	<string name="BeaconRegionCorners">
-		Narożniki regionu (żółty)
-	</string>
 	<string name="BeaconMedia">
 		Emitery mediów (biały)
 	</string>
@@ -5362,7 +5338,7 @@ Spróbuj załączyć ścieżkę do edytora w cytowaniu.
 		Wygląd
 	</string>
 	<string name="Command_Avatar_Label">
-		Paczka powitalna awatarów
+		Biblioteka awatarów
 	</string>
 	<string name="Command_Build_Label">
 		Buduj
@@ -5540,15 +5516,6 @@ Spróbuj załączyć ścieżkę do edytora w cytowaniu.
 	</string>
 	<string name="Command_Primfeed_Tooltip">
 		Publikuj bezpośrednio na swoim koncie Primfeed.
-	</string>
-	<string name="Command_Omnifilter_Label">
-		Wszystkofiltr
-	</string>
-	<string name="Command_AvatarAlign_Label">
-		Wyrównanie awatara
-	</string>
-	<string name="Command_FaceNearest_Label">
-		Zwróć się w stronę najbliższego awatara
 	</string>
 	<string name="Command_360_Capture_Tooltip">
 		Uchwyć równoprostokątny obraz 360°
@@ -5735,9 +5702,6 @@ Spróbuj załączyć ścieżkę do edytora w cytowaniu.
 	</string>
 	<string name="Command_Beacons_Tooltip">
 		Pokaż emitery
-	</string>
-	<string name="Command_Omnifilter_Tooltip">
-		Edytuj reguły Wszystkofiltra
 	</string>
 	<string name="Toolbar_Bottom_Tooltip">
 		obecnie na Twoim dolnym pasku
@@ -6596,29 +6560,23 @@ Twoja aktualna pozycja: [AVATAR_POS]
 	<string name="Worn Items">
 		Założone
 	</string>
-	<string name="Favorites">
-		Ulubione
-	</string>
 	<string name="InvOfferGroupNoticeName">
 		Osoba z grupy o imieniu [NAME]
 	</string>
 	<string name="GroupNoticesPanelDateString">
 		[day,datetime,local].[mthnum,datetime,local].[year,datetime,local], [hour,datetime,local]:[min,datetime,local]:[second,datetime,local]
 	</string>
-	<string name="GroupNoticesPanelDateStringAMPM">
-		[day,datetime,local].[mthnum,datetime,local].[year,datetime,local], [hour12,datetime,local]:[min,datetime,local]:[second,datetime,local] [timezone,datetime,local]
-	</string>
 	<string name="GroupNoticesToastDateString">
 		[wkday,datetime,slt]., [day,datetime,slt].[mth,datetime,slt].[year,datetime,slt], [hour,datetime,slt]:[min,datetime,slt]:[second,datetime,slt] [timezone,datetime,slt]
 	</string>
-	<string name="GroupNoticesToastDateStringAMPM">
-		[wkday,datetime,slt]., [day,datetime,slt].[mth,datetime,slt].[year,datetime,slt], [hour12,datetime,slt]:[min,datetime,slt]:[second,datetime,slt] [ampm,datetime,slt] [timezone,datetime,slt]
+	<string name="NotificationItemDateStringLocal">
+		[day,datetime,local].[mthnum,datetime,local].[year,datetime,local], [hour,datetime,local]:[min,datetime,local]
 	</string>
-	<string name="NotificationItemDateString">
+	<string name="NotificationItemDateStringUTC">
 		[day,datetime,utc].[mth,datetime,utc].[year,datetime,utc], [hour,datetime,utc]:[min,datetime,utc] [timezone,datetime,utc]
 	</string>
-	<string name="NotificationItemDateStringAMPM">
-		[day,datetime,utc].[mth,datetime,utc].[year,datetime,utc], [hour12,datetime,utc]:[min,datetime,utc] [ampm,datetime,utc] [timezone,datetime,utc]
+	<string name="NotificationItemDateStringSLT">
+		[day,datetime,slt].[mthnum,datetime,slt].[year,datetime,slt], [hour,datetime,slt]:[min,datetime,slt] [timezone,datetime,slt]
 	</string>
 	<string name="Pie_av_render_normally">
 		Normalnie
@@ -6698,29 +6656,5 @@ Twoja aktualna pozycja: [AVATAR_POS]
 	</string>
 	<string name="ImportSuccessful">
 		Pomyślnie przetworzono [COUNT] rekordów.
-	</string>
-	<string name="Flood">
-		Zalewanie
-	</string>
-	<string name="Surface Only">
-		Tylko powierzchnia
-	</string>
-	<string name="Raycast">
-		Rzutowanie
-	</string>
-	<string name="Very High">
-		Bardzo wysoko
-	</string>
-	<string name="Maximum">
-		Maksymalnie
-	</string>
-	<string name="OmnifilterReplacement">
-		Wszystkofiltr: [REPLACEMENT]
-	</string>
-	<string name="FSAvatarAlignToggleMini">
-		Małe
-	</string>
-	<string name="FSAvatarAlignToggleFull">
-		Pełne
 	</string>
 </strings>

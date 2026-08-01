@@ -88,7 +88,7 @@ public:
     /// Obtain the data used to fill out the contents string. This is
     /// separated so that we can programmatically access the same info.
     static LLSD getInfo();
-    void onClickCopyToClipboard();
+    void onClickCopyToClipboard(bool unfaked = false);
     void onClickUpdateCheck();
     static void setUpdateListener();
 
@@ -106,7 +106,7 @@ public:
     static const std::string sCheckUpdateListenerName;
 
     static void startFetchServerReleaseNotes();
-    static void fetchServerReleaseNotesCoro(const std::string cap_url);
+    static void fetchServerReleaseNotesCoro(std::string cap_url);
     static void handleServerReleaseNotes(LLSD results);
 };
 
@@ -126,8 +126,8 @@ LLFloaterAbout::~LLFloaterAbout()
 bool LLFloaterAbout::postBuild()
 {
     center();
-    LLViewerTextEditor *support_widget =
-        getChild<LLViewerTextEditor>("support_editor", true);
+    LLViewerTextEditor *fake_support_widget =
+        getChild<LLViewerTextEditor>("fake_support_editor", true);
 
     LLViewerTextEditor *contrib_names_widget =
         getChild<LLViewerTextEditor>("contrib_names", true);
@@ -136,7 +136,10 @@ bool LLFloaterAbout::postBuild()
         getChild<LLViewerTextEditor>("licenses_editor", true);
 
     getChild<LLUICtrl>("copy_btn")->setCommitCallback(
-        boost::bind(&LLFloaterAbout::onClickCopyToClipboard, this));
+        boost::bind(&LLFloaterAbout::onClickCopyToClipboard, this, true));
+
+    getChild<LLUICtrl>("fake_copy_btn")->setCommitCallback(
+        boost::bind(&LLFloaterAbout::onClickCopyToClipboard, this, false));
 
     // <FS:Ansariel> Disabled update button
     //getChild<LLUICtrl>("update_btn")->setCommitCallback(
@@ -157,11 +160,11 @@ bool LLFloaterAbout::postBuild()
         setSupportText(LLTrans::getString("NotConnected"));
     }
 
-    support_widget->blockUndo();
+    fake_support_widget->blockUndo();
 
     // Fix views
-    support_widget->setEnabled(false);
-    support_widget->startOfDoc();
+    fake_support_widget->setEnabled(false);
+    fake_support_widget->startOfDoc();
 
     // Get the names of contributors, extracted from .../doc/contributions.txt by viewer_manifest.py at build time
     std::string contributors_path = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS,"contributors.txt");
@@ -230,12 +233,12 @@ void LLFloaterAbout::startFetchServerReleaseNotes()
 }
 
 /*static*/
-void LLFloaterAbout::fetchServerReleaseNotesCoro(const std::string cap_url)
+void LLFloaterAbout::fetchServerReleaseNotesCoro(std::string cap_url)
 {
     LLCoreHttpUtil::HttpCoroutineAdapter::ptr_t
-        httpAdapter = std::make_shared<LLCoreHttpUtil::HttpCoroutineAdapter>("fetchServerReleaseNotesCoro", LLCore::HttpRequest::DEFAULT_POLICY_ID);
-    LLCore::HttpRequest::ptr_t httpRequest = std::make_shared<LLCore::HttpRequest>();
-    LLCore::HttpOptions::ptr_t httpOpts = std::make_shared<LLCore::HttpOptions>();
+        httpAdapter(new LLCoreHttpUtil::HttpCoroutineAdapter("fetchServerReleaseNotesCoro", LLCore::HttpRequest::DEFAULT_POLICY_ID));
+    LLCore::HttpRequest::ptr_t httpRequest(new LLCore::HttpRequest);
+    LLCore::HttpOptions::ptr_t httpOpts(new LLCore::HttpOptions);
 
     httpOpts->setWantHeaders(true);
     httpOpts->setFollowRedirects(false);
@@ -308,10 +311,10 @@ private:
 
 static LLFloaterAboutListener floaterAboutListener;
 
-void LLFloaterAbout::onClickCopyToClipboard()
+void LLFloaterAbout::onClickCopyToClipboard(bool unfaked)
 {
     LLViewerTextEditor *support_widget =
-        getChild<LLViewerTextEditor>("support_editor", true);
+        getChild<LLViewerTextEditor>("fake_support_editor", true);
     support_widget->selectAll();
     support_widget->copy();
     support_widget->deselect();
@@ -333,13 +336,15 @@ void LLFloaterAbout::setSupportText(const std::string& server_release_notes_url)
     getWindow()->setCursor(UI_CURSOR_ARROW);
 #endif
 
-    LLViewerTextEditor *support_widget =
-        getChild<LLViewerTextEditor>("support_editor", true);
 
     LLUIColor about_color = LLUIColorTable::instance().getColor("TextFgReadOnlyColor");
-    support_widget->clear();
-    support_widget->appendText(LLAppViewer::instance()->getViewerInfoString(),
-                               false, LLStyle::Params() .color(about_color));
+
+    LLViewerTextEditor *fake_support_widget =
+        getChild<LLViewerTextEditor>("fake_support_editor", true);
+
+    fake_support_widget->clear();
+    fake_support_widget->appendText(LLAppViewer::instance()->getViewerInfoString(),
+                                    false, LLStyle::Params() .color(about_color));
 }
 
 //This is bound as a callback in postBuild()
