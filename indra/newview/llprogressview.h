@@ -94,6 +94,9 @@ protected:
     F32 mPercentDone;
     std::string mMessage;
     std::string mServerMessage;
+    std::string mTasiaWelcomeRawLine;
+    std::string mTasiaWelcomeRenderedLine;
+    std::string mTasiaWelcomeLastName;
     LLButton*   mCancelBtn;
     LLFrameTimer mFadeToWorldTimer;
     LLFrameTimer mFadeFromLoginTimer;
@@ -122,6 +125,9 @@ protected:
     void requestWelcomeMessage();
     void setMessageText(const std::string& msg);
     void setTasiaWelcomeMessage(const std::string& msg);
+    void refreshTasiaWelcomeMessage();
+    static std::string getBestWelcomeName();
+    static std::string renderTasiaWelcomeLine(const std::string& raw_line, const std::string& name);
     void maybeStartLoadingYouTube();
     void stopLoadingYouTube();
     static void onWelcomeMessageFetched(S32 request_id, const std::string& msg);
