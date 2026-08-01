@@ -109,8 +109,6 @@ class FSChatHistory : public LLTextEditor   // <FS:Zi> FIRE-8600: TAB out of cha
         LLSD getValue() const override;
         void initFromParams(const Params&);
 
-        void insertMentionAtCursor(const std::string& str) override;
-
         /**
          * Appends a widget message.
          * If last user appended message, concurs with current user,

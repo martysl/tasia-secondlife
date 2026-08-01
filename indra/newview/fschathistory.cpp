@@ -49,6 +49,7 @@
 #include "llavatariconctrl.h"
 #include "llbutton.h"
 #include "llcallingcard.h" //for LLAvatarTracker
+#include "llfloaterwebcontent.h"
 #include "llgroupactions.h"
 #include "llgroupmgr.h"
 #include "llmediactrl.h"
@@ -104,6 +105,7 @@ struct TasiaGiphyPreview
 {
     std::string id;
     std::string page_url;
+    std::string media_url;
 };
 
 struct TasiaImagePreview
@@ -115,7 +117,7 @@ struct TasiaYouTubePreview
 {
     std::string video_id;
     std::string page_url;
-    std::string embed_url;
+    std::string player_url;
 };
 
 bool tasiaEndsWith(const std::string& value, const std::string& suffix)
@@ -216,6 +218,21 @@ bool tasiaIsYouTubeVideoId(const std::string& value)
     return true;
 }
 
+std::string tasiaMakeImageDataURL(const std::string& image_url)
+{
+    const std::string html = "<!doctype html><html><head><meta charset=\"utf-8\">"
+        "<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;}"
+        "body{display:flex;align-items:center;justify-content:center;}"
+        "img{max-width:100%;max-height:100%;object-fit:contain;}</style></head>"
+        "<body><img src=\"" + image_url + "\"></body></html>";
+    return "data:text/html," + LLURI::escape(html);
+}
+
+std::string tasiaMakeHostedYouTubePlayerURL(const std::string& video_id)
+{
+    return "https://apps.easierit.org/igrid/youtube-player/?v=" + LLURI::escape(video_id);
+}
+
 std::string tasiaGiphyIdFromSlug(const std::string& slug)
 {
     std::string candidate = slug;
@@ -293,6 +310,7 @@ bool tasiaExtractGiphyPreviewFromURL(std::string url, TasiaGiphyPreview& preview
 
     preview.id = id;
     preview.page_url = "https://giphy.com/gifs/" + id;
+    preview.media_url = "https://i.giphy.com/media/" + id + "/giphy.gif";
     return true;
 }
 
@@ -370,7 +388,7 @@ bool tasiaExtractYouTubePreviewFromURL(std::string url, TasiaYouTubePreview& pre
 
     preview.video_id = video_id;
     preview.page_url = "https://www.youtube.com/watch?v=" + video_id;
-    preview.embed_url = "https://www.youtube.com/embed/" + video_id + "?rel=0";
+    preview.player_url = tasiaMakeHostedYouTubePlayerURL(video_id);
     return true;
 }
 
@@ -450,24 +468,47 @@ bool tasiaFindFirstImagePreview(const std::string& text, TasiaImagePreview& prev
 
 bool tasiaFindFirstYouTubePreview(const std::string& text, TasiaYouTubePreview& preview)
 {
+    static const char* YOUTUBE_CANDIDATES[] =
+    {
+        "https://",
+        "http://",
+        "www.youtube.com/",
+        "youtube.com/",
+        "m.youtube.com/",
+        "youtu.be/",
+        "www.youtube-nocookie.com/",
+        "youtube-nocookie.com/"
+    };
+
     std::string::size_type search_pos = 0;
     while (search_pos < text.size())
     {
-        std::string::size_type http_pos = text.find("http://", search_pos);
-        std::string::size_type https_pos = text.find("https://", search_pos);
-        std::string::size_type url_pos = std::min(http_pos, https_pos);
-        if (http_pos == std::string::npos)
+        std::string matched_candidate;
+        std::string::size_type url_pos = std::string::npos;
+        for (const char* candidate : YOUTUBE_CANDIDATES)
         {
-            url_pos = https_pos;
-        }
-        else if (https_pos == std::string::npos)
-        {
-            url_pos = http_pos;
+            std::string::size_type candidate_pos = text.find(candidate, search_pos);
+            if (candidate_pos != std::string::npos && (url_pos == std::string::npos || candidate_pos < url_pos))
+            {
+                url_pos = candidate_pos;
+                matched_candidate = candidate;
+            }
         }
 
         if (url_pos == std::string::npos)
         {
             return false;
+        }
+
+        const bool has_scheme = matched_candidate == "http://" || matched_candidate == "https://";
+        if (!has_scheme && url_pos > 0)
+        {
+            const char previous = text[url_pos - 1];
+            if (isalnum(static_cast<unsigned char>(previous)) || previous == '.' || previous == '/' || previous == '-')
+            {
+                search_pos = url_pos + matched_candidate.size();
+                continue;
+            }
         }
 
         std::string::size_type url_end = text.find_first_of(" \n\r\t<>\"'", url_pos);
@@ -476,7 +517,13 @@ bool tasiaFindFirstYouTubePreview(const std::string& text, TasiaYouTubePreview& 
             url_end = text.size();
         }
 
-        if (tasiaExtractYouTubePreviewFromURL(text.substr(url_pos, url_end - url_pos), preview))
+        std::string candidate_url = text.substr(url_pos, url_end - url_pos);
+        if (!has_scheme)
+        {
+            candidate_url = "https://" + candidate_url;
+        }
+
+        if (tasiaExtractYouTubePreviewFromURL(candidate_url, preview))
         {
             return true;
         }
@@ -494,7 +541,7 @@ public:
     {
         LLMediaCtrl::Params media_params;
         media_params.name = "tasia_image_preview_media";
-        media_params.rect = LLRect(10, 178, 330, 28);
+        media_params.rect = LLRect(10, 130, 330, 28);
         media_params.start_url = mURL;
         media_params.border_visible = true;
         media_params.focus_on_click = false;
@@ -503,17 +550,189 @@ public:
         mMedia->setTakeFocusOnClick(false);
         addChild(mMedia);
 
+        LLButton::Params open_params;
+        open_params.name = "tasia_image_open";
+        open_params.label = "Open in Viewer";
+        open_params.rect = LLRect(340, 98, 460, 74);
+        mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
+        mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openInViewer(); });
+        addChild(mOpenButton);
+    }
+
+    void reshape(S32 width, S32 height, bool called_from_parent = true) override
+    {
+        LLPanel::reshape(width, height, called_from_parent);
+        if (mMedia)
+        {
+            mMedia->setRect(LLRect(10, height - 10, llmax(120, width - 130), 28));
+        }
+        if (mOpenButton)
+        {
+            mOpenButton->setRect(LLRect(width - 110, height - 34, width - 10, height - 58));
+        }
+    }
+
+private:
+    static LLPanel::Params makeParams()
+    {
+        LLPanel::Params params;
+        params.name = "tasia_image_preview";
+        params.rect = LLRect(0, 140, 460, 0);
+        params.mouse_opaque = true;
+        params.background_visible = true;
+        params.has_border = true;
+        return params;
+    }
+
+    void openInViewer()
+    {
+        LLFloaterWebContent::Params params;
+        params.url = mURL;
+        params.target = "tasia_image_viewer";
+        params.id = "tasia_image_viewer";
+        params.window_class = "web_content";
+        params.show_chrome = false;
+        params.allow_address_entry = false;
+        params.allow_back_forward_navigation = false;
+        params.trusted_content = false;
+        params.show_page_title = true;
+        params.clean_browser = true;
+        params.preferred_media_size.setValue(LLRect(0, 0, 800, 600));
+        LLFloaterReg::showInstance("web_content", params);
+    }
+
+    std::string mURL;
+    LLMediaCtrl* mMedia = nullptr;
+    LLButton* mOpenButton = nullptr;
+};
+
+class TasiaYouTubePreviewPanel : public LLPanel
+{
+public:
+    TasiaYouTubePreviewPanel(const TasiaYouTubePreview& preview)
+        : LLPanel(makeParams())
+        , mURL(preview.page_url)
+        , mPlayerURL(preview.player_url)
+    {
+        LLTextBox::Params title_params;
+        title_params.name = "tasia_youtube_preview_title";
+        title_params.rect = LLRect(10, 54, 400, 36);
+        title_params.initial_value = LLSD("YouTube video");
+        mTitle = LLUICtrlFactory::create<LLTextBox>(title_params);
+        addChild(mTitle);
+
+        LLButton::Params play_params;
+        play_params.name = "tasia_youtube_play";
+        play_params.label = "Play in Viewer";
+        play_params.rect = LLRect(410, 58, 530, 36);
+        mPlayButton = LLUICtrlFactory::create<LLButton>(play_params);
+        mPlayButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openPlayer(); });
+        addChild(mPlayButton);
+
+        LLButton::Params open_params;
+        open_params.name = "tasia_youtube_open";
+        open_params.label = "Open YouTube";
+        open_params.rect = LLRect(410, 30, 530, 8);
+        mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
+        mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openURL(); });
+        addChild(mOpenButton);
+    }
+
+    void reshape(S32 width, S32 height, bool called_from_parent = true) override
+    {
+        LLPanel::reshape(width, height, called_from_parent);
+        if (mTitle)
+        {
+            mTitle->setRect(LLRect(10, height - 10, llmax(160, width - 130), height - 28));
+        }
+        if (mPlayButton)
+        {
+            mPlayButton->setRect(LLRect(width - 120, height - 10, width - 10, height - 32));
+        }
+        if (mOpenButton)
+        {
+            mOpenButton->setRect(LLRect(width - 120, height - 38, width - 10, height - 60));
+        }
+    }
+
+private:
+    static LLPanel::Params makeParams()
+    {
+        LLPanel::Params params;
+        params.name = "tasia_youtube_preview";
+        params.rect = LLRect(0, 66, 530, 0);
+        params.mouse_opaque = true;
+        params.background_visible = true;
+        params.has_border = true;
+        return params;
+    }
+
+    void openPlayer()
+    {
+        LLFloaterWebContent::Params params;
+        params.url = mPlayerURL;
+        params.target = "tasia_youtube_player";
+        params.id = "tasia_youtube_player";
+        params.window_class = "web_content";
+        params.show_chrome = false;
+        params.allow_address_entry = false;
+        params.allow_back_forward_navigation = false;
+        params.trusted_content = false;
+        params.show_page_title = true;
+        params.clean_browser = true;
+        params.preferred_media_size.setValue(LLRect(0, 480, 854, 0));
+        LLFloaterReg::showInstance("web_content", params);
+    }
+
+    void openURL()
+    {
+        LLWeb::loadURLExternal(mURL);
+    }
+
+    std::string mURL;
+    std::string mPlayerURL;
+    LLTextBox* mTitle = nullptr;
+    LLButton* mPlayButton = nullptr;
+    LLButton* mOpenButton = nullptr;
+};
+
+class TasiaGiphyPreviewPanel : public LLPanel
+{
+public:
+    TasiaGiphyPreviewPanel(const TasiaGiphyPreview& preview)
+        : LLPanel(makeParams())
+        , mURL(preview.page_url)
+        , mMediaURL(preview.media_url)
+    {
+        LLMediaCtrl::Params media_params;
+        media_params.name = "tasia_giphy_preview_media";
+        media_params.rect = LLRect(10, 178, 330, 28);
+        media_params.start_url = tasiaMakeImageDataURL(mMediaURL);
+        media_params.border_visible = true;
+        media_params.focus_on_click = false;
+        media_params.trusted_content = false;
+        mMedia = LLUICtrlFactory::create<LLMediaCtrl>(media_params);
+        mMedia->setTakeFocusOnClick(false);
+        addChild(mMedia);
+
         LLTextBox::Params url_params;
-        url_params.name = "tasia_image_preview_url";
+        url_params.name = "tasia_giphy_preview_url";
         url_params.rect = LLRect(10, 24, 330, 6);
         url_params.initial_value = LLSD(mURL);
         url_params.use_ellipses = true;
         mURLText = LLUICtrlFactory::create<LLTextBox>(url_params);
         addChild(mURLText);
 
+        LLTextBox::Params powered_params;
+        powered_params.name = "tasia_giphy_powered";
+        powered_params.rect = LLRect(340, 60, 440, 42);
+        powered_params.initial_value = LLSD("Powered by GIPHY");
+        mPoweredBy = LLUICtrlFactory::create<LLTextBox>(powered_params);
+        addChild(mPoweredBy);
+
         LLButton::Params open_params;
-        open_params.name = "tasia_image_open";
-        open_params.label = "Open Image";
+        open_params.name = "tasia_giphy_open";
+        open_params.label = "Open GIF";
         open_params.rect = LLRect(340, 98, 440, 74);
         mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
         mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openURL(); });
@@ -531,6 +750,10 @@ public:
         {
             mURLText->setRect(LLRect(10, 24, llmax(120, width - 120), 6));
         }
+        if (mPoweredBy)
+        {
+            mPoweredBy->setRect(LLRect(width - 110, 60, width - 10, 42));
+        }
         if (mOpenButton)
         {
             mOpenButton->setRect(LLRect(width - 110, 98, width - 10, 74));
@@ -541,7 +764,7 @@ private:
     static LLPanel::Params makeParams()
     {
         LLPanel::Params params;
-        params.name = "tasia_image_preview";
+        params.name = "tasia_giphy_preview";
         params.rect = LLRect(0, 188, 440, 0);
         params.mouse_opaque = true;
         params.background_visible = true;
@@ -555,165 +778,8 @@ private:
     }
 
     std::string mURL;
+    std::string mMediaURL;
     LLMediaCtrl* mMedia = nullptr;
-    LLTextBox* mURLText = nullptr;
-    LLButton* mOpenButton = nullptr;
-};
-
-class TasiaYouTubePreviewPanel : public LLPanel
-{
-public:
-    TasiaYouTubePreviewPanel(const TasiaYouTubePreview& preview)
-        : LLPanel(makeParams())
-        , mURL(preview.page_url)
-        , mEmbedURL(preview.embed_url)
-    {
-        LLMediaCtrl::Params media_params;
-        media_params.name = "tasia_youtube_preview_media";
-        media_params.rect = LLRect(10, 220, 400, 40);
-        media_params.start_url = mEmbedURL;
-        media_params.border_visible = true;
-        media_params.focus_on_click = false;
-        media_params.trusted_content = false;
-        mMedia = LLUICtrlFactory::create<LLMediaCtrl>(media_params);
-        mMedia->setTakeFocusOnClick(false);
-        addChild(mMedia);
-
-        LLTextBox::Params title_params;
-        title_params.name = "tasia_youtube_preview_title";
-        title_params.rect = LLRect(10, 34, 400, 16);
-        title_params.initial_value = LLSD("YouTube embed");
-        mTitle = LLUICtrlFactory::create<LLTextBox>(title_params);
-        addChild(mTitle);
-
-        LLButton::Params open_params;
-        open_params.name = "tasia_youtube_open";
-        open_params.label = "Open YouTube";
-        open_params.rect = LLRect(410, 132, 530, 108);
-        mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
-        mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openURL(); });
-        addChild(mOpenButton);
-    }
-
-    void reshape(S32 width, S32 height, bool called_from_parent = true) override
-    {
-        LLPanel::reshape(width, height, called_from_parent);
-        if (mMedia)
-        {
-            mMedia->setRect(LLRect(10, height - 10, llmax(160, width - 130), 40));
-        }
-        if (mTitle)
-        {
-            mTitle->setRect(LLRect(10, 34, llmax(160, width - 130), 16));
-        }
-        if (mOpenButton)
-        {
-            mOpenButton->setRect(LLRect(width - 120, 132, width - 10, 108));
-        }
-    }
-
-private:
-    static LLPanel::Params makeParams()
-    {
-        LLPanel::Params params;
-        params.name = "tasia_youtube_preview";
-        params.rect = LLRect(0, 230, 530, 0);
-        params.mouse_opaque = true;
-        params.background_visible = true;
-        params.has_border = true;
-        return params;
-    }
-
-    void openURL()
-    {
-        LLWeb::loadURLExternal(mURL);
-    }
-
-    std::string mURL;
-    std::string mEmbedURL;
-    LLMediaCtrl* mMedia = nullptr;
-    LLTextBox* mTitle = nullptr;
-    LLButton* mOpenButton = nullptr;
-};
-
-class TasiaGiphyPreviewPanel : public LLPanel
-{
-public:
-    TasiaGiphyPreviewPanel(const TasiaGiphyPreview& preview)
-        : LLPanel(makeParams())
-        , mURL(preview.page_url)
-    {
-        LLTextBox::Params title_params;
-        title_params.name = "tasia_giphy_preview_title";
-        title_params.rect = LLRect(10, 60, 260, 40);
-        title_params.initial_value = LLSD("GIF preview");
-        mTitle = LLUICtrlFactory::create<LLTextBox>(title_params);
-        addChild(mTitle);
-
-        LLTextBox::Params url_params;
-        url_params.name = "tasia_giphy_preview_url";
-        url_params.rect = LLRect(10, 39, 260, 21);
-        url_params.initial_value = LLSD(mURL);
-        url_params.use_ellipses = true;
-        mURLText = LLUICtrlFactory::create<LLTextBox>(url_params);
-        addChild(mURLText);
-
-        LLTextBox::Params powered_params;
-        powered_params.name = "tasia_giphy_powered";
-        powered_params.rect = LLRect(10, 20, 180, 4);
-        powered_params.initial_value = LLSD("Powered by GIPHY");
-        mPoweredBy = LLUICtrlFactory::create<LLTextBox>(powered_params);
-        addChild(mPoweredBy);
-
-        LLButton::Params open_params;
-        open_params.name = "tasia_giphy_open";
-        open_params.label = "Open GIF";
-        open_params.rect = LLRect(270, 42, 360, 18);
-        mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
-        mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openURL(); });
-        addChild(mOpenButton);
-    }
-
-    void reshape(S32 width, S32 height, bool called_from_parent = true) override
-    {
-        LLPanel::reshape(width, height, called_from_parent);
-        if (mTitle)
-        {
-            mTitle->setRect(LLRect(10, height - 6, width - 110, height - 26));
-        }
-        if (mURLText)
-        {
-            mURLText->setRect(LLRect(10, height - 27, width - 110, height - 45));
-        }
-        if (mPoweredBy)
-        {
-            mPoweredBy->setRect(LLRect(10, height - 46, width - 110, height - 62));
-        }
-        if (mOpenButton)
-        {
-            mOpenButton->setRect(LLRect(width - 100, height - 18, width - 10, height - 42));
-        }
-    }
-
-private:
-    static LLPanel::Params makeParams()
-    {
-        LLPanel::Params params;
-        params.name = "tasia_giphy_preview";
-        params.rect = LLRect(0, 66, 360, 0);
-        params.mouse_opaque = true;
-        params.background_visible = true;
-        params.has_border = true;
-        return params;
-    }
-
-    void openURL()
-    {
-        LLWeb::loadURLExternal(mURL);
-    }
-
-    std::string mURL;
-    LLTextBox* mTitle = nullptr;
     LLTextBox* mURLText = nullptr;
     LLTextBox* mPoweredBy = nullptr;
     LLButton* mOpenButton = nullptr;
@@ -1971,17 +2037,6 @@ LLView* FSChatHistory::getSeparator()
 {
     LLPanel* separator = LLUICtrlFactory::getInstance()->createFromFile<LLPanel>(mMessageSeparatorFilename, NULL, LLPanel::child_registry_t::instance());
     return separator;
-}
-
-// virtual
-void FSChatHistory::insertMentionAtCursor(const std::string& str)
-{
-    updateChatInputLine();
-    if (mChatInputLine)
-    {
-        mChatInputLine->insertMentionAtCursor(str);
-        mChatInputLine->setFocus(true);
-    }
 }
 
 LLView* FSChatHistory::getHeader(const LLChat& chat,const LLStyle::Params& style_params, const LLSD& args)

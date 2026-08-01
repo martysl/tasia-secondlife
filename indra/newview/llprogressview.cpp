@@ -47,6 +47,7 @@
 #include "lluri.h"
 
 #include "llagent.h"
+#include "llagentui.h"
 #include "llbutton.h"
 #include "llcallbacklist.h"
 #include "llfocusmgr.h"
@@ -486,6 +487,8 @@ void LLProgressView::draw()
 {
     static LLTimer timer;
 
+    refreshTasiaWelcomeMessage();
+
     if (mFadeFromLoginTimer.getStarted())
     {
         F32 alpha = clamp_rescale(mFadeFromLoginTimer.getElapsedTimeF32(), 0.f, FADE_TO_WORLD_TIME, 0.f, 1.f);
@@ -593,7 +596,60 @@ void LLProgressView::setTasiaWelcomeMessage(const std::string& msg)
     }
 
     mHasTasiaWelcomeMessage = true;
-    setMessageText(msg);
+    mTasiaWelcomeRawLine = msg;
+    mTasiaWelcomeRenderedLine.clear();
+    mTasiaWelcomeLastName.clear();
+    refreshTasiaWelcomeMessage();
+}
+
+void LLProgressView::refreshTasiaWelcomeMessage()
+{
+    if (!mHasTasiaWelcomeMessage || mTasiaWelcomeRawLine.empty())
+    {
+        return;
+    }
+
+    const std::string name = getBestWelcomeName();
+    const std::string rendered = renderTasiaWelcomeLine(mTasiaWelcomeRawLine, name);
+    if (rendered != mTasiaWelcomeRenderedLine || name != mTasiaWelcomeLastName)
+    {
+        mTasiaWelcomeRenderedLine = rendered;
+        mTasiaWelcomeLastName = name;
+        setMessageText(rendered);
+    }
+}
+
+// static
+std::string LLProgressView::getBestWelcomeName()
+{
+    std::string name;
+    LLAgentUI::buildFullname(name);
+    LLStringUtil::trim(name);
+    if (!name.empty())
+    {
+        return name;
+    }
+
+    name = FSPanelLogin::getWelcomeUsername();
+    LLStringUtil::trim(name);
+    if (!name.empty())
+    {
+        return name;
+    }
+
+    return "friend";
+}
+
+// static
+std::string LLProgressView::renderTasiaWelcomeLine(const std::string& raw_line, const std::string& name)
+{
+    std::string rendered = raw_line;
+    const std::string safe_name = name.empty() ? "friend" : name;
+    LLStringUtil::replaceString(rendered, "<USERNAME>", safe_name);
+    LLStringUtil::replaceString(rendered, "<username>", safe_name);
+    LLStringUtil::replaceString(rendered, "[USERNAME]", safe_name);
+    LLStringUtil::replaceString(rendered, "[username]", safe_name);
+    return rendered;
 }
 
 void LLProgressView::requestWelcomeMessage()
