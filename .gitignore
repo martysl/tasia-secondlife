@@ -130,3 +130,6 @@ firestorm.code-workspace
 .github/release.yaml
 
 checks.json
+
+# Tasia GIPHY generated key files
+indra/newview/lltasia_giphy_key.generated.*
