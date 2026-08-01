@@ -90,6 +90,19 @@ class ViewerManifest(LLManifest,FSViewerManifest):
 
         # <FS:Ansariel> Copy emoji characters to build output
         with self.prefix(src=pkgdir, dst="skins/default"):
+            # <Tasia> Only ship English and Polish locales
+            self.exclude("*/xui/az")
+            self.exclude("*/xui/da")
+            self.exclude("*/xui/de")
+            self.exclude("*/xui/es")
+            self.exclude("*/xui/fr")
+            self.exclude("*/xui/it")
+            self.exclude("*/xui/ja")
+            self.exclude("*/xui/pt")
+            self.exclude("*/xui/ru")
+            self.exclude("*/xui/tr")
+            self.exclude("*/xui/zh")
+            # </Tasia>
             self.path("xui")
         # </FS:Ansariel>
 
