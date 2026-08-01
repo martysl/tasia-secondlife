@@ -67,6 +67,7 @@
 #include "llfloaterreg.h"
 #include "llfloaterreporter.h"
 #include "llfilepicker.h"
+#include "llviewermenufile.h"
 #include "llfirstuse.h"
 #include "llgroupactions.h"
 #include "lllayoutstack.h"
