@@ -1,0 +1,205 @@
+name: Build Tasia Viewer - Windows
+
+on:
+  push:
+    branches:
+      - tasia-features
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Publish GitHub pre-release"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AUTOBUILD_ADDRSIZE: 64
+  AUTOBUILD_BUILD_ID: ${{ github.run_id }}
+  AUTOBUILD_INSTALLABLE_CACHE: ${{ github.workspace }}/.autobuild-installables
+  AUTOBUILD_VARIABLES_FILE: ${{ github.workspace }}/.build-variables/variables
+  AUTOBUILD_VCS_INFO: "true"
+  AUTOBUILD_VSVER: 170
+  LL_SKIP_REQUIRE_SYSROOT: 1
+  XZ_DEFAULTS: -T0
+
+jobs:
+  build:
+    name: Build Tasia Viewer - Windows
+    runs-on: windows-2022
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout viewer source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Restore autobuild installables cache
+        id: cache-autobuild
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.AUTOBUILD_INSTALLABLE_CACHE }}
+          key: autobuild-windows-${{ hashFiles('autobuild.xml') }}
+
+      - name: Install autobuild and Python deps
+        run: pip install -r requirements.txt
+
+      - name: Checkout build variables
+        uses: actions/checkout@v4
+        with:
+          repository: FirestormViewer/fs-build-variables
+          path: .build-variables
+
+      - name: Remove KDU (proprietary, cannot use)
+        shell: bash
+        run: |
+          autobuild installables remove kdu || true
+          echo "KDU installable removed."
+
+      - name: Load autobuild environment
+        shell: bash
+        run: |
+          autobuild source_environment > .source_env
+          . .source_env
+          echo "LL_BUILD=$LL_BUILD" >> "$GITHUB_ENV"
+          echo "LL_BUILD_RELEASE=$LL_BUILD_RELEASE" >> "$GITHUB_ENV"
+
+      - name: Setup MSVC dev environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          vsversion: 2022
+
+      - name: Install Windows build prerequisites
+        shell: bash
+        run: |
+          choco install ninja --no-progress -y || true
+          ninja --version
+          cmake --version
+          where cl
+
+      - name: Set Tasia build metadata
+        shell: bash
+        run: |
+          echo "revision=${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "VIEWER_VERSION_GITHASH=${GITHUB_SHA}" >> "$GITHUB_ENV"
+          TASIA_SHORT_SHA="${GITHUB_SHA}"
+          echo "TASIA_SHORT_SHA=${TASIA_SHORT_SHA::7}" >> "$GITHUB_ENV"
+          echo "TASIA_DISPLAY_VERSION=7.2.4.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "TASIA_BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+
+      - name: Configure Windows
+        shell: bash
+        env:
+          TASIA_GIPHY_API_KEY: ${{ secrets.TASIA_GIPHY_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          unset CC || true
+          unset CXX || true
+
+          # Use VS-bundled CMake if available (better VS 2022 compatibility)
+          VS_CMAKE="C:/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
+          if [ -f "$VS_CMAKE" ]; then
+            VS_CMAKE_DIR="$(dirname "$VS_CMAKE")"
+            echo "Using VS-bundled CMake from: $VS_CMAKE_DIR"
+            export PATH="$VS_CMAKE_DIR:$PATH"
+          fi
+
+          LOCAL_DIST_DIR="$(pwd)/build-vc170-64/newview/unpacked"
+          mkdir -p "$LOCAL_DIST_DIR"
+
+          autobuild configure \
+            -c ReleaseFS_open \
+            -A ${{ env.AUTOBUILD_ADDRSIZE }} \
+            -- \
+            --openal \
+            --no-package \
+            --ninja \
+            "-DLOCAL_DIST_DIR:PATH=$LOCAL_DIST_DIR"
+
+      - name: Build Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+          autobuild build \
+            -c ReleaseFS_open \
+            -A ${{ env.AUTOBUILD_ADDRSIZE }} \
+            --no-configure \
+            -- \
+            --openal \
+            --no-package \
+            --ninja
+
+      - name: Create Windows ZIP artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import shutil
+          from pathlib import Path
+
+          dist = Path('build-vc170-64/newview/unpacked')
+          if not dist.is_dir():
+              raise SystemExit(f'Missing unpacked Windows dist: {dist}')
+          archive = shutil.make_archive('Tasia-Viewer-Windows', 'zip', dist)
+          print(f'Created {archive}')
+          PY
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tasia-Viewer-Windows
+          if-no-files-found: error
+          path: Tasia-Viewer-Windows.zip
+
+      - name: Publish GitHub prerelease - Windows
+        if: inputs.publish_release == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          TAG="v7.2.4-${GITHUB_RUN_NUMBER}"
+          TITLE="Tasia Viewer 7.2.4.${GITHUB_RUN_NUMBER} Windows Beta"
+          NOTES="$(mktemp)"
+
+          cat > "$NOTES" <<EOF
+          Tasia Viewer Windows beta build.
+
+          Version: 7.2.4.${GITHUB_RUN_NUMBER}
+          Commit: ${GITHUB_SHA:0:7}
+          Channel: Tasia Viewer
+          Audio: OpenAL
+          KDU: removed
+
+          This is a beta/pre-release build. Mom must test before stable release.
+          EOF
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" Tasia-Viewer-Windows.zip --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" Tasia-Viewer-Windows.zip \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "$TITLE" \
+              --notes-file "$NOTES" \
+              --prerelease
+          fi
