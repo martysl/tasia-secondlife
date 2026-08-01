@@ -132,6 +132,8 @@ public:
 
     void processProperties(void* data, EAvatarProcessorType type) override;
 
+    void setAllowEdit(bool allow_edit) { mAllowEdit = allow_edit; }
+
     // <FS:Zi> FIRE-32184: Online/Offline status not working for non-friends
     void onAvatarProperties(const LLAvatarData* data);
 
@@ -297,6 +299,7 @@ private:
     bool                mAllowPublish;
     bool                mPreview; // <AS:Chanayane> Preview button
     bool                mHideAge;
+    bool                mAllowEdit;
     std::string         mDescriptionText;
     std::string         mOriginalDescriptionText; // <AS:Chanayane> Preview button
     LLUUID              mImageId;
