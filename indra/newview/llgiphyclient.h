@@ -46,16 +46,55 @@ public:
         S32 preview_height = 0;
     };
 
+    struct Category
+    {
+        std::string name;
+        std::string name_encoded;
+        std::string preview_gif_url;
+        std::string preview_width;
+        std::string preview_height;
+    };
+
+    struct Suggestion
+    {
+        std::string term;
+    };
+
     typedef std::vector<Result> results_t;
+    typedef std::vector<Category> categories_t;
+    typedef std::vector<Suggestion> suggestions_t;
     typedef boost::function<void(bool success, const std::string& message, const results_t& results)> response_callback_t;
+    typedef boost::function<void(bool success, const std::string& message, const categories_t& categories)> categories_callback_t;
+    typedef boost::function<void(bool success, const std::string& message, const suggestions_t& suggestions)> suggestions_callback_t;
 
     static const std::string& notConfiguredMessage();
     static bool isConfigured();
+
+    // GIFs
     static void search(const std::string& query, response_callback_t callback, S32 limit = 24, S32 offset = 0);
     static void trending(response_callback_t callback, S32 limit = 24, S32 offset = 0);
+    static void random(const std::string& tag, response_callback_t callback);
+    static void translate(const std::string& text, response_callback_t callback);
+
+    // Stickers
+    static void stickerSearch(const std::string& query, response_callback_t callback, S32 limit = 24, S32 offset = 0);
+    static void stickerTrending(response_callback_t callback, S32 limit = 24, S32 offset = 0);
+    static void stickerRandom(const std::string& tag, response_callback_t callback);
+
+    // Emoji
+    static void emoji(response_callback_t callback, S32 limit = 24, S32 offset = 0);
+
+    // Browsing
+    static void categories(categories_callback_t callback);
+    static void categoryGifs(const std::string& category, response_callback_t callback, S32 limit = 24, S32 offset = 0);
+
+    // Suggestions
+    static void searchSuggestions(const std::string& query, suggestions_callback_t callback, S32 limit = 8);
 
 private:
     static void requestCoro(std::string url, response_callback_t callback);
+    static void requestCoroCategories(std::string url, categories_callback_t callback);
+    static void requestCoroSuggestions(std::string url, suggestions_callback_t callback);
 };
 
 #endif // LL_GIPHY_CLIENT_H

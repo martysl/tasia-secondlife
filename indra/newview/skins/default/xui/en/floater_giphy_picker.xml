@@ -2,10 +2,10 @@
 <floater
  name="floater_giphy_picker"
  title="GIPHY Picker"
- width="560"
- height="420"
- min_width="440"
- min_height="320">
+ width="720"
+ height="480"
+ min_width="560"
+ min_height="360">
 
   <text
    name="instructions_text"
@@ -14,9 +14,9 @@
    layout="topleft"
    left="10"
    top="10"
-   width="540"
+   width="700"
    height="18">
-Search for a GIF, then choose a result.
+Search GIPHY, browse categories, or pick stickers and emoji.
   </text>
 
   <line_editor
@@ -37,7 +37,7 @@ Search for a GIF, then choose a result.
    layout="topleft"
    left_pad="8"
    top_delta="0"
-   width="80"
+   width="70"
    height="24" />
 
   <button
@@ -45,19 +45,92 @@ Search for a GIF, then choose a result.
    label="Trending"
    follows="top|right"
    layout="topleft"
-   left_pad="8"
+   left_pad="6"
    top_delta="0"
-   width="90"
+   width="80"
    height="24" />
+
+  <button
+   name="stickers_btn"
+   label="Stickers"
+   follows="top|right"
+   layout="topleft"
+   left_pad="6"
+   top_delta="0"
+   width="80"
+   height="24" />
+
+  <button
+   name="emoji_btn"
+   label="Emoji"
+   follows="top|right"
+   layout="topleft"
+   left_pad="6"
+   top_delta="0"
+   width="70"
+   height="24" />
+
+  <button
+   name="random_btn"
+   label="Random"
+   follows="top|right"
+   layout="topleft"
+   left_pad="6"
+   top_delta="0"
+   width="70"
+   height="24" />
+
+  <button
+   name="translate_btn"
+   label="Translate"
+   follows="top|right"
+   layout="topleft"
+   left_pad="6"
+   top_delta="0"
+   width="80"
+   height="24" />
+
+  <scroll_list
+   name="suggestion_list"
+   follows="top|left|right"
+   layout="topleft"
+   left="10"
+   top="63"
+   width="345"
+   height="80"
+   draw_heading="false"
+   multi_select="false"
+   visible="false">
+    <scroll_list.columns
+     name="term"
+     label="Suggestions"
+     width="335" />
+  </scroll_list>
+
+  <scroll_list
+   name="category_list"
+   follows="top|left|bottom"
+   layout="topleft"
+   left="10"
+   top="150"
+   width="150"
+   height="255"
+   draw_heading="true"
+   multi_select="false">
+    <scroll_list.columns
+     name="category"
+     label="Categories"
+     width="140" />
+  </scroll_list>
 
   <scroll_list
    name="results_list"
    follows="top|left|right|bottom"
    layout="topleft"
-   left="10"
-   top="70"
+   left_pad="8"
+   top="150"
    width="540"
-   height="275"
+   height="255"
    draw_heading="true"
    multi_select="false">
     <scroll_list.columns
