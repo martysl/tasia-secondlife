@@ -1973,6 +1973,17 @@ LLView* FSChatHistory::getSeparator()
     return separator;
 }
 
+// virtual
+void FSChatHistory::insertMentionAtCursor(const std::string& str)
+{
+    updateChatInputLine();
+    if (mChatInputLine)
+    {
+        mChatInputLine->insertMentionAtCursor(str);
+        mChatInputLine->setFocus(true);
+    }
+}
+
 LLView* FSChatHistory::getHeader(const LLChat& chat,const LLStyle::Params& style_params, const LLSD& args)
 {
     FSChatHistoryHeader* header = FSChatHistoryHeader::createInstance(mMessageHeaderFilename);
