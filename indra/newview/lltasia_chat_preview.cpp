@@ -371,7 +371,7 @@ bool tasiaFindFirstYouTubePreview(const std::string& text, TasiaYouTubePreview& 
 }
 
 TasiaImagePreviewPanel::TasiaImagePreviewPanel(const TasiaImagePreview& preview)
-    : LLPanel(makeParams())
+    : LLPanel()
     , mURL(preview.url)
 {
     LLMediaCtrl::Params media_params;
@@ -435,7 +435,7 @@ void TasiaImagePreviewPanel::openURL()
 }
 
 TasiaYouTubePreviewPanel::TasiaYouTubePreviewPanel(const TasiaYouTubePreview& preview)
-    : LLPanel(makeParams())
+    : LLPanel()
     , mPlayerURL(preview.player_url)
     , mPageURL(preview.page_url)
 {
@@ -512,7 +512,7 @@ void TasiaYouTubePreviewPanel::openPlayer()
 }
 
 TasiaGiphyPreviewPanel::TasiaGiphyPreviewPanel(const TasiaGiphyPreview& preview)
-    : LLPanel(makeParams())
+    : LLPanel()
     , mMediaURL(preview.media_url)
     , mPageURL(preview.page_url)
 {
