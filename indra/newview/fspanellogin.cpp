@@ -1639,3 +1639,77 @@ void FSPanelLogin::onModeChangeConfirm(const LLSD& original_value, const LLSD& n
             break;
     }
 }
+
+namespace
+{
+std::string clean_welcome_username(std::string name)
+{
+    LLStringUtil::trim(name);
+    if (name.empty())
+    {
+        return std::string();
+    }
+
+    std::string::size_type at_pos = name.find(" @ ");
+    if (at_pos == std::string::npos)
+    {
+        at_pos = name.find('@');
+    }
+    if (at_pos != std::string::npos)
+    {
+        name = name.substr(0, at_pos);
+        LLStringUtil::trim(name);
+    }
+
+    LLStringUtil::replaceChar(name, '.', ' ');
+    LLStringUtil::replaceChar(name, '_', ' ');
+    LLStringUtil::trim(name);
+
+    const std::string resident_suffix = " Resident";
+    if (name.size() > resident_suffix.size() &&
+        LLStringUtil::compareInsensitive(name.substr(name.size() - resident_suffix.size()), resident_suffix) == 0)
+    {
+        name.erase(name.size() - resident_suffix.size());
+        LLStringUtil::trim(name);
+    }
+
+    return name;
+}
+}
+
+// static
+std::string FSPanelLogin::getWelcomeUsername()
+{
+    if (sInstance)
+    {
+        LLComboBox* combo = sInstance->getChild<LLComboBox>("username_combo");
+        if (combo)
+        {
+            std::string username = clean_welcome_username(combo->getSimple());
+            if (!username.empty())
+            {
+                return username;
+            }
+
+            username = clean_welcome_username(combo->getValue().asString());
+            if (!username.empty())
+            {
+                return username;
+            }
+        }
+    }
+
+    std::string username = clean_welcome_username(gSavedSettings.getString("UserLoginInfo"));
+    if (!username.empty())
+    {
+        return username;
+    }
+
+    username = clean_welcome_username(gSavedSettings.getString("UserLoginInfoCmdLine"));
+    if (!username.empty())
+    {
+        return username;
+    }
+
+    return std::string();
+}
