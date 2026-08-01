@@ -100,8 +100,6 @@ const static std::string NEW_LINE(rawstr_to_utf8("\n"));
 const static std::string SLURL_APP_AGENT = "secondlife:///app/agent/";
 const static std::string SLURL_ABOUT = "/about";
 
-}
-
 // support for secondlife:///app/objectim/{UUID}/ SLapps
 class LLObjectIMHandler : public LLCommandHandler
 {
