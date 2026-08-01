@@ -397,8 +397,8 @@ TasiaImagePreviewPanel::TasiaImagePreviewPanel(const TasiaImagePreview& preview)
     open_params.name = "tasia_image_preview_open";
     open_params.label = "Open";
     open_params.rect = LLRect(340, 24, 420, 6);
-    open_params.click_callback = [this](LLUICtrl*, const LLSD&) { openInViewer(); };
     mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
+    mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openInViewer(); });
     addChild(mOpenButton);
 }
 
@@ -423,9 +423,9 @@ void TasiaImagePreviewPanel::openInViewer()
 {
     LLFloaterWebContent::Params params;
     params.url = mURL;
-    params.show_address_bar = true;
+    params.show_chrome = true;
     params.trusted_content = false;
-    params.allow_address_edit = false;
+    params.allow_address_entry = true;
     LLFloaterReg::showInstance("web_content", params);
 }
 
@@ -462,16 +462,16 @@ TasiaYouTubePreviewPanel::TasiaYouTubePreviewPanel(const TasiaYouTubePreview& pr
     open_params.name = "tasia_youtube_preview_open";
     open_params.label = "Open";
     open_params.rect = LLRect(340, 24, 420, 6);
-    open_params.click_callback = [this](LLUICtrl*, const LLSD&) { openInViewer(); };
     mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
+    mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openInViewer(); });
     addChild(mOpenButton);
 
     LLButton::Params play_params;
     play_params.name = "tasia_youtube_preview_play";
     play_params.label = "Play";
     play_params.rect = LLRect(340, 44, 420, 26);
-    play_params.click_callback = [this](LLUICtrl*, const LLSD&) { openPlayer(); };
     mPlayButton = LLUICtrlFactory::create<LLButton>(play_params);
+    mPlayButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openPlayer(); });
     addChild(mPlayButton);
 }
 
@@ -500,9 +500,9 @@ void TasiaYouTubePreviewPanel::openInViewer()
 {
     LLFloaterWebContent::Params params;
     params.url = mPlayerURL;
-    params.show_address_bar = true;
+    params.show_chrome = true;
     params.trusted_content = false;
-    params.allow_address_edit = false;
+    params.allow_address_entry = true;
     LLFloaterReg::showInstance("web_content", params);
 }
 
@@ -554,8 +554,8 @@ TasiaGiphyPreviewPanel::TasiaGiphyPreviewPanel(const TasiaGiphyPreview& preview)
     open_params.name = "tasia_giphy_preview_open";
     open_params.label = "Open";
     open_params.rect = LLRect(340, 24, 420, 6);
-    open_params.click_callback = [this](LLUICtrl*, const LLSD&) { openInViewer(); };
     mOpenButton = LLUICtrlFactory::create<LLButton>(open_params);
+    mOpenButton->setClickedCallback([this](LLUICtrl*, const LLSD&) { openInViewer(); });
     addChild(mOpenButton);
 }
 
@@ -588,9 +588,9 @@ void TasiaGiphyPreviewPanel::openInViewer()
 {
     LLFloaterWebContent::Params params;
     params.url = mPageURL;
-    params.show_address_bar = true;
+    params.show_chrome = true;
     params.trusted_content = false;
-    params.allow_address_edit = false;
+    params.allow_address_entry = true;
     LLFloaterReg::showInstance("web_content", params);
 }
 
