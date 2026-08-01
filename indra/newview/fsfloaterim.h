@@ -249,6 +249,8 @@ private:
     void onEmojiPickerClosed();
     void initEmojiRecentPanel();
     void onRecentEmojiPicked(const LLSD& value);
+    void onGiphyPickerButtonClicked();
+    void onGiphySelected(const std::string& url);
 
     FSPanelChatControlPanel* mControlPanel;
     LLUUID mSessionID;

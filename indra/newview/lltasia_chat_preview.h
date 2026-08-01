@@ -65,6 +65,7 @@ public:
     void openURL();
 
 private:
+    static LLPanel::Params makeParams();
     std::string mURL;
     LLMediaCtrl* mMedia = nullptr;
     LLTextBox* mURLText = nullptr;
@@ -80,6 +81,7 @@ public:
     void openPlayer();
 
 private:
+    static LLPanel::Params makeParams();
     std::string mPlayerURL;
     std::string mPageURL;
     LLMediaCtrl* mMedia = nullptr;
@@ -97,6 +99,7 @@ public:
     void openURL();
 
 private:
+    static LLPanel::Params makeParams();
     std::string mMediaURL;
     std::string mPageURL;
     LLMediaCtrl* mMedia = nullptr;

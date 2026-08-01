@@ -43,6 +43,7 @@
 #include "llappviewer.h"
 #include "llautoreplace.h"
 #include "llavataractions.h"
+#include "llfloatergiphypicker.h"
 #include "llavatarnamecache.h"
 #include "llbutton.h"
 #include "llchannelmanager.h"
@@ -1016,6 +1017,9 @@ bool FSFloaterIM::postBuild()
 
     mEmojiRecentPanelToggleBtn = getChild<LLButton>("emoji_recent_panel_toggle_btn");
     mEmojiRecentPanelToggleBtn->setClickedCallback([this](LLUICtrl*, const LLSD&) { onEmojiRecentPanelToggleBtnClicked(); });
+
+    LLButton* giphy_btn = getChild<LLButton>("giphy_picker_btn");
+    giphy_btn->setClickedCallback([this](LLUICtrl*, const LLSD&) { onGiphyPickerButtonClicked(); });
 
     mEmojiRecentPanel = getChild<LLLayoutPanel>("emoji_recent_layout_panel");
     mEmojiRecentPanel->setVisible(false);
@@ -2626,6 +2630,27 @@ void FSFloaterIM::onRecentEmojiPicked(const LLSD& value)
             llwchar emoji = wstr[0];
             mInputEditor->insertEmoji(emoji);
         }
+    }
+}
+
+void FSFloaterIM::onGiphyPickerButtonClicked()
+{
+    LLFloaterGiphyPicker::show(boost::bind(&FSFloaterIM::onGiphySelected, this, _1));
+}
+
+void FSFloaterIM::onGiphySelected(const std::string& url)
+{
+    std::string trimmed_url = url;
+    LLStringUtil::trim(trimmed_url);
+    if (trimmed_url.empty())
+    {
+        return;
+    }
+
+    LLIMModel::sendMessage(trimmed_url, mSessionID, mOtherParticipantUUID, mDialog);
+    if (mInputEditor)
+    {
+        mInputEditor->setFocus(true);
     }
 }
 

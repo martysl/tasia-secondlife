@@ -370,7 +370,7 @@ bool tasiaFindFirstYouTubePreview(const std::string& text, TasiaYouTubePreview& 
 }
 
 TasiaImagePreviewPanel::TasiaImagePreviewPanel(const TasiaImagePreview& preview)
-    : LLPanel()
+    : LLPanel(makeParams())
     , mURL(preview.url)
 {
     LLMediaCtrl::Params media_params;
@@ -434,7 +434,7 @@ void TasiaImagePreviewPanel::openURL()
 }
 
 TasiaYouTubePreviewPanel::TasiaYouTubePreviewPanel(const TasiaYouTubePreview& preview)
-    : LLPanel()
+    : LLPanel(makeParams())
     , mPlayerURL(preview.player_url)
     , mPageURL(preview.page_url)
 {
@@ -511,7 +511,7 @@ void TasiaYouTubePreviewPanel::openPlayer()
 }
 
 TasiaGiphyPreviewPanel::TasiaGiphyPreviewPanel(const TasiaGiphyPreview& preview)
-    : LLPanel()
+    : LLPanel(makeParams())
     , mMediaURL(preview.media_url)
     , mPageURL(preview.page_url)
 {
@@ -596,4 +596,40 @@ void TasiaGiphyPreviewPanel::openInViewer()
 void TasiaGiphyPreviewPanel::openURL()
 {
     LLWeb::loadURLExternal(mPageURL);
+}
+
+// static
+LLPanel::Params TasiaImagePreviewPanel::makeParams()
+{
+    LLPanel::Params params;
+    params.name = "tasia_image_preview";
+    params.rect = LLRect(0, 140, 460, 0);
+    params.mouse_opaque = true;
+    params.background_visible = true;
+    params.has_border = true;
+    return params;
+}
+
+// static
+LLPanel::Params TasiaYouTubePreviewPanel::makeParams()
+{
+    LLPanel::Params params;
+    params.name = "tasia_youtube_preview";
+    params.rect = LLRect(0, 66, 530, 0);
+    params.mouse_opaque = true;
+    params.background_visible = true;
+    params.has_border = true;
+    return params;
+}
+
+// static
+LLPanel::Params TasiaGiphyPreviewPanel::makeParams()
+{
+    LLPanel::Params params;
+    params.name = "tasia_giphy_preview";
+    params.rect = LLRect(0, 188, 440, 0);
+    params.mouse_opaque = true;
+    params.background_visible = true;
+    params.has_border = true;
+    return params;
 }
