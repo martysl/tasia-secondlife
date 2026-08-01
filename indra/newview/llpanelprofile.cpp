@@ -2191,7 +2191,7 @@ private:
 };
 
 LLProfileImagePicker::LLProfileImagePicker(EProfileImageType type, LLHandle<LLPanel> *handle)
-    : LLFilePickerThread(FFLOAD_IMAGE),
+    : LLFilePickerThread(LLFilePicker::FFLOAD_IMAGE),
     mHandle(handle),
     mType(type)
 {
