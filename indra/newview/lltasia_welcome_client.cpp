@@ -54,6 +54,7 @@ std::string chooseFirstUsableLine(const LLSD::Binary& data, U32 max_bytes)
 
     std::istringstream stream(body);
     std::string line;
+    bool first_line = true;
     while (std::getline(stream, line))
     {
         if (!line.empty() && line[line.size() - 1] == '\r')
@@ -61,13 +62,14 @@ std::string chooseFirstUsableLine(const LLSD::Binary& data, U32 max_bytes)
             line.erase(line.size() - 1);
         }
 
-        if (lines.empty() && line.size() >= 3 &&
+        if (first_line && line.size() >= 3 &&
             static_cast<U8>(line[0]) == 0xef &&
             static_cast<U8>(line[1]) == 0xbb &&
             static_cast<U8>(line[2]) == 0xbf)
         {
             line.erase(0, 3);
         }
+        first_line = false;
 
         LLStringUtil::trim(line);
         if (line.empty() || line[0] == '#')
