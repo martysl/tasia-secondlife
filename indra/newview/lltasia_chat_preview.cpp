@@ -368,7 +368,6 @@ bool tasiaFindFirstYouTubePreview(const std::string& text, TasiaYouTubePreview& 
     }
     return false;
 }
-}
 
 TasiaImagePreviewPanel::TasiaImagePreviewPanel(const TasiaImagePreview& preview)
     : LLPanel()
