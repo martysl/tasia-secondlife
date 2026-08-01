@@ -101,6 +101,7 @@ private:
                                    const std::string& message,
                                    const LLGiphyClient::categories_t& categories);
     static void onSuggestionsLoaded(LLHandle<LLFloater> handle,
+                                    S32 request_id,
                                     bool success,
                                     const std::string& message,
                                     const LLGiphyClient::suggestions_t& suggestions);
