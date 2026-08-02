@@ -606,6 +606,8 @@ if [ $WANTS_CONFIG -eq $TRUE ] ; then
     echo "DIAG CMake cmd: cmake -G [$TARGET] arch=[$CMAKE_ARCH] cc=[$CC] cxx=[$CXX]" | tee -a "$LOG"
     echo "DIAG pwd: $(pwd) | cache exists: $([ -f CMakeCache.txt ] && echo YES || echo no)" | tee -a "$LOG"
     echo "DIAG which cmake: $(which cmake) | VSINSTALLDIR=[$VSINSTALLDIR] VCToolsInstallDir=[$VCToolsInstallDir]" | tee -a "$LOG"
+    echo "DIAG env CC=[${CC:-unset}] CXX=[${CXX:-unset}] CMAKE_GENERATOR=[${CMAKE_GENERATOR:-unset}] CMAKE_C_COMPILER=[${CMAKE_C_COMPILER:-unset}]" | tee -a "$LOG"
+    echo "DIAG vswhere: $([ -f "$(cygpath -u "$ProgramFiles(x86)")/Microsoft Visual Studio/Installer/vswhere.exe" ] && echo present || echo MISSING)" | tee -a "$LOG"
     cmake -G "$TARGET" $CMAKE_ARCH ../indra "$CHANNEL" ${GITHASH} $FMODSTUDIO $OPENAL $KDU $OPENSIM $SINGLEGRID $HAVOK $AVX_OPTIMIZATION $AVX2_OPTIMIZATION $TRACY_PROFILER $TESTBUILD $PACKAGE $VELOPACK \
           $UNATTENDED -DLL_TESTS:BOOL=OFF -DADDRESS_SIZE:STRING=$AUTOBUILD_ADDRSIZE -DCMAKE_BUILD_TYPE:STRING=$BTYPE $CACHE_OPT \
           $CRASH_REPORTING -DVIEWER_SYMBOL_FILE:STRING="${VIEWER_SYMBOL_FILE:-}" $LL_ARGS_PASSTHRU ${VSCODE_FLAGS:-} | tee "$LOG"
