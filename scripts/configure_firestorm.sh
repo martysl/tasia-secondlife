@@ -609,13 +609,14 @@ if [ $WANTS_CONFIG -eq $TRUE ] ; then
         fi
     fi
 
-    echo "DIAG CMake cmd: cmake -G [$TARGET] arch=[$CMAKE_ARCH] cc=[$CC] cxx=[$CXX]" | tee -a "$LOG"
-    echo "DIAG pwd: $(pwd) | cache exists: $([ -f CMakeCache.txt ] && echo YES || echo no)" | tee -a "$LOG"
-    echo "DIAG which cmake: $(which cmake) | VSINSTALLDIR=[$VSINSTALLDIR] VCToolsInstallDir=[$VCToolsInstallDir]" | tee -a "$LOG"
-    echo "DIAG env CC=[${CC:-unset}] CXX=[${CXX:-unset}] CMAKE_GENERATOR=[${CMAKE_GENERATOR:-unset}] CMAKE_C_COMPILER=[${CMAKE_C_COMPILER:-unset}]" | tee -a "$LOG"
-    echo "DIAG vswhere: $([ -f "$(cygpath -u "$ProgramFiles(x86)")/Microsoft Visual Studio/Installer/vswhere.exe" ] && echo present || echo MISSING)" | tee -a "$LOG"
-    echo "DIAG CC_COMPILER=[$CC_COMPILER]" | tee -a "$LOG"
-    cmake -G "$TARGET" $CMAKE_ARCH -DCMAKE_C_COMPILER:PATH="$CC_COMPILER" -DCMAKE_CXX_COMPILER:PATH="$CC_COMPILER" ../indra "$CHANNEL" ${GITHASH} $FMODSTUDIO $OPENAL $KDU $OPENSIM $SINGLEGRID $HAVOK $AVX_OPTIMIZATION $AVX2_OPTIMIZATION $TRACY_PROFILER $TESTBUILD $PACKAGE $VELOPACK \
+    # Only pass an explicit compiler on Windows (vswhere detection fails on GH
+    # runners); on Linux/OSX leave CC/CXX unset so CMake auto-detects.
+    if [ $TARGET_PLATFORM == "windows" ] ; then
+        CMAKE_COMPILER_ARGS="-DCMAKE_C_COMPILER:PATH=\"$CC_COMPILER\" -DCMAKE_CXX_COMPILER:PATH=\"$CC_COMPILER\""
+    else
+        CMAKE_COMPILER_ARGS=""
+    fi
+    cmake -G "$TARGET" $CMAKE_ARCH $CMAKE_COMPILER_ARGS ../indra "$CHANNEL" ${GITHASH} $FMODSTUDIO $OPENAL $KDU $OPENSIM $SINGLEGRID $HAVOK $AVX_OPTIMIZATION $AVX2_OPTIMIZATION $TRACY_PROFILER $TESTBUILD $PACKAGE $VELOPACK \
           $UNATTENDED -DLL_TESTS:BOOL=OFF -DADDRESS_SIZE:STRING=$AUTOBUILD_ADDRSIZE -DCMAKE_BUILD_TYPE:STRING=$BTYPE $CACHE_OPT \
           $CRASH_REPORTING -DVIEWER_SYMBOL_FILE:STRING="${VIEWER_SYMBOL_FILE:-}" $LL_ARGS_PASSTHRU ${VSCODE_FLAGS:-} | tee "$LOG"
     configure_status=${PIPESTATUS[0]}
