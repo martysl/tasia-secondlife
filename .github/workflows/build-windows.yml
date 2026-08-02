@@ -142,6 +142,13 @@ jobs:
           LOCAL_DIST_DIR="$(pwd)/build-vc170-64/newview/unpacked"
           mkdir -p "$LOCAL_DIST_DIR"
 
+          # --- CMake smoke test: confirm VS generator + MSVC are visible ---
+          mkdir -p /tmp/cmake-test && cd /tmp/cmake-test
+          printf 'project(test C CXX)\nadd_executable(t main.c)\n' > CMakeLists.txt
+          printf 'int main(void){return 0;}\n' > main.c
+          cmake -G "$AUTOBUILD_WIN_CMAKE_GEN" -A x64 . 2>&1 | tail -8 || true
+          cd -
+
           autobuild configure \
             -c ${{ matrix.config }} \
             -A ${{ env.AUTOBUILD_ADDRSIZE }} \
