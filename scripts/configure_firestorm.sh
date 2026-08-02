@@ -572,6 +572,8 @@ if [ $WANTS_CONFIG -eq $TRUE ] ; then
         if [ $AUTOBUILD_ADDRSIZE == 32 ]
         then
             CMAKE_ARCH="-A Win32"
+        else
+            CMAKE_ARCH="-A x64"
         fi
         UNATTENDED="-DUNATTENDED=ON"
     fi
