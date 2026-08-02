@@ -119,6 +119,39 @@ std::string tasiaMakeHostedYouTubePlayerURL(const std::string& video_id)
     return "https://apps.easierit.org/igrid/youtube-player/?v=" + LLURI::escape(video_id);
 }
 
+bool tasiaIsGiphyId(const std::string& value)
+{
+    if (value.size() < 4 || value.size() > 80)
+    {
+        return false;
+    }
+
+    for (std::string::const_iterator it = value.begin(); it != value.end(); ++it)
+    {
+        if (!isalnum(static_cast<unsigned char>(*it)))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string tasiaGiphyIdFromSlug(const std::string& slug)
+{
+    std::string candidate = slug;
+    std::string::size_type dash_pos = slug.rfind('-');
+    if (dash_pos != std::string::npos && dash_pos + 1 < slug.size())
+    {
+        candidate = slug.substr(dash_pos + 1);
+    }
+
+    if (tasiaIsGiphyId(candidate))
+    {
+        return candidate;
+    }
+    return std::string();
+}
+
 bool tasiaExtractGiphyPreviewFromURL(std::string url, TasiaGiphyPreview& preview)
 {
     tasiaStripTrailingUrlPunctuation(url);
@@ -144,13 +177,9 @@ bool tasiaExtractGiphyPreviewFromURL(std::string url, TasiaGiphyPreview& preview
     }
     else if (segments.size() >= 2 && segments[0] == "gifs")
     {
-        std::string id = segments[segments.size() - 1];
-        std::string::size_type dash = id.find('-');
-        if (dash != std::string::npos)
-        {
-            id = id.substr(0, dash);
-        }
-        preview.id = id;
+        // Giphy URLs look like https://giphy.com/gifs/raz-razvan-razvanflore-Mv1QDJzeB9eaDHzvvf
+        // — the real ID is the alphanumeric token AFTER the LAST dash, not the first segment.
+        preview.id = tasiaGiphyIdFromSlug(segments[segments.size() - 1]);
     }
 
     if (preview.id.empty())
