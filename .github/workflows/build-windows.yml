@@ -130,13 +130,9 @@ jobs:
           unset CC || true
           unset CXX || true
 
-          # Use VS-bundled CMake if available (better VS 2022 compatibility)
-          VS_CMAKE="C:/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
-          if [ -f "$VS_CMAKE" ]; then
-            VS_CMAKE_DIR="$(dirname "$VS_CMAKE")"
-            echo "Using VS-bundled CMake from: $VS_CMAKE_DIR"
-            export PATH="$VS_CMAKE_DIR:$PATH"
-          fi
+          # Use system CMake (default generator = Visual Studio 2022 -> Firestorm.sln;
+          # VS-bundled CMake defaults to Ninja which breaks configure_firestorm.sh's msbuild step)
+          cmake --version | head -1
 
           LOCAL_DIST_DIR="$(pwd)/build-vc170-64/newview/unpacked"
           mkdir -p "$LOCAL_DIST_DIR"
