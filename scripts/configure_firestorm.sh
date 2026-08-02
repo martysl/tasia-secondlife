@@ -571,9 +571,8 @@ if [ $WANTS_CONFIG -eq $TRUE ] ; then
             fi
         fi
     elif [ \( $TARGET_PLATFORM == "windows" \) ] ; then
-        # Explicit VS generator; unset VSINSTALLDIR first because load_vsvars
-        # sets it and that breaks CMake's own vswhere-based compiler detection.
-        unset VSINSTALLDIR
+        # Explicit VS generator. VSINSTALLDIR from msvc-dev-cmd helps CMake's
+        # vswhere detection — do NOT unset it.
         TARGET="Visual Studio 17 2022"
         if [ $AUTOBUILD_ADDRSIZE == 32 ]
         then
