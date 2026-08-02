@@ -140,6 +140,9 @@ jobs:
           cmake --version | head -1
 
           LOCAL_DIST_DIR="$(pwd)/build-vc170-64/newview/unpacked"
+          # Clean build dir: stale CMakeCache.txt from earlier Ninja-generator
+          # configure attempts conflicts with -G "Visual Studio 17 2022"
+          rm -rf build-vc170-64
           mkdir -p "$LOCAL_DIST_DIR"
 
           # --- CMake smoke test: confirm VS generator + MSVC are visible ---
