@@ -117,7 +117,8 @@ jobs:
       - name: Set Tasia build metadata
         shell: bash
         run: |
-          echo "revision=${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          # NOTE: no 'revision' var — MSBuild crashes with "Item has already
+          # been added. Key: 'revision'/'REVISION'" (case-insensitive collision).
           echo "VIEWER_VERSION_GITHASH=${GITHUB_SHA}" >> "$GITHUB_ENV"
           TASIA_SHORT_SHA="${GITHUB_SHA}"
           echo "TASIA_SHORT_SHA=${TASIA_SHORT_SHA::7}" >> "$GITHUB_ENV"
