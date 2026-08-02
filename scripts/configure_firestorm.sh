@@ -367,7 +367,10 @@ then
     # load autobuild provided shell functions and variables
     eval "$("$AUTOBUILD_EXEC" source_environment)"
     # vsvars is needed for determing path to VS runtime redist files in Copy3rdPartyLibs.cmake
-    load_vsvars
+    # NOTE: load_vsvars sets VSINSTALLDIR/VCToolsInstallDir which breaks CMake's
+    # vswhere-based compiler detection with the VS generator. Skip it; the
+    # workflow already provides the MSVC dev environment.
+    # load_vsvars
 fi
 
 if [ -z "$AUTOBUILD_VARIABLES_FILE" ]
