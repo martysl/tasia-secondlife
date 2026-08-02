@@ -4165,7 +4165,6 @@ Copyright (c) 2012, 2014, 2015, 2016 nghttp2 contributors</string>
                   <string>--version</string>
                   <string>--platform windows</string>
                   <string>--openal</string>
-                  <string>--ninja</string>
                 </array>
               </map>
               <key>configure</key>
@@ -4179,7 +4178,6 @@ Copyright (c) 2012, 2014, 2015, 2016 nghttp2 contributors</string>
                   <string>--version</string>
                   <string>--platform windows</string>
                   <string>--openal</string>
-                  <string>--ninja</string>
                 </array>
               </map>
               <key>name</key>
@@ -4199,7 +4197,6 @@ Copyright (c) 2012, 2014, 2015, 2016 nghttp2 contributors</string>
                   <string>--platform windows</string>
                   <string>--no-opensim</string>
                   <string>--openal</string>
-                  <string>--ninja</string>
                 </array>
               </map>
               <key>configure</key>
@@ -4214,7 +4211,6 @@ Copyright (c) 2012, 2014, 2015, 2016 nghttp2 contributors</string>
                   <string>--platform windows</string>
                   <string>--no-opensim</string>
                   <string>--openal</string>
-                  <string>--ninja</string>
                 </array>
               </map>
               <key>name</key>

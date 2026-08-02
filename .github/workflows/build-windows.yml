@@ -147,7 +147,6 @@ jobs:
             -- \
             --openal \
             --no-package \
-            --ninja \
             "-DLOCAL_DIST_DIR:PATH=$LOCAL_DIST_DIR"
 
       - name: Build Windows
@@ -160,8 +159,7 @@ jobs:
             --no-configure \
             -- \
             --openal \
-            --no-package \
-            --ninja
+            --no-package
 
       - name: Create Windows ZIP artifact
         shell: bash
