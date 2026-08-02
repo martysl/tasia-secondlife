@@ -29,7 +29,6 @@ env:
   AUTOBUILD_VARIABLES_FILE: ${{ github.workspace }}/.build-variables/variables
   AUTOBUILD_VCS_INFO: "true"
   AUTOBUILD_VSVER: 170
-  AUTOBUILD_WIN_CMAKE_GEN: "Visual Studio 17 2022"
   LL_SKIP_REQUIRE_SYSROOT: 1
   XZ_DEFAULTS: -T0
 
@@ -149,7 +148,7 @@ jobs:
           mkdir -p /tmp/cmake-test && cd /tmp/cmake-test
           printf 'project(test C CXX)\nadd_executable(t main.c)\n' > CMakeLists.txt
           printf 'int main(void){return 0;}\n' > main.c
-          cmake -G "$AUTOBUILD_WIN_CMAKE_GEN" -A x64 . 2>&1 | tail -8 || true
+          cmake -G "" -A x64 . 2>&1 | tail -5 || true
           cd -
 
           autobuild configure \
