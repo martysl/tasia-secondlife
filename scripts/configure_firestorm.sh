@@ -604,6 +604,7 @@ if [ $WANTS_CONFIG -eq $TRUE ] ; then
     fi
 
     echo "DIAG CMake cmd: cmake -G [$TARGET] arch=[$CMAKE_ARCH] cc=[$CC] cxx=[$CXX]" | tee -a "$LOG"
+    echo "DIAG pwd: $(pwd) | cache exists: $([ -f CMakeCache.txt ] && echo YES || echo no)" | tee -a "$LOG"
     echo "DIAG which cmake: $(which cmake) | VSINSTALLDIR=[$VSINSTALLDIR] VCToolsInstallDir=[$VCToolsInstallDir]" | tee -a "$LOG"
     cmake -G "$TARGET" $CMAKE_ARCH ../indra "$CHANNEL" ${GITHASH} $FMODSTUDIO $OPENAL $KDU $OPENSIM $SINGLEGRID $HAVOK $AVX_OPTIMIZATION $AVX2_OPTIMIZATION $TRACY_PROFILER $TESTBUILD $PACKAGE $VELOPACK \
           $UNATTENDED -DLL_TESTS:BOOL=OFF -DADDRESS_SIZE:STRING=$AUTOBUILD_ADDRSIZE -DCMAKE_BUILD_TYPE:STRING=$BTYPE $CACHE_OPT \
