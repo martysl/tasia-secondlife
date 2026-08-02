@@ -571,9 +571,15 @@ if [ $WANTS_CONFIG -eq $TRUE ] ; then
             fi
         fi
     elif [ \( $TARGET_PLATFORM == "windows" \) ] ; then
-        # Explicit VS generator. VSINSTALLDIR from msvc-dev-cmd helps CMake's
-        # vswhere detection — do NOT unset it.
+        # Explicit VS generator + explicit compiler paths. CMake's vswhere
+        # detection fails on GH runners when VCToolsInstallDir is unset, so
+        # point it straight at cl.exe from the msvc-dev-cmd environment.
         TARGET="Visual Studio 17 2022"
+        MSVC_BIN="${VCToolsInstallDir:-${VSINSTALLDIR}VC/Tools/MSVC}"
+        if [ -d "$MSVC_BIN" ] && [ -z "$VCToolsInstallDir" ]; then
+            MSVC_BIN="$(ls -d "$MSVC_BIN"/*/bin/Hostx64/x64 2>/dev/null | head -1)"
+        fi
+        CC_COMPILER="$MSVC_BIN/cl.exe"
         if [ $AUTOBUILD_ADDRSIZE == 32 ]
         then
             CMAKE_ARCH="-A Win32"
@@ -608,7 +614,8 @@ if [ $WANTS_CONFIG -eq $TRUE ] ; then
     echo "DIAG which cmake: $(which cmake) | VSINSTALLDIR=[$VSINSTALLDIR] VCToolsInstallDir=[$VCToolsInstallDir]" | tee -a "$LOG"
     echo "DIAG env CC=[${CC:-unset}] CXX=[${CXX:-unset}] CMAKE_GENERATOR=[${CMAKE_GENERATOR:-unset}] CMAKE_C_COMPILER=[${CMAKE_C_COMPILER:-unset}]" | tee -a "$LOG"
     echo "DIAG vswhere: $([ -f "$(cygpath -u "$ProgramFiles(x86)")/Microsoft Visual Studio/Installer/vswhere.exe" ] && echo present || echo MISSING)" | tee -a "$LOG"
-    cmake -G "$TARGET" $CMAKE_ARCH ../indra "$CHANNEL" ${GITHASH} $FMODSTUDIO $OPENAL $KDU $OPENSIM $SINGLEGRID $HAVOK $AVX_OPTIMIZATION $AVX2_OPTIMIZATION $TRACY_PROFILER $TESTBUILD $PACKAGE $VELOPACK \
+    echo "DIAG CC_COMPILER=[$CC_COMPILER]" | tee -a "$LOG"
+    cmake -G "$TARGET" $CMAKE_ARCH -DCMAKE_C_COMPILER:PATH="$CC_COMPILER" -DCMAKE_CXX_COMPILER:PATH="$CC_COMPILER" ../indra "$CHANNEL" ${GITHASH} $FMODSTUDIO $OPENAL $KDU $OPENSIM $SINGLEGRID $HAVOK $AVX_OPTIMIZATION $AVX2_OPTIMIZATION $TRACY_PROFILER $TESTBUILD $PACKAGE $VELOPACK \
           $UNATTENDED -DLL_TESTS:BOOL=OFF -DADDRESS_SIZE:STRING=$AUTOBUILD_ADDRSIZE -DCMAKE_BUILD_TYPE:STRING=$BTYPE $CACHE_OPT \
           $CRASH_REPORTING -DVIEWER_SYMBOL_FILE:STRING="${VIEWER_SYMBOL_FILE:-}" $LL_ARGS_PASSTHRU ${VSCODE_FLAGS:-} | tee "$LOG"
     configure_status=${PIPESTATUS[0]}
