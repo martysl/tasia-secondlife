@@ -577,7 +577,7 @@ if [ $WANTS_CONFIG -eq $TRUE ] ; then
         TARGET="Visual Studio 17 2022"
         MSVC_BIN="${VCToolsInstallDir:-${VSINSTALLDIR}VC/Tools/MSVC}"
         if [ -d "$MSVC_BIN" ] && [ -z "$VCToolsInstallDir" ]; then
-            MSVC_BIN="$(ls -d "$MSVC_BIN"/*/bin/Hostx64/x64 2>/dev/null | head -1)"
+            MSVC_BIN="$(ls -d "$MSVC_BIN"/*/bin/Hostx64/x64 2>/dev/null | sort -V | tail -1)"
         fi
         CC_COMPILER="$MSVC_BIN/cl.exe"
         if [ $AUTOBUILD_ADDRSIZE == 32 ]
