@@ -34,6 +34,9 @@
 #include "lluictrlfactory.h"
 #include "lltexteditor.h"
 #include "llenvironment.h"
+#ifdef OPENSIM
+#include "llquicglobal.h"
+#endif
 #include "llerrorcontrol.h"
 #include "lleventtimer.h"
 #include "llfile.h"
@@ -1007,6 +1010,10 @@ bool LLAppViewer::init()
     mAppCoreHttp.init();
 
     LL_INFOS("InitInfo") << "LLCore::Http initialized." << LL_ENDL ;
+
+#ifdef OPENSIM
+    LLQuicGlobal::instance().initialize(gDirUtilp->getCAFile());
+#endif
 
     LLMachineID::init();
 
@@ -2474,6 +2481,10 @@ bool LLAppViewer::cleanup()
 
     LL_INFOS() << "Shutting down message system" << LL_ENDL;
     end_messaging_system();
+
+#ifdef OPENSIM
+    LLQuicGlobal::instance().shutdown();
+#endif
 
     // Non-LLCurl libcurl library
     mAppCoreHttp.cleanup();

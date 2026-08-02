@@ -2678,6 +2678,10 @@ target_link_libraries(${VIEWER_BINARY_NAME}
         fs::glod # <FS:Beq/> restore GLOD dependencies
         fs::discord # <FS:Ansariel> Discord  support
         )
+if (OPENSIM)
+    # <Tasia> QUIC support (OpenSim grids use HTTP/3/QUIC asset transport)
+    target_link_libraries(${VIEWER_BINARY_NAME} llquic)
+endif()
 
 if (USE_DISCORD)
    target_link_libraries(${VIEWER_BINARY_NAME} ll::discord_sdk )
