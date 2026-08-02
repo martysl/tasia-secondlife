@@ -568,7 +568,10 @@ if [ $WANTS_CONFIG -eq $TRUE ] ; then
             fi
         fi
     elif [ \( $TARGET_PLATFORM == "windows" \) ] ; then
-        TARGET="${AUTOBUILD_WIN_CMAKE_GEN}"
+        # Empty generator: cmake picks the default (Visual Studio 17 2022) via
+        # vswhere. An explicit "Visual Studio 17 2022" string here fails compiler
+        # detection when load_vsvars has set VSINSTALLDIR.
+        TARGET=""
         if [ $AUTOBUILD_ADDRSIZE == 32 ]
         then
             CMAKE_ARCH="-A Win32"
