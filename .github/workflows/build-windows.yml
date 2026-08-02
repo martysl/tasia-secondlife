@@ -29,6 +29,10 @@ env:
   AUTOBUILD_VARIABLES_FILE: ${{ github.workspace }}/.build-variables/variables
   AUTOBUILD_VCS_INFO: "true"
   AUTOBUILD_VSVER: 170
+  # Keep empty: autobuild source_environment defaults it to "Visual Studio 17 2022",
+  # which breaks compiler detection when combined with load_vsvars. Empty -> cmake
+  # picks the default VS generator itself (Tasia pattern).
+  AUTOBUILD_WIN_CMAKE_GEN: ""
   LL_SKIP_REQUIRE_SYSROOT: 1
   XZ_DEFAULTS: -T0
 
