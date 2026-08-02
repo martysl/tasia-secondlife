@@ -128,8 +128,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          unset CC || true
-          unset CXX || true
+          # Point CMake at the MSVC compiler explicitly (vswhere-based detection
+          # fails inside git-bash on the runner; with CC/CXX set, both VS and
+          # Ninja generators find cl.exe from the msvc-dev-cmd environment)
+          export CC="cl.exe"
+          export CXX="cl.exe"
+          which cl
 
           # Use system CMake (default generator = Visual Studio 2022 -> Firestorm.sln;
           # VS-bundled CMake defaults to Ninja which breaks configure_firestorm.sh's msbuild step)
