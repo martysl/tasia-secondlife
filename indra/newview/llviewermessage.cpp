@@ -2575,16 +2575,21 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
     // <Tasia> DJ mode: auto thank-yous for tip IM messages.
     // Tip jars typically IM the owner: "Martynka ღStringღ Mouse tipped L$50 at ..."
     // Detect the pattern in ANY incoming IM and reply on TasiaTipThankChannel.
-    if (dialog == IM_NOTHING_SPECIAL || dialog == IM_FROM_TASK)
     {
+        // <Tasia> Throttle: at most one thank-you per 10 seconds
+        static LLFrameTimer tip_throttle;
         static LLCachedControl<bool> tipThankEnabled(gSavedSettings, "TasiaTipThankEnabled");
-        if (tipThankEnabled)
+        if (tipThankEnabled && tip_throttle.getElapsedTimeF32() > 10.f)
         {
-            static const boost::regex tipped_regex("^(.+?)\\s+tipped\\s+L\\$\\s*(\\d+)",
+            tip_throttle.reset();
+            static const boost::regex tipped_regex("^(.+?)\\s+tipped(?:\\s+you)?\\s+L\\$\\s*(\\d+)",
                                                    boost::regex::icase);
             boost::smatch match;
             if (boost::regex_search(message, match, tipped_regex) && match.size() >= 3)
             {
+                LL_INFOS("Tasia") << "TIP-IM detected: dialog=" << (S32)dialog
+                                  << " from='" << agentName << "' raw='"
+                                  << message.substr(0, 100) << "'" << LL_ENDL;
                 std::string tipper_name = LLCacheName::cleanFullName(match[1].str());
                 static LLCachedControl<S32> tipThankChannel(gSavedSettings, "TasiaTipThankChannel");
                 static LLCachedControl<std::string> tipThankCustom(gSavedSettings, "TasiaTipThankMessage");
@@ -2985,16 +2990,22 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
     if (chat.mSourceType == CHAT_SOURCE_OBJECT
         && chat.mChatType != CHAT_TYPE_START && chat.mChatType != CHAT_TYPE_STOP)
     {
+        static LLFrameTimer tip_chat_throttle;
         static LLCachedControl<bool> tipThankEnabled(gSavedSettings, "TasiaTipThankEnabled");
-        if (tipThankEnabled)
+        if (tipThankEnabled && tip_chat_throttle.getElapsedTimeF32() > 10.f)
         {
+            tip_chat_throttle.reset();
             std::string tip_mesg;
             msg->getStringFast(_PREHASH_ChatData, _PREHASH_Message, tip_mesg);
-            static const boost::regex tipped_regex("^(.+?)\\s+tipped\\s+you\\s+L\\$\\s*(\\d+)$",
+            static const boost::regex tipped_regex("^(.+?)\\s+tipped(?:\\s+you)?\\s+L\\$\\s*(\\d+)",
                                                    boost::regex::icase);
             boost::smatch match;
             if (boost::regex_search(tip_mesg, match, tipped_regex) && match.size() >= 3)
             {
+                LL_INFOS("Tasia") << "TIP-CHAT detected: type=" << (S32)chat.mChatType
+                                  << " audible=" << (S32)chat.mAudible
+                                  << " from='" << chat.mFromName << "' raw='"
+                                  << tip_mesg.substr(0, 100) << "'" << LL_ENDL;
                 std::string tipper_name = LLCacheName::cleanFullName(match[1].str());
                 static LLCachedControl<S32> tipThankChannel(gSavedSettings, "TasiaTipThankChannel");
                 static LLCachedControl<std::string> tipThankCustom(gSavedSettings, "TasiaTipThankMessage");
