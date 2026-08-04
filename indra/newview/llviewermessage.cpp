@@ -2582,6 +2582,9 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
         if (tipThankEnabled && tip_throttle.getElapsedTimeF32() > 10.f)
         {
             tip_throttle.reset();
+            // <Tasia> DIAG: log every IM (before regex) so we see the real format
+            LL_INFOS("Tasia") << "OBJIM dialog=" << (S32)dialog << " from='"
+                              << agentName << "' raw='" << message.substr(0, 200) << "'" << LL_ENDL;
             static const boost::regex tipped_regex("^(.+?)\\s+tipped(?:\\s+you)?\\s+L\\$\\s*(\\d+)",
                                                    boost::regex::icase);
             boost::smatch match;
@@ -2997,6 +3000,11 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
             tip_chat_throttle.reset();
             std::string tip_mesg;
             msg->getStringFast(_PREHASH_ChatData, _PREHASH_Message, tip_mesg);
+            // <Tasia> DIAG: log EVERY object chat (before regex) so we see the real format
+            LL_INFOS("Tasia") << "OBJCHAT type=" << (S32)chat.mChatType
+                              << " audible=" << (S32)chat.mAudible
+                              << " from='" << chat.mFromName << "' raw='"
+                              << tip_mesg.substr(0, 200) << "'" << LL_ENDL;
             static const boost::regex tipped_regex("^(.+?)\\s+tipped(?:\\s+you)?\\s+L\\$\\s*(\\d+)",
                                                    boost::regex::icase);
             boost::smatch match;
