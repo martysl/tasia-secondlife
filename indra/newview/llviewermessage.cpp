@@ -2571,6 +2571,42 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
         binary_bucket_size,
         sender,
         metadata);
+
+    // <Tasia> DJ mode: auto thank-yous for tip IM messages.
+    // Tip jars typically IM the owner: "Martynka ღStringღ Mouse tipped L$50 at ..."
+    // Detect the pattern in ANY incoming IM and reply on TasiaTipThankChannel.
+    if (dialog == IM_NOTHING_SPECIAL || dialog == IM_FROM_TASK)
+    {
+        static LLCachedControl<bool> tipThankEnabled(gSavedSettings, "TasiaTipThankEnabled");
+        if (tipThankEnabled)
+        {
+            static const boost::regex tipped_regex("^(.+?)\\s+tipped\\s+L\\$\\s*(\\d+)",
+                                                   boost::regex::icase);
+            boost::smatch match;
+            if (boost::regex_search(message, match, tipped_regex) && match.size() >= 3)
+            {
+                std::string tipper_name = LLCacheName::cleanFullName(match[1].str());
+                static LLCachedControl<S32> tipThankChannel(gSavedSettings, "TasiaTipThankChannel");
+                static LLCachedControl<std::string> tipThankCustom(gSavedSettings, "TasiaTipThankMessage");
+                std::string thanks = (std::string)tipThankCustom;
+                if (thanks.empty())
+                {
+                    static const std::string ui_lang = LLUI::getLanguage();
+                    thanks = (ui_lang.substr(0, 2) == "pl")
+                                 ? "Dziękuję {NAME} za tip! 🖤💜"
+                                 : "Thank you {NAME} for the tip! 🖤💜";
+                }
+                static const boost::regex name_re("\\{NAME\\}");
+                static const boost::regex amount_re("\\{AMOUNT\\}");
+                thanks = boost::regex_replace(thanks, name_re, tipper_name);
+                thanks = boost::regex_replace(thanks, amount_re, match[2].str());
+                LL_DEBUGS("Tasia") << "Tip thank-you for " << tipper_name << " on channel "
+                                   << (S32)tipThankChannel << ": " << thanks << LL_ENDL;
+                send_chat_from_viewer(thanks, CHAT_TYPE_NORMAL, (S32)tipThankChannel);
+            }
+        }
+    }
+    // </Tasia>
 }
 
 void send_do_not_disturb_message (LLMessageSystem* msg, const LLUUID& from_id, const LLUUID& session_id)
