@@ -135,13 +135,13 @@
   <key>TasiaTipThankChannel</key>
   <map>
     <key>Comment</key>
-    <string>Channel used by Tasia DJ-mode auto thank-yous (tip jars usually listen here).</string>
+    <string>Channel used by Tasia DJ-mode auto thank-yous. 0 = say aloud (visible in local chat), any other value sends on that private channel.</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
     <string>S32</string>
     <key>Value</key>
-    <integer>4564</integer>
+    <integer>0</integer>
     <key>Backup</key>
     <integer>0</integer>
   </map>
