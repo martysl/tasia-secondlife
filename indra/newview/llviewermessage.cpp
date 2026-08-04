@@ -157,8 +157,14 @@
 #include "tea.h" // <FS:AW opensim currency support>
 #include "NACLantispam.h"
 #include "chatbar_as_cmdline.h"
+#include "llchatbar.h" // <Tasia> EChatType + sendChatFromViewer for DJ-mode tip thank-yous
+#include "llui.h" // <Tasia> LLUI::getLanguage() for PL/EN thank-you
 
 extern void on_new_message(const LLSD& msg);
+
+// <Tasia> Forward declaration of the global chat sender (fsnearbychathub.cpp).
+// Sends a chat message from the viewer on an arbitrary channel (0 = say aloud).
+void send_chat_from_viewer(std::string utf8_out_text, EChatType type, S32 channel);
 
 extern bool gCubeSnapshot;
 
@@ -3078,6 +3084,41 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
             ircstyle = true;
         }
         chat.mText = mesg;
+
+        // <Tasia> DJ mode: auto thank-yous for tip jar messages ("X tipped you L$Y")
+        if (chat.mSourceType == CHAT_SOURCE_OBJECT
+            && chat.mChatType != CHAT_TYPE_START && chat.mChatType != CHAT_TYPE_STOP)
+        {
+            static LLCachedControl<bool> tipThankEnabled(gSavedSettings, "TasiaTipThankEnabled");
+            if (tipThankEnabled)
+            {
+                static const boost::regex tipped_regex("^(.+?)\\s+tipped\\s+you\\s+L\\$(\\d+)$",
+                                                       boost::regex::icase);
+                boost::smatch match;
+                if (boost::regex_search(mesg, match, tipped_regex) && match.size() >= 3)
+                {
+                    std::string tipper_name = match[1].str();
+                    // Keep only the part before any trailing dot/punctuation and the display name
+                    tipper_name = LLCacheName::cleanFullName(tipper_name);
+                    static LLCachedControl<S32> tipThankChannel(gSavedSettings, "TasiaTipThankChannel");
+                    // Cute thank-you — EN by default, PL if the viewer UI language is Polish
+                    std::string thanks;
+                    static const std::string ui_lang = LLUI::getLanguage();
+                    if (ui_lang.substr(0, 2) == "pl")
+                    {
+                        thanks = "Dziękuję " + tipper_name + " za tip! 🖤💜";
+                    }
+                    else
+                    {
+                        thanks = "Thank you " + tipper_name + " for the tip! 🖤💜";
+                    }
+                    LL_DEBUGS("Tasia") << "Tip thank-you for " << tipper_name << " on channel "
+                                       << (S32)tipThankChannel << ": " << thanks << LL_ENDL;
+                    send_chat_from_viewer(thanks, CHAT_TYPE_NORMAL, (S32)tipThankChannel);
+                }
+            }
+        }
+        // </Tasia>
 
         // Look for the start of typing so we can put "..." in the bubbles.
         if (CHAT_TYPE_START == chat.mChatType)

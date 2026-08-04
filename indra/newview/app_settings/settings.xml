@@ -119,6 +119,32 @@
     <key>Backup</key>
     <integer>0</integer>
   </map>
+  <key>TasiaTipThankEnabled</key>
+  <map>
+    <key>Comment</key>
+    <string>DJ mode: when an object chats "X tipped you L$Y" the viewer auto-replies with a cute thank-you on TasiaTipThankChannel.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaTipThankChannel</key>
+  <map>
+    <key>Comment</key>
+    <string>Channel used by Tasia DJ-mode auto thank-yous (tip jars usually listen here).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>S32</string>
+    <key>Value</key>
+    <integer>4564</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
   <key>TasiaGiphyRating</key>
   <map>
     <key>Comment</key>
