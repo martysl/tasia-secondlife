@@ -2942,6 +2942,46 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
         }
     }
 
+    // <Tasia> DJ mode: auto thank-yous for tip jar messages ("X tipped you L$Y").
+    // Runs BEFORE the is_audible gate so it also sees script chat on non-zero
+    // channels (tip jars usually llSay/llRegionSay on a private channel, which
+    // the avatar cannot "hear" audibly but the viewer still receives).
+    if (chat.mSourceType == CHAT_SOURCE_OBJECT
+        && chat.mChatType != CHAT_TYPE_START && chat.mChatType != CHAT_TYPE_STOP)
+    {
+        static LLCachedControl<bool> tipThankEnabled(gSavedSettings, "TasiaTipThankEnabled");
+        if (tipThankEnabled)
+        {
+            std::string tip_mesg;
+            msg->getStringFast(_PREHASH_ChatData, _PREHASH_Message, tip_mesg);
+            static const boost::regex tipped_regex("^(.+?)\\s+tipped\\s+you\\s+L\\$\\s*(\\d+)$",
+                                                   boost::regex::icase);
+            boost::smatch match;
+            if (boost::regex_search(tip_mesg, match, tipped_regex) && match.size() >= 3)
+            {
+                std::string tipper_name = LLCacheName::cleanFullName(match[1].str());
+                static LLCachedControl<S32> tipThankChannel(gSavedSettings, "TasiaTipThankChannel");
+                static LLCachedControl<std::string> tipThankCustom(gSavedSettings, "TasiaTipThankMessage");
+                std::string thanks = (std::string)tipThankCustom;
+                if (thanks.empty())
+                {
+                    static const std::string ui_lang = LLUI::getLanguage();
+                    thanks = (ui_lang.substr(0, 2) == "pl")
+                                 ? "Dziękuję {NAME} za tip! 🖤💜"
+                                 : "Thank you {NAME} for the tip! 🖤💜";
+                }
+                static const boost::regex name_re("\\{NAME\\}");
+                static const boost::regex amount_re("\\{AMOUNT\\}");
+                thanks = boost::regex_replace(thanks, name_re, tipper_name);
+                thanks = boost::regex_replace(thanks, amount_re, match[2].str());
+                LL_DEBUGS("Tasia") << "Tip thank-you for " << tipper_name << " on channel "
+                                   << (S32)tipThankChannel << ": " << thanks << LL_ENDL;
+                send_chat_from_viewer(thanks, CHAT_TYPE_NORMAL, (S32)tipThankChannel);
+            }
+        }
+    }
+    // </Tasia>
+
     if (is_audible)
     {
         //bool visible_in_chat_bubble = false;
@@ -2949,7 +2989,6 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
 
         color.setVec(1.f,1.f,1.f,1.f);
         msg->getStringFast(_PREHASH_ChatData, _PREHASH_Message, mesg);
-
         // NaCl - Newline flood protection
         static LLCachedControl<bool> useAntiSpam(gSavedSettings, "UseAntiSpam");
         // <FS:TS> FIRE-23138: Add option to antispam user's own objects
@@ -3084,45 +3123,6 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
             ircstyle = true;
         }
         chat.mText = mesg;
-
-        // <Tasia> DJ mode: auto thank-yous for tip jar messages ("X tipped you L$Y")
-        if (chat.mSourceType == CHAT_SOURCE_OBJECT
-            && chat.mChatType != CHAT_TYPE_START && chat.mChatType != CHAT_TYPE_STOP)
-        {
-            static LLCachedControl<bool> tipThankEnabled(gSavedSettings, "TasiaTipThankEnabled");
-            if (tipThankEnabled)
-            {
-                static const boost::regex tipped_regex("^(.+?)\\s+tipped\\s+you\\s+L\\$\\s*(\\d+)$",
-                                                       boost::regex::icase);
-                boost::smatch match;
-                if (boost::regex_search(mesg, match, tipped_regex) && match.size() >= 3)
-                {
-                    std::string tipper_name = match[1].str();
-                    // Keep only the part before any trailing dot/punctuation and the display name
-                    tipper_name = LLCacheName::cleanFullName(tipper_name);
-                    static LLCachedControl<S32> tipThankChannel(gSavedSettings, "TasiaTipThankChannel");
-                    static LLCachedControl<std::string> tipThankCustom(gSavedSettings, "TasiaTipThankMessage");
-                    std::string thanks = (std::string)tipThankCustom;
-                    // Build the default if the custom message is empty
-                    if (thanks.empty())
-                    {
-                        static const std::string ui_lang = LLUI::getLanguage();
-                        thanks = (ui_lang.substr(0, 2) == "pl")
-                                     ? "Dziękuję {NAME} za tip! 🖤💜"
-                                     : "Thank you {NAME} for the tip! 🖤💜";
-                    }
-                    // Substitute {NAME} and {AMOUNT}
-                    static const boost::regex name_re("\\{NAME\\}");
-                    static const boost::regex amount_re("\\{AMOUNT\\}");
-                    thanks = boost::regex_replace(thanks, name_re, tipper_name);
-                    thanks = boost::regex_replace(thanks, amount_re, match[2].str());
-                    LL_DEBUGS("Tasia") << "Tip thank-you for " << tipper_name << " on channel "
-                                       << (S32)tipThankChannel << ": " << thanks << LL_ENDL;
-                    send_chat_from_viewer(thanks, CHAT_TYPE_NORMAL, (S32)tipThankChannel);
-                }
-            }
-        }
-        // </Tasia>
 
         // Look for the start of typing so we can put "..." in the bubbles.
         if (CHAT_TYPE_START == chat.mChatType)
