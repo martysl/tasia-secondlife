@@ -2606,8 +2606,9 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
                 static const boost::regex amount_re("\\{AMOUNT\\}");
                 thanks = boost::regex_replace(thanks, name_re, tipper_name);
                 thanks = boost::regex_replace(thanks, amount_re, match[2].str());
-                LL_DEBUGS("Tasia") << "Tip thank-you for " << tipper_name << " on channel "
-                                   << (S32)tipThankChannel << ": " << thanks << LL_ENDL;
+                LL_INFOS("Tasia") << "TIP-IM match: name='" << tipper_name
+                                  << "' amt='" << match[2].str() << "' channel="
+                                  << (S32)tipThankChannel << " sending: " << thanks << LL_ENDL;
                 send_chat_from_viewer(thanks, CHAT_TYPE_NORMAL, (S32)tipThankChannel);
                 // <Tasia> Show the reply in the nearby chat window only for
                 // non-zero channels (their chat is invisible). On channel 0 the
@@ -3044,8 +3045,9 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
                 static const boost::regex amount_re("\\{AMOUNT\\}");
                 thanks = boost::regex_replace(thanks, name_re, tipper_name);
                 thanks = boost::regex_replace(thanks, amount_re, match[2].str());
-                LL_DEBUGS("Tasia") << "Tip thank-you for " << tipper_name << " on channel "
-                                   << (S32)tipThankChannel << ": " << thanks << LL_ENDL;
+                LL_INFOS("Tasia") << "TIP-IM match: name='" << tipper_name
+                                  << "' amt='" << match[2].str() << "' channel="
+                                  << (S32)tipThankChannel << " sending: " << thanks << LL_ENDL;
                 send_chat_from_viewer(thanks, CHAT_TYPE_NORMAL, (S32)tipThankChannel);
                 // <Tasia> Show the reply in the nearby chat window only for
                 // non-zero channels (their chat is invisible). On channel 0 the
