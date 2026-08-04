@@ -3092,7 +3092,7 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
             static LLCachedControl<bool> tipThankEnabled(gSavedSettings, "TasiaTipThankEnabled");
             if (tipThankEnabled)
             {
-                static const boost::regex tipped_regex("^(.+?)\\s+tipped\\s+you\\s+L\\$(\\d+)$",
+                static const boost::regex tipped_regex("^(.+?)\\s+tipped\\s+you\\s+L\\$\\s*(\\d+)$",
                                                        boost::regex::icase);
                 boost::smatch match;
                 if (boost::regex_search(mesg, match, tipped_regex) && match.size() >= 3)
