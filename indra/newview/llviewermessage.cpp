@@ -2615,7 +2615,7 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
                 visible_chat.mSourceType = CHAT_SOURCE_SYSTEM;
                 visible_chat.mChatType = CHAT_TYPE_DEBUG_MSG;
                 visible_chat.mFromName = "Tasia";
-                visible_chat.mText = thanks + " (channel " + std::to_string((S32)tipThankChannel) + ")";
+                visible_chat.mText = thanks;
                 if (FSFloaterNearbyChat::findInstance())
                 {
                     FSFloaterNearbyChat::findInstance()->addMessage(visible_chat, true, LLSD());
@@ -3052,7 +3052,7 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
                 visible_chat.mSourceType = CHAT_SOURCE_SYSTEM;
                 visible_chat.mChatType = CHAT_TYPE_DEBUG_MSG;
                 visible_chat.mFromName = "Tasia";
-                visible_chat.mText = thanks + " (channel " + std::to_string((S32)tipThankChannel) + ")";
+                visible_chat.mText = thanks;
                 if (FSFloaterNearbyChat::findInstance())
                 {
                     FSFloaterNearbyChat::findInstance()->addMessage(visible_chat, true, LLSD());
