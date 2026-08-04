@@ -2609,15 +2609,16 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
                 LL_DEBUGS("Tasia") << "Tip thank-you for " << tipper_name << " on channel "
                                    << (S32)tipThankChannel << ": " << thanks << LL_ENDL;
                 send_chat_from_viewer(thanks, CHAT_TYPE_NORMAL, (S32)tipThankChannel);
-                // <Tasia> Show the reply in the nearby chat window too, so the
-                // user can SEE it working (channel chat is otherwise invisible).
-                LLChat visible_chat;
-                visible_chat.mSourceType = CHAT_SOURCE_SYSTEM;
-                visible_chat.mChatType = CHAT_TYPE_DEBUG_MSG;
-                visible_chat.mFromName = "Tasia";
-                visible_chat.mText = thanks;
-                if (FSFloaterNearbyChat::findInstance())
+                // <Tasia> Show the reply in the nearby chat window only for
+                // non-zero channels (their chat is invisible). On channel 0 the
+                // message already appears as a normal say — an echo is redundant.
+                if ((S32)tipThankChannel != 0 && FSFloaterNearbyChat::findInstance())
                 {
+                    LLChat visible_chat;
+                    visible_chat.mSourceType = CHAT_SOURCE_SYSTEM;
+                    visible_chat.mChatType = CHAT_TYPE_DEBUG_MSG;
+                    visible_chat.mFromName = "Tasia";
+                    visible_chat.mText = thanks;
                     FSFloaterNearbyChat::findInstance()->addMessage(visible_chat, true, LLSD());
                 }
                 // </Tasia>
@@ -3046,15 +3047,16 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
                 LL_DEBUGS("Tasia") << "Tip thank-you for " << tipper_name << " on channel "
                                    << (S32)tipThankChannel << ": " << thanks << LL_ENDL;
                 send_chat_from_viewer(thanks, CHAT_TYPE_NORMAL, (S32)tipThankChannel);
-                // <Tasia> Show the reply in the nearby chat window too, so the
-                // user can SEE it working (channel chat is otherwise invisible).
-                LLChat visible_chat;
-                visible_chat.mSourceType = CHAT_SOURCE_SYSTEM;
-                visible_chat.mChatType = CHAT_TYPE_DEBUG_MSG;
-                visible_chat.mFromName = "Tasia";
-                visible_chat.mText = thanks;
-                if (FSFloaterNearbyChat::findInstance())
+                // <Tasia> Show the reply in the nearby chat window only for
+                // non-zero channels (their chat is invisible). On channel 0 the
+                // message already appears as a normal say — an echo is redundant.
+                if ((S32)tipThankChannel != 0 && FSFloaterNearbyChat::findInstance())
                 {
+                    LLChat visible_chat;
+                    visible_chat.mSourceType = CHAT_SOURCE_SYSTEM;
+                    visible_chat.mChatType = CHAT_TYPE_DEBUG_MSG;
+                    visible_chat.mFromName = "Tasia";
+                    visible_chat.mText = thanks;
                     FSFloaterNearbyChat::findInstance()->addMessage(visible_chat, true, LLSD());
                 }
                 // </Tasia>
