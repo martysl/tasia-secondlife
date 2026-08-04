@@ -3101,17 +3101,21 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
                     // Keep only the part before any trailing dot/punctuation and the display name
                     tipper_name = LLCacheName::cleanFullName(tipper_name);
                     static LLCachedControl<S32> tipThankChannel(gSavedSettings, "TasiaTipThankChannel");
-                    // Cute thank-you — EN by default, PL if the viewer UI language is Polish
-                    std::string thanks;
-                    static const std::string ui_lang = LLUI::getLanguage();
-                    if (ui_lang.substr(0, 2) == "pl")
+                    static LLCachedControl<std::string> tipThankCustom(gSavedSettings, "TasiaTipThankMessage");
+                    std::string thanks = (std::string)tipThankCustom;
+                    // Build the default if the custom message is empty
+                    if (thanks.empty())
                     {
-                        thanks = "Dziękuję " + tipper_name + " za tip! 🖤💜";
+                        static const std::string ui_lang = LLUI::getLanguage();
+                        thanks = (ui_lang.substr(0, 2) == "pl")
+                                     ? "Dziękuję {NAME} za tip! 🖤💜"
+                                     : "Thank you {NAME} for the tip! 🖤💜";
                     }
-                    else
-                    {
-                        thanks = "Thank you " + tipper_name + " for the tip! 🖤💜";
-                    }
+                    // Substitute {NAME} and {AMOUNT}
+                    static const boost::regex name_re("\\{NAME\\}");
+                    static const boost::regex amount_re("\\{AMOUNT\\}");
+                    thanks = boost::regex_replace(thanks, name_re, tipper_name);
+                    thanks = boost::regex_replace(thanks, amount_re, match[2].str());
                     LL_DEBUGS("Tasia") << "Tip thank-you for " << tipper_name << " on channel "
                                        << (S32)tipThankChannel << ": " << thanks << LL_ENDL;
                     send_chat_from_viewer(thanks, CHAT_TYPE_NORMAL, (S32)tipThankChannel);

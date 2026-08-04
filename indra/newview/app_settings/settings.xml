@@ -145,6 +145,19 @@
     <key>Backup</key>
     <integer>0</integer>
   </map>
+  <key>TasiaTipThankMessage</key>
+  <map>
+    <key>Comment</key>
+    <string>Custom DJ-mode thank-you message sent after a tip. Supports {NAME} for the tipper and {AMOUNT} for the L$ amount. Leave empty for the built-in cute default.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string></string>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
   <key>TasiaGiphyRating</key>
   <map>
     <key>Comment</key>
