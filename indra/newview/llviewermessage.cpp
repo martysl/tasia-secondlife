@@ -2584,7 +2584,11 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
         static const boost::regex tipped_regex("^(.+?)\\s+tipped(?:\\s+you)?\\s+L\\$\\s*(\\d+)",
                                                boost::regex::icase);
         boost::smatch match;
-        if (tipThankEnabled && boost::regex_search(message, match, tipped_regex) && match.size() >= 3)
+        bool tip_matched = boost::regex_search(message, match, tipped_regex) && match.size() >= 3;
+        LL_INFOS("Tasia") << "OBJIMCHECK enabled=" << (tipThankEnabled ? 1 : 0)
+                          << " matched=" << (tip_matched ? 1 : 0) << " dialog=" << (S32)dialog
+                          << " raw='" << message.substr(0, 120) << "'" << LL_ENDL;
+        if (tipThankEnabled && tip_matched)
         {
             // <Tasia> Throttle: at most one thank-you per 10 seconds
             static LLFrameTimer tip_throttle;
