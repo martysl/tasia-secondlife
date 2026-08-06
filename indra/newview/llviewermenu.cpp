@@ -305,6 +305,7 @@ void near_sit_down_point(bool success, void*);
 // Debug menu
 void handle_visual_leak_detector_toggle();
 void handle_rebake_textures();
+void handle_reload_scene(); // <Tasia>
 bool check_admin_override();
 void handle_admin_override_toggle();
 #ifdef TOGGLE_HACKED_GODLIKE_VIEWER
@@ -2474,6 +2475,17 @@ class LLAdvancedRebakeTextures : public view_listener_t
         return true;
     }
 };
+
+// <Tasia> Reload scene listener
+class LLTasiaReloadScene : public view_listener_t
+{
+    bool handleEvent(const LLSD& userdata)
+    {
+        handle_reload_scene();
+        return true;
+    }
+};
+// </Tasia>
 
 
 // [SL:KB] - Patch: Appearance-PhantomAttach | Checked: Catznip-5.0
@@ -11527,6 +11539,38 @@ void handle_rebake_textures()
     gAgentAvatarp->setIsCrossingRegion(false); // <FS:Ansariel> FIRE-12004: Attachments getting lost on TP
 }
 
+// <Tasia> Reload scene: refresh all textures in the current scene, like the
+// viewer does after teleporting into a new region. Clears fetched results and
+// disk cache entries for every texture currently in the texture list, forcing
+// a re-fetch from the sim.
+void handle_reload_scene()
+{
+    LLViewerTextureList& texlist = gTextureList;
+    S32 cleared = 0;
+    for (LLViewerTextureList::const_iterator it = texlist.begin(); it != texlist.end(); ++it)
+    {
+        LLViewerTexture* tex = *it;
+        if (!tex) continue;
+        LLViewerFetchedTexture* fetched = dynamic_cast<LLViewerFetchedTexture*>(tex);
+        if (!fetched) continue;
+        const LLUUID& id = fetched->getID();
+        if (id.isNull() || FSCommon::isDefaultTexture(id))
+        {
+            continue;
+        }
+        fetched->clearFetchedResults();
+        LLAppViewer::getTextureCache()->removeFromCache(id);
+        fetched->forceImmediateUpdate();
+        cleared++;
+    }
+    LL_INFOS("Tasia") << "Reload scene: cleared " << cleared << " textures" << LL_ENDL;
+    gAgentCamera.resetView(true);
+    if (gAgent.getRegion())
+    {
+        gAgent.getRegion()->requestCacheMisses();
+    }
+}
+
 void toggle_visibility(LLView* viewp)
 {
     viewp->setVisible(!viewp->getVisible());
@@ -13020,6 +13064,7 @@ void initialize_menus()
     view_listener_t::addMenu(new LLAdvancedCheckDebugCharacterVis(), "Advanced.CheckDebugCharacterVis");
     view_listener_t::addMenu(new LLAdvancedDumpAttachments(), "Advanced.DumpAttachments");
     view_listener_t::addMenu(new LLAdvancedRebakeTextures(), "Advanced.RebakeTextures");
+    view_listener_t::addMenu(new LLTasiaReloadScene(), "Tasia.ReloadScene"); // <Tasia>
 // [SL:KB] - Patch: Appearance-PhantomAttach | Checked: Catznip-5.0
     commit.add("Advanced.RefreshAttachments", boost::bind(&handle_refresh_attachments));
 // [/SL:KB]
