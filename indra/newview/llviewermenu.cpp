@@ -11549,9 +11549,7 @@ void handle_reload_scene()
     S32 cleared = 0;
     for (LLViewerTextureList::const_iterator it = texlist.begin(); it != texlist.end(); ++it)
     {
-        LLViewerTexture* tex = *it;
-        if (!tex) continue;
-        LLViewerFetchedTexture* fetched = dynamic_cast<LLViewerFetchedTexture*>(tex);
+        LLViewerFetchedTexture* fetched = *it;
         if (!fetched) continue;
         const LLUUID& id = fetched->getID();
         if (id.isNull() || FSCommon::isDefaultTexture(id))
