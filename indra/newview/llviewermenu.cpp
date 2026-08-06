@@ -11547,7 +11547,7 @@ void handle_reload_scene()
 {
     LLViewerTextureList& texlist = gTextureList;
     S32 cleared = 0;
-    for (LLViewerTextureList::const_iterator it = texlist.begin(); it != texlist.end(); ++it)
+    for (auto it = texlist.begin(); it != texlist.end(); ++it)
     {
         LLViewerFetchedTexture* fetched = *it;
         if (!fetched) continue;
