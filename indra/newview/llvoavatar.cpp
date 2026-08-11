@@ -66,6 +66,7 @@
 #include "llimview.h"
 #include "llinitparam.h"
 #include "llkeyframefallmotion.h"
+#include "llkeyframemotion.h"
 #include "llkeyframestandmotion.h"
 #include "llkeyframewalkmotion.h"
 #include "llmanipscale.h"  // for get_default_max_prim_scale()
@@ -7181,6 +7182,55 @@ LLUUID LLVOAvatar::remapMotionID(const LLUUID& id)
     return result;
 }
 
+// <Tasia> animation priority override
+static S32 tasiaGetAnimPriorityOverride(const LLUUID& id)
+{
+    static LLCachedControl<bool> enabled(gSavedSettings, "TasiaAnimPriorityEnabled");
+    if (!enabled)
+        return 0;
+
+    static LLCachedControl<std::string> overrides(gSavedSettings, "TasiaAnimPriorityOverrides");
+    std::string data = overrides;
+    if (data.empty())
+        return 0;
+
+    std::string needle = id.asString();
+    LLStringUtil::toLower(needle);
+
+    // format: "uuid:prio;uuid:prio;..."
+    std::string::size_type start = 0;
+    while (start < data.length())
+    {
+        std::string::size_type semi = data.find(';', start);
+        std::string token = data.substr(start, semi == std::string::npos ? std::string::npos : semi - start);
+        if (!token.empty())
+        {
+            std::string::size_type colon = token.find(':');
+            if (colon != std::string::npos)
+            {
+                std::string uuid = token.substr(0, colon);
+                LLStringUtil::trim(uuid);
+                LLStringUtil::toLower(uuid);
+                if (uuid == needle)
+                {
+                    std::string prio_str = token.substr(colon + 1);
+                    LLStringUtil::trim(prio_str);
+                    S32 prio = 0;
+                    LLStringUtil::convertToS32(prio_str, prio);
+                    if (prio >= 1 && prio <= 4)
+                        return prio;
+                    return 0;
+                }
+            }
+        }
+        if (semi == std::string::npos)
+            break;
+        start = semi + 1;
+    }
+    return 0;
+}
+// </Tasia>
+
 //-----------------------------------------------------------------------------
 // startMotion()
 // id is the asset if of the animation to start
@@ -7227,7 +7277,24 @@ bool LLVOAvatar::startMotion(const LLUUID& id, F32 time_offset)
         gAgent.setAFK();
     }
 
-    return LLCharacter::startMotion(remap_id, time_offset);
+    bool started = LLCharacter::startMotion(remap_id, time_offset);
+
+    // <Tasia> animation priority override
+    S32 override_prio = tasiaGetAnimPriorityOverride(remap_id);
+    if (override_prio > 0)
+    {
+        LLMotion* motion = getMotionController().findMotion(remap_id);
+        LLKeyframeMotion* kfm = dynamic_cast<LLKeyframeMotion*>(motion);
+        if (kfm)
+        {
+            kfm->setPriority(override_prio);
+            LL_DEBUGS("Motion") << "Tasia anim priority override: " << remap_id.asString()
+                                << " -> " << override_prio << LL_ENDL;
+        }
+    }
+    // </Tasia>
+
+    return started;
 }
 
 //-----------------------------------------------------------------------------

@@ -6541,3 +6541,185 @@ void FSPanelPreferenceSounds::updateMoapInteractionSetting()
     }
 }
 // </FS:Ansariel>
+
+// <Tasia> animation priority overrides preferences
+static LLPanelInjector<LLPanelPreferenceTasia> t_pref_tasia("panel_preference_tasia");
+
+LLPanelPreferenceTasia::LLPanelPreferenceTasia() : LLPanelPreference(),
+    mUUIDEdit(NULL),
+    mPrioritySpin(NULL),
+    mAnimList(NULL),
+    mStatusText(NULL)
+{
+    mCommitCallbackRegistrar.add("Pref.TasiaAnimAdd", boost::bind(&LLPanelPreferenceTasia::onAddAnimOverride, this));
+    mCommitCallbackRegistrar.add("Pref.TasiaAnimRemove", boost::bind(&LLPanelPreferenceTasia::onRemoveAnimOverride, this));
+}
+
+LLPanelPreferenceTasia::~LLPanelPreferenceTasia()
+{
+}
+
+bool LLPanelPreferenceTasia::postBuild()
+{
+    mUUIDEdit = getChild<LLLineEditor>("tasia_anim_uuid");
+    mPrioritySpin = getChild<LLSpinCtrl>("tasia_anim_priority");
+    mAnimList = getChild<LLScrollListCtrl>("tasia_anim_list");
+    mStatusText = getChild<LLTextBox>("tasia_anim_status");
+
+    refreshAnimOverrideList();
+
+    return LLPanelPreference::postBuild();
+}
+
+void LLPanelPreferenceTasia::refreshAnimOverrideList()
+{
+    if (mAnimList)
+        mAnimList->deleteAllItems();
+
+    std::string data = gSavedSettings.getString("TasiaAnimPriorityOverrides");
+
+    // format: "uuid:prio;uuid:prio;..."
+    std::string::size_type start = 0;
+    while (start < data.length())
+    {
+        std::string::size_type semi = data.find(';', start);
+        std::string token = data.substr(start, semi == std::string::npos ? std::string::npos : semi - start);
+        if (!token.empty())
+        {
+            std::string::size_type colon = token.find(':');
+            if (colon != std::string::npos)
+            {
+                std::string uuid = token.substr(0, colon);
+                LLStringUtil::trim(uuid);
+                std::string prio = token.substr(colon + 1);
+                LLStringUtil::trim(prio);
+
+                LLSD element;
+                element["id"] = uuid;
+                element["columns"][0]["column"] = "uuid";
+                element["columns"][0]["value"] = uuid;
+                element["columns"][1]["column"] = "priority";
+                element["columns"][1]["value"] = prio;
+                if (mAnimList)
+                    mAnimList->addElement(element);
+            }
+        }
+        if (semi == std::string::npos)
+            break;
+        start = semi + 1;
+    }
+}
+
+void LLPanelPreferenceTasia::onAddAnimOverride()
+{
+    if (mStatusText)
+        mStatusText->setText(LLStringUtil::null);
+
+    std::string uuid = mUUIDEdit ? mUUIDEdit->getText() : LLStringUtil::null;
+    LLStringUtil::trim(uuid);
+
+    LLUUID id(uuid);
+    if (id.isNull())
+    {
+        if (mStatusText)
+            mStatusText->setText(getString("invalid_uuid"));
+        return;
+    }
+
+    S32 prio = mPrioritySpin ? llround(mPrioritySpin->getValueF32()) : 4;
+    prio = llclamp(prio, 1, 4);
+
+    std::string uuid_key = id.asString();
+    LLStringUtil::toLower(uuid_key);
+
+    // rebuild the override string, replacing an existing entry for the same uuid
+    std::string data = gSavedSettings.getString("TasiaAnimPriorityOverrides");
+    std::string result;
+    std::string::size_type start = 0;
+    bool replaced = false;
+    while (start < data.length())
+    {
+        std::string::size_type semi = data.find(';', start);
+        std::string token = data.substr(start, semi == std::string::npos ? std::string::npos : semi - start);
+        if (!token.empty())
+        {
+            std::string::size_type colon = token.find(':');
+            if (colon != std::string::npos)
+            {
+                std::string cur_uuid = token.substr(0, colon);
+                LLStringUtil::trim(cur_uuid);
+                LLStringUtil::toLower(cur_uuid);
+                if (cur_uuid == uuid_key)
+                {
+                    token = uuid_key + ":" + llformat("%d", prio);
+                    replaced = true;
+                }
+            }
+            if (!result.empty())
+                result += ";";
+            result += token;
+        }
+        if (semi == std::string::npos)
+            break;
+        start = semi + 1;
+    }
+
+    if (!replaced)
+    {
+        if (!result.empty())
+            result += ";";
+        result += uuid_key + ":" + llformat("%d", prio);
+    }
+
+    gSavedSettings.setString("TasiaAnimPriorityOverrides", result);
+    refreshAnimOverrideList();
+
+    if (mUUIDEdit)
+        mUUIDEdit->clear();
+}
+
+void LLPanelPreferenceTasia::onRemoveAnimOverride()
+{
+    if (mStatusText)
+        mStatusText->setText(LLStringUtil::null);
+
+    if (!mAnimList)
+        return;
+
+    LLScrollListItem* item = mAnimList->getFirstSelected();
+    if (!item)
+        return;
+
+    std::string selected = item->getColumn(0)->getValue().asString();
+    LLStringUtil::toLower(selected);
+
+    // rebuild the override string without the selected uuid
+    std::string data = gSavedSettings.getString("TasiaAnimPriorityOverrides");
+    std::string result;
+    std::string::size_type start = 0;
+    while (start < data.length())
+    {
+        std::string::size_type semi = data.find(';', start);
+        std::string token = data.substr(start, semi == std::string::npos ? std::string::npos : semi - start);
+        if (!token.empty())
+        {
+            std::string::size_type colon = token.find(':');
+            std::string cur_uuid = (colon != std::string::npos) ? token.substr(0, colon) : token;
+            LLStringUtil::trim(cur_uuid);
+            LLStringUtil::toLower(cur_uuid);
+            if (cur_uuid != selected)
+            {
+                if (!result.empty())
+                    result += ";";
+                result += token;
+            }
+        }
+        if (semi == std::string::npos)
+            break;
+        start = semi + 1;
+    }
+
+    gSavedSettings.setString("TasiaAnimPriorityOverrides", result);
+    refreshAnimOverrideList();
+}
+// </Tasia>

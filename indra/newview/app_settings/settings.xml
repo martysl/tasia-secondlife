@@ -210,6 +210,32 @@
     <key>Backup</key>
     <integer>0</integer>
   </map>
+  <key>TasiaAnimPriorityEnabled</key>
+  <map>
+    <key>Comment</key>
+    <string>Master switch for animation priority overrides (Tasia).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
+  <key>TasiaAnimPriorityOverrides</key>
+  <map>
+    <key>Comment</key>
+    <string>Semicolon-separated animation priority overrides: "uuid:priority;uuid:priority" (priority 1-4). Forces the animation to that priority so it wins over lower-priority animations (e.g. AOs).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string></string>
+    <key>Backup</key>
+    <integer>0</integer>
+  </map>
   <key>TasiaLoadingYouTubeEnabled</key>
   <map>
     <key>Comment</key>

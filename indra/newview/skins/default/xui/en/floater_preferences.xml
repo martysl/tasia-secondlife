@@ -205,6 +205,13 @@
          help_topic="preferences_firestorm_tab"
          name="firestorm" />
         <panel
+         class="panel_preference_tasia"
+         filename="panel_preferences_tasia.xml"
+         label="Tasia"
+         layout="topleft"
+         help_topic="preferences_tasia_tab"
+         name="tasia" />
+        <panel
          class="panel_preference_opensim"
          filename="panel_preferences_opensim.xml"
          label="Opensim"
