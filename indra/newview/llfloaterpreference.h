@@ -51,6 +51,7 @@ class LLComboBox;
 class LLScrollListCtrl;
 class LLScrollListCell;
 class LLSliderCtrl;
+class LLSpinCtrl;
 class LLSD;
 class LLTextBox;
 class LLComboBox;
