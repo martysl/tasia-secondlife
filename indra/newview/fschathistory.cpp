@@ -1437,7 +1437,13 @@ void FSChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
     bool is_conversation_log = args.has("conversation_log") && args["conversation_log"].asBoolean();    // <FS:CR> Don't dim chat in conversation log
     bool is_local = args.has("is_local") && args["is_local"].asBoolean();
 
-    bool from_me = chat.mFromID == gAgent.getID();
+    const bool from_me = chat.mFromID == gAgent.getID();
+    std::string displayed_from_name = chat.mFromName;
+    LLAvatarName alias_name;
+    if (chat.mFromID.notNull() && !chat.mRlvNamesFiltered && LLAvatarNameCache::get(chat.mFromID, &alias_name))
+    {
+        displayed_from_name = LLTasiaUserConfig::renderCompleteName(chat.mFromID, alias_name);
+    }
     setPlainText(use_plain_text_chat_history);
 
     if (!scrolledToEnd() && !from_me && !chat.mFromName.empty())
@@ -1688,8 +1694,8 @@ void FSChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
                 name_params.use_default_link_style = false;
                 name_params.link_href = LLSLURL(from_me ? "agentself" : "agent", chat.mFromID, "inspect").getSLURLString();
 
-                // Add link to avatar's inspector and delimiter to message.
-                appendText(std::string(name_params.link_href), prependNewLineState, name_params);
+                // Render the local cosmetic alias while retaining the canonical UUID URL for actions.
+                appendText(displayed_from_name, prependNewLineState, name_params);
 
                 prependNewLineState = false;
 
@@ -1712,13 +1718,13 @@ void FSChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
             else if (teleport_separator)
             {
                 std::string tp_text = LLTrans::getString("teleport_preamble_compact_chat");
-                appendText(tp_text + " <nolink>" + chat.mFromName + "</nolink>",
+                appendText(tp_text + " <nolink>" + displayed_from_name + "</nolink>",
                     prependNewLineState, body_message_params);
                 prependNewLineState = false;
             }
             else
             {
-                appendText("<nolink>" + chat.mFromName + "</nolink>" + delimiter,
+                appendText("<nolink>" + displayed_from_name + "</nolink>" + delimiter,
                         prependNewLineState, body_message_params);
                 prependNewLineState = false;
             }

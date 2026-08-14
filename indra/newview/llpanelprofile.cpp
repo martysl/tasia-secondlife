@@ -1500,7 +1500,8 @@ void LLPanelProfileSecondLife::fillPartnerData(const LLAvatarData* avatar_data)
 void LLPanelProfileSecondLife::fillAccountStatus(const LLAvatarData* avatar_data)
 {
     LLStringUtil::format_map_t args;
-    args["[ACCTTYPE]"] = LLAvatarPropertiesProcessor::accountType(avatar_data);
+    args["[ACCTTYPE]"] = LLTasiaUserConfig::renderAccountType(
+        avatar_data->avatar_id, LLAvatarPropertiesProcessor::accountType(avatar_data));
     args["[PAYMENTINFO]"] = LLAvatarPropertiesProcessor::paymentInfo(avatar_data);
 
     // <FS:Ansariel> FSData support

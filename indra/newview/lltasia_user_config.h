@@ -40,6 +40,7 @@ public:
         std::string custom_title;
         std::string cosmetic_display_name;
         std::string cosmetic_username;
+        std::string cosmetic_account_type;
         std::string badge_name;
         std::string badge_icon;
         std::string profile_text;
@@ -58,6 +59,7 @@ public:
     static std::string renderDisplayName(const LLUUID& agent_id, const LLAvatarName& real_name);
     static std::string renderUsername(const LLUUID& agent_id, const LLAvatarName& real_name);
     static std::string renderCompleteName(const LLUUID& agent_id, const LLAvatarName& real_name);
+    static std::string renderAccountType(const LLUUID& agent_id, const std::string& canonical_account_type);
     static bool isRequested();
     static bool isLoaded();
 

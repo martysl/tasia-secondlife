@@ -26,6 +26,7 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llinspectavatar.h"
+#include "lltasia_user_config.h"
 
 // viewer files
 #include "llagent.h"
@@ -453,7 +454,8 @@ void LLInspectAvatar::processAvatarData(LLAvatarData* data)
         LLDateUtil::ageFromDate(data->born_on, LLDate::now());
     args["[SL_PROFILE]"] = data->about_text;
     args["[RW_PROFILE"] = data->fl_about_text;
-    args["[ACCTTYPE]"] = LLAvatarPropertiesProcessor::accountType(data);
+    args["[ACCTTYPE]"] = LLTasiaUserConfig::renderAccountType(
+        data->avatar_id, LLAvatarPropertiesProcessor::accountType(data));
     std::string payment_info = LLAvatarPropertiesProcessor::paymentInfo(data);
     args["[PAYMENTINFO]"] = payment_info;
     args["[COMMA]"] = (payment_info.empty() ? "" : ",");

@@ -192,6 +192,7 @@ LLTasiaUserConfig::User parseUser(const LLSD& item)
     // profile, IM, chat, or simulator identity.
     user.cosmetic_display_name = getFirstString(item, "display_name", "display_name_override", "nametag_display_name");
     user.cosmetic_username = getFirstString(item, "username", "username_override", "nametag_username");
+    user.cosmetic_account_type = getFirstString(item, "account_type", "account_type_override", "profile_account_type");
     user.badge_name = getCleanString(item, "badge_name", MAX_SHORT_TEXT);
     user.badge_icon = getCleanURL(item, "badge_icon");
     user.profile_text = getCleanString(item, "profile_text", MAX_LONG_TEXT);
@@ -231,6 +232,7 @@ void applyConfig(const LLSD& response)
         LLTasiaUserConfig::User user = parseUser(item);
         if (!user.hasProfileBadge() && user.getNametagTitle().empty()
             && user.cosmetic_display_name.empty() && user.cosmetic_username.empty()
+            && user.cosmetic_account_type.empty()
             && !user.has_tag_color)
         {
             continue;
@@ -350,6 +352,14 @@ std::string LLTasiaUserConfig::renderCompleteName(const LLUUID& agent_id, const 
     const std::string display_name = renderDisplayName(agent_id, real_name);
     const std::string username = renderUsername(agent_id, real_name);
     return (display_name == username) ? display_name : display_name + " (" + username + ")";
+}
+
+// static
+std::string LLTasiaUserConfig::renderAccountType(const LLUUID& agent_id, const std::string& canonical_account_type)
+{
+    User user;
+    return (getUser(agent_id, user) && !user.cosmetic_account_type.empty())
+        ? user.cosmetic_account_type : canonical_account_type;
 }
 
 // static
