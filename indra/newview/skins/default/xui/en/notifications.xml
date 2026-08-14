@@ -9918,6 +9918,13 @@ Your current balance of L$[BALANCE] is not enough to upload [COUNT] items at a t
      name="okbutton"
      yestext="OK"/>
    </notification>
+
+   <notification name="MP3BatchSoundFfmpegMissing" type="alertmodal">The bundled MP3 converter (bin/tasia-ffmpeg) was not found or is not executable.<usetemplate name="okbutton" yestext="OK"/></notification>
+   <notification name="MP3BatchSoundNotMp3" type="alertmodal">Please select one .mp3 file for batch sound upload.<usetemplate name="okbutton" yestext="OK"/></notification>
+   <notification name="MP3BatchSoundConversionFailed" type="alertmodal">MP3 conversion produced no valid WAV parts.<usetemplate name="okbutton" yestext="OK"/></notification>
+   <notification name="MP3BatchSoundCostUnavailable" type="alertmodal">The sound upload price is unavailable, so no files were uploaded.<usetemplate name="okbutton" yestext="OK"/></notification>
+   <notification name="ConfirmMP3BatchSoundUpload" type="alertmodal">Convert and upload [COUNT] sound parts at L$[UNIT_COST] each (maximum total: L$[TOTAL_COST])?<usetemplate name="okcancelbuttons" yestext="Upload" notext="Cancel"/></notification>
+   <notification name="MP3BatchSoundUploadFinished" type="alertmodal">MP3 batch upload finished: [SUCCESS] part(s) succeeded and [FAILED] failed. A results notecard was created only when one or more uploads were server-confirmed.<usetemplate name="okbutton" yestext="OK"/></notification>
   
    <notification
     icon="alertmodal.tga"

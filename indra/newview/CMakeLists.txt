@@ -543,6 +543,7 @@ set(viewer_SOURCE_FILES
     llmarketplacefunctions.cpp
     llmarketplacenotifications.cpp
     llmaterialeditor.cpp
+    llmp3batchupload.cpp
     llmaterialmgr.cpp
     llmediactrl.cpp
     llmediadataclient.cpp
@@ -1417,6 +1418,7 @@ set(viewer_HEADER_FILES
     llmarketplacefunctions.h
     llmarketplacenotifications.h
     llmaterialeditor.h
+    llmp3batchupload.h
     llmaterialmgr.h
     llmediactrl.h
     llmediadataclient.h

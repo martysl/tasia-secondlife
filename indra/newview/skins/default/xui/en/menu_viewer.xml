@@ -2469,6 +2469,13 @@
                  parameter="Upload Sound,sound" />
             </menu_item_call>
             <menu_item_call
+             label="MP3 Batch Sound Upload..."
+             layout="topleft"
+             name="Upload MP3 Batch Sound">
+                <menu_item_call.on_click function="File.UploadMP3BatchSound" parameter="" />
+                <menu_item_call.on_enable function="File.EnableUpload" />
+            </menu_item_call>
+            <menu_item_call
              label="Animation (L$[COST])..."
              layout="topleft"
              name="Upload Animation">
