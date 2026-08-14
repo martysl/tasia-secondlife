@@ -2157,4 +2157,5 @@ void init_menu_file()
 void register_file_menu_floaters()
 {
     LLFloaterReg::add("upload_clipboard", "floater_upload_clipboard.xml", &LLFloaterReg::build<LLFloaterUploadClipboard>, "upload");
+    LLFloaterReg::add("mp3_batch_progress", "floater_mp3_batch_progress.xml", &LLFloaterReg::build<LLFloater>, "upload");
 }

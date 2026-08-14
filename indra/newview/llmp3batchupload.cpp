@@ -11,6 +11,8 @@
 #include "llfilepicker.h"
 #include "llfilesystem.h"
 #include "llfloaterperms.h"
+#include "llfloaterreg.h"
+#include "llprogressbar.h"
 #include "llviewernetwork.h"
 #include "llinventorymodel.h"
 #include "llnotecard.h"
@@ -42,6 +44,19 @@ namespace
 {
 const F32 MP3_SEGMENT_MARGIN_SECONDS = 1.0f;
 
+void show_batch_progress(const std::string& status, S32 completed, S32 total)
+{
+    LLFloater* floater = LLFloaterReg::showInstance("mp3_batch_progress");
+    floater->getChild<LLUICtrl>("status_text")->setValue(status);
+    floater->getChild<LLUICtrl>("progress_count")->setValue(llformat("%d / %d", completed, total));
+    floater->getChild<LLProgressBar>("progress_bar")->setValue(total ? (F32)completed / total : 0.f);
+}
+
+void close_batch_progress()
+{
+    LLFloaterReg::hideInstance("mp3_batch_progress");
+}
+
 struct BatchPart
 {
     S32 ordinal;
@@ -71,6 +86,7 @@ public:
 
     void start(S32 cost)
     {
+        show_batch_progress("Uploading MP3 sound parts…", 0, (S32)mParts.size());
         for (const BatchPart& part : mParts)
         {
             LLResourceUploadInfo::ptr_t info = std::make_shared<MP3BatchSoundUploadInfo>(part, shared_from_this(), cost);
@@ -102,8 +118,11 @@ public:
 private:
     void completeOne()
     {
+        const S32 completed = (S32)mParts.size() - mPending + 1;
+        show_batch_progress("Uploading MP3 sound parts…", completed, (S32)mParts.size());
         if (--mPending == 0)
         {
+            close_batch_progress();
             if (!mSucceeded.empty()) createReportNotecard();
             LLSD args;
             args["SUCCESS"] = (S32)mSucceeded.size();
@@ -220,7 +239,12 @@ void convert_and_confirm(const std::vector<std::string>& filenames)
     const F32 maximum = LLGridManager::instance().isInSecondLife() ? LLVORBIS_CLIP_MAX_TIME : LLVORBIS_CLIP_MAX_TIME_OPENSIM;
     const std::string prefix = gDirUtilp->getTempFilename() + "_mp3part_";
     const std::string pattern = prefix + "%03d.wav";
-    if (!run_ffmpeg_segment(input, pattern, maximum - MP3_SEGMENT_MARGIN_SECONDS)) return;
+    show_batch_progress("Converting MP3 into upload parts…", 0, 0);
+    if (!run_ffmpeg_segment(input, pattern, maximum - MP3_SEGMENT_MARGIN_SECONDS))
+    {
+        close_batch_progress();
+        return;
+    }
 
     std::vector<BatchPart> parts;
     for (S32 ordinal = 0; ; ++ordinal)
