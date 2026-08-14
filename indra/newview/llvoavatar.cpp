@@ -7217,7 +7217,7 @@ static S32 tasiaGetAnimPriorityOverride(const LLUUID& id)
                     LLStringUtil::trim(prio_str);
                     S32 prio = 0;
                     LLStringUtil::convertToS32(prio_str, prio);
-                    if (prio >= 1 && prio <= 4)
+                    if (prio >= 1 && prio <= 6)
                         return prio;
                     return 0;
                 }

@@ -20,7 +20,7 @@
      layout="topleft"
      left="1"
      name="im_box_tab_container"
-     tab_position="left"
+     tab_position="top"
      open_tabs_on_drag_and_drop="true"
      tab_width="115"
      tab_max_width = "115"
@@ -31,8 +31,14 @@
      use_ellipses="true"
      top="0"
      width="394">
-        <first_tab tab_bottom_image_unselected="Toolbar_Left_IM_Unselected"/>
-        <middle_tab tab_bottom_image_unselected="Toolbar_Middle_IM_Unselected"/>
-        <last_tab tab_bottom_image_unselected="Toolbar_Right_IM_Unselected"/>
+        <first_tab
+         tab_top_image_unselected="Toolbar_Left_IM_Unselected"
+         tab_top_image_selected="Toolbar_Left_Selected" />
+        <middle_tab
+         tab_top_image_unselected="Toolbar_Middle_IM_Unselected"
+         tab_top_image_selected="Toolbar_Middle_Selected" />
+        <last_tab
+         tab_top_image_unselected="Toolbar_Right_IM_Unselected"
+         tab_top_image_selected="Toolbar_Right_Selected" />
     </tab_container>
 </multi_floater>

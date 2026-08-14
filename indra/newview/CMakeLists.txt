@@ -2009,12 +2009,8 @@ if (LINUX)
         set(ICON_PATH "${ICON_PATH}-os")
     endif (OPENSIM)
 
-    message(STATUS "Copying icons for ${ICON_PATH}")
-    execute_process(
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/icons/${ICON_PATH}/firestorm_256.bmp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/res-sdl/tasia_icon.BMP"
-      )
+    # res-sdl/tasia_icon.BMP is maintained from the Tasia artwork. Do not
+    # overwrite it with a Firestorm channel icon during Linux configuration.
 endif (LINUX)
 
 if (WINDOWS)

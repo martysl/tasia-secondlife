@@ -57,6 +57,7 @@
 // <FS:Ansariel> [FS communication UI]
 //#include "llfloaterimsession.h"
 // </FS:Ansariel> [FS communication UI]
+#include "llinventorymodel.h"
 #include "llkeyboard.h"
 #include "llmodaldialog.h"
 #include "llnavigationbar.h"
@@ -6621,13 +6622,32 @@ void LLPanelPreferenceTasia::onAddAnimOverride()
     LLUUID id(uuid);
     if (id.isNull())
     {
+        // Permit a human-readable inventory animation name as well as an UUID.
+        // The stored setting always uses the resolved asset UUID, so it remains
+        // stable even if the inventory item is renamed later.
+        LLViewerInventoryCategory::cat_array_t cats;
+        LLViewerInventoryItem::item_array_t items;
+        gInventory.collectDescendents(gInventory.getRootFolderID(), cats, items,
+                                      LLInventoryModel::EXCLUDE_TRASH);
+        for (LLViewerInventoryItem* item : items)
+        {
+            if (item && item->getType() == LLAssetType::AT_ANIMATION
+                && LLStringUtil::compareInsensitive(item->getName(), uuid) == 0)
+            {
+                id = item->getAssetUUID();
+                break;
+            }
+        }
+    }
+    if (id.isNull())
+    {
         if (mStatusText)
             mStatusText->setText(getString("invalid_uuid"));
         return;
     }
 
     S32 prio = mPrioritySpin ? llround(mPrioritySpin->getValueF32()) : 4;
-    prio = llclamp(prio, 1, 4);
+    prio = llclamp(prio, 1, 6);
 
     std::string uuid_key = id.asString();
     LLStringUtil::toLower(uuid_key);

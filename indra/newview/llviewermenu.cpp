@@ -11539,33 +11539,16 @@ void handle_rebake_textures()
     gAgentAvatarp->setIsCrossingRegion(false); // <FS:Ansariel> FIRE-12004: Attachments getting lost on TP
 }
 
-// <Tasia> Reload scene: refresh all textures in the current scene, like the
-// viewer does after teleporting into a new region. Clears fetched results and
-// disk cache entries for every texture currently in the texture list, forcing
-// a re-fetch from the sim.
+// <Tasia> Flush the current region's already queued object cache misses now.
+// This is the safe scene-resynchronization operation available without a real
+// teleport: it never deletes texture cache entries, resets the camera, or
+// touches unrelated textures/UI assets.
 void handle_reload_scene()
 {
-    LLViewerTextureList& texlist = gTextureList;
-    S32 cleared = 0;
-    for (auto it = texlist.begin(); it != texlist.end(); ++it)
+    if (LLViewerRegion* region = gAgent.getRegion())
     {
-        LLViewerFetchedTexture* fetched = *it;
-        if (!fetched) continue;
-        const LLUUID& id = fetched->getID();
-        if (id.isNull() || FSCommon::isDefaultTexture(id))
-        {
-            continue;
-        }
-        fetched->clearFetchedResults();
-        LLAppViewer::getTextureCache()->removeFromCache(id);
-        fetched->forceImmediateUpdate();
-        cleared++;
-    }
-    LL_INFOS("Tasia") << "Reload scene: cleared " << cleared << " textures" << LL_ENDL;
-    gAgentCamera.resetView(true);
-    if (gAgent.getRegion())
-    {
-        gAgent.getRegion()->requestCacheMisses();
+        region->requestCacheMisses();
+        LL_INFOS("Tasia") << "Reload scene: requested pending object cache misses" << LL_ENDL;
     }
 }
 

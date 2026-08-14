@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=Firestorm
+Name=Tasia Viewer
 Exec=firestorm
 Comment=Client for virtual worlds
-Icon=firestorm_icon
+Icon=tasia_icon
 Categories=Development;
 Terminal=true

@@ -2158,7 +2158,7 @@ class LinuxManifest(ViewerManifest):
         self.path("licenses-linux.txt","licenses.txt")
         self.path("VivoxAUP.txt")
         self.path("LGPL-license.txt")
-        self.path("res/firestorm_icon.png","firestorm_icon.png")
+        self.path("res/tasia_icon.png","tasia_icon.png")
         with self.prefix("linux_tools"):
             self.path("client-readme.txt","README-linux.txt")
             self.path("FIRESTORM_DESKTOPINSTALL.txt","FIRESTORM_DESKTOPINSTALL.txt")
@@ -2186,13 +2186,7 @@ class LinuxManifest(ViewerManifest):
         # recurses, packaged again
         self.path("res-sdl")
 
-        # Get the icons based on the channel type
-        icon_path = self.icon_path()
-        print("DEBUG: icon_path '%s'" % icon_path)
-        with self.prefix(src=icon_path) :
-            self.path("firestorm_256.png","firestorm_48.png")
-            #with self.prefix(dst="res-sdl") :
-            #    self.path("firestorm_256.bmp","ll_icon.BMP")
+        self.path("res-sdl/tasia_icon48.png", "tasia_48.png")
 
         # plugins
         with self.prefix(src=os.path.join(self.args['build'], os.pardir, 'media_plugins'), dst="bin/llplugin"):

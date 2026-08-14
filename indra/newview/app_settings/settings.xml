@@ -128,7 +128,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>1</integer>
+    <integer>0</integer>
     <key>Backup</key>
     <integer>0</integer>
   </map>
@@ -225,8 +225,8 @@
   </map>
   <key>TasiaAnimPriorityOverrides</key>
   <map>
-    <key>Comment</key>
-    <string>Semicolon-separated animation priority overrides: "uuid:priority;uuid:priority" (priority 1-4). Forces the animation to that priority so it wins over lower-priority animations (e.g. AOs).</string>
+  <key>Comment</key>
+  <string>Semicolon-separated animation priority overrides: "uuid:priority;uuid:priority" (priority 1-6). Forces the animation to that priority so it wins over lower-priority animations (e.g. AOs).</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -367,7 +367,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>1</integer>
+    <integer>0</integer>
   </map>
   <key>PieMenuPopupFontEffect</key>
   <map>
@@ -569,7 +569,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>1</integer>
+    <integer>0</integer>
   </map>
   <key>FSShowIMInChatHistory</key>
   <map>
@@ -930,7 +930,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>1</integer>
+    <integer>0</integer>
   </map>
 
   <key>FSLogImToChatConsole</key>
@@ -1475,7 +1475,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <boolean>0</boolean>
+      <boolean>1</boolean>
     </map>
     <key>RestrainedLoveDebug</key>
     <map>
@@ -10164,7 +10164,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
 
     <key>PluginInstancesLow</key>
@@ -15459,7 +15459,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>firestorm</string>
+      <string>ansastorm</string>
     </map>
     <key>SkinningSettingsFile</key>
     <map>
@@ -17603,7 +17603,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>UseTypingBubbles</key>
     <map>
@@ -26849,7 +26849,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>FSImageDecodeThreads</key>
     <map>
@@ -27705,18 +27705,18 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>FSAutoOrderIMTabsPriorities</key>
     <map>
       <key>Comment</key>
-      <string>Priority for automatic ordering IM tabs. Higher priority means the tab will be inserted before lower priority. Default is Groups[0]=2 Conferences[1]=1 IMs[2]=0</string>
+      <string>Priority for automatic ordering IM tabs. Higher priority means the tab will be inserted before lower priority. IMs[2]=2, Groups[0]=1, Conferences[1]=0.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>210</string>
+      <string>102</string>
     </map>
     <key>FSAutoOrderIMTabsAtTop</key>
     <map>
@@ -27727,7 +27727,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>FSUseFSLegacySearch</key>
     <map>
