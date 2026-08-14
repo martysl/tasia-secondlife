@@ -34,6 +34,7 @@
 #include "llavatarnamecache.h"
 #include "llconsole.h"
 #include "llimview.h"
+#include "lltasia_user_config.h"
 #include "lltrans.h"
 #include "llviewerchat.h"
 #include "llviewercontrol.h"
@@ -155,7 +156,7 @@ void FSConsoleUtils::onProcessChatAvatarNameLookup(const LLUUID& agent_id, const
     // Get the display name of the sender if required
     if (!chat_msg.mRlvNamesFiltered)
     {
-        sender_name = FSCommon::getAvatarNameByDisplaySettings(av_name);
+        sender_name = LLTasiaUserConfig::renderCompleteName(agent_id, av_name);
     }
 
     console_chat = sender_name + delimiter + message;

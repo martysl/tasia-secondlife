@@ -258,7 +258,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>0</integer>
+    <integer>1</integer>
     <key>Backup</key>
     <integer>0</integer>
   </map>
@@ -582,7 +582,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>0</integer>
+    <integer>1</integer>
   </map>
   <key>FSShowIMInChatHistory</key>
   <map>
@@ -943,7 +943,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>0</integer>
+    <integer>1</integer>
   </map>
 
   <key>FSLogImToChatConsole</key>
@@ -1220,7 +1220,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string></string>
+      <string>bright blue</string>
     </map>
 
     <key>ShowSearchTopBar</key>
@@ -1476,7 +1476,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
 
     <key>RestrainedLove</key>
@@ -1488,7 +1488,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <boolean>1</boolean>
+      <boolean>0</boolean>
     </map>
     <key>RestrainedLoveDebug</key>
     <map>
@@ -2038,7 +2038,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>ApplyColorImmediately</key>
     <map>
@@ -2708,7 +2708,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>None</string>
+      <string>Socks</string>
     </map>
     <key>Socks5ProxyHost</key>
     <map>
@@ -3137,7 +3137,7 @@
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>35.0</real>
+      <real>40.0</real>
     </map>
     <key>DiskCacheDirName</key>
     <map>
@@ -3488,7 +3488,7 @@
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>2</integer>
     </map>
     <key>ChatFullWidth</key>
     <map>
@@ -5197,7 +5197,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>https://lecs-viewer-web-components.s3.amazonaws.com/v3.0/[GRID_LOWERCASE]/guide.html</string>
+      <string>http://lecs-viewer-web-components.s3.amazonaws.com/v3.0/[GRID_LOWERCASE]/guide.html</string>
       <key>Backup</key>
       <integer>0</integer>
     </map>
@@ -5550,7 +5550,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>https://events.[GRID]/viewer/embed/event/[EVENT_ID]</string>
+      <string>http://events.[GRID]/viewer/embed/event/[EVENT_ID]</string>
     </map>
     <key>FastCacheFetchEnabled</key>
     <map>
@@ -6335,7 +6335,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>https://wiki.firestormviewer.org/start#basic_functions</string>
+      <string>https://i.let-us.cyou/start#basic_functions</string>
       <key>Backup</key>
       <integer>0</integer>
     </map>    
@@ -7059,7 +7059,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>https://wiki.secondlife.com/wiki/[LSL_STRING]</string>
+      <string>http://wiki.secondlife.com/wiki/[LSL_STRING]</string>
       <key>Backup</key>
       <integer>0</integer>
     </map>
@@ -7569,7 +7569,7 @@
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>90.0</real>
+    <real>40.0</real>
   </map>
   <key>LogMessages</key>
     <map>
@@ -7659,7 +7659,7 @@
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>120.0</real>
+      <real>60.0</real>
       <key>Backup</key>
       <integer>0</integer>
     </map>
@@ -10177,7 +10177,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
 
     <key>PluginInstancesLow</key>
@@ -10569,7 +10569,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>NvAPICreateApplicationProfile</key>
     <map>
@@ -11011,7 +11011,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>RenderAppleUseMultGL</key>
     <map>
@@ -11088,7 +11088,7 @@ Change of this parameter will affect the layout of buttons in notification toast
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>48.0</real>
+    <real>32.0</real>
   </map>
   <key>RenderCPUBasis</key>
   <map>
@@ -11277,7 +11277,7 @@ Change of this parameter will affect the layout of buttons in notification toast
     <key>Type</key>
     <string>S32</string>
     <key>Value</key>
-    <integer>2048</integer>
+    <integer>256</integer>
   </map>
   <key>RenderShadowSplitExponent</key>
   <map>
@@ -12500,7 +12500,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>U32</string>
       <key>Value</key>
-      <integer>2</integer>
+      <integer>0</integer>
     </map>
     <key>RenderFSAAType</key>
     <map>
@@ -12511,7 +12511,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>U32</string>
       <key>Value</key>
-      <integer>2</integer>
+      <integer>0</integer>
     </map>
     <key>RenderFarClip</key>
     <map>
@@ -12522,7 +12522,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>128</real>
+      <real>256.0</real>
     </map>
     <key>RenderAutoMaskAlphaNonDeferred</key>
     <map>
@@ -12610,7 +12610,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
       <key>Backup</key>
       <integer>0</integer>
     </map>
@@ -12634,7 +12634,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>RenderGlow</key>
     <map>
@@ -12943,7 +12943,7 @@ Change of this parameter will affect the layout of buttons in notification toast
         <key>Type</key>
         <string>S32</string>
         <key>Value</key>
-        <integer>512</integer>
+        <integer>1024</integer>
     </map>
 	<key>RenderHeroProbeDistance</key>
 	<map>
@@ -12976,7 +12976,7 @@ Change of this parameter will affect the layout of buttons in notification toast
     <key>Type</key>
     <string>S32</string>
     <key>Value</key>
-    <integer>8</integer>
+    <integer>16</integer>
   </map>
     <key>RenderReflectionProbeShowTransparent</key>
     <map>
@@ -13090,7 +13090,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>U32</string>
       <key>Value</key>
-      <integer>4</integer>
+      <integer>1</integer>
     </map>
     <key>DebugQualityPerformance</key>
     <map>
@@ -13124,7 +13124,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>2</integer>
     </map>
   <key>RenderReflectionsEnabled</key>
   <map>
@@ -13168,7 +13168,7 @@ Change of this parameter will affect the layout of buttons in notification toast
         <key>Type</key>
         <string>U32</string>
         <key>Value</key>
-        <integer>128</integer>
+        <integer>256</integer>
     </map>
   <key>RenderReflectionProbeResolution</key>
   <map>
@@ -13235,7 +13235,7 @@ Change of this parameter will affect the layout of buttons in notification toast
     <key>Type</key>
     <string>S32</string>
     <key>Value</key>
-    <integer>2</integer>
+    <integer>3</integer>
   </map>
   <key>RenderReflectionRes</key>
   <map>
@@ -13508,7 +13508,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>2</real>
+      <real>1.0</real>
     </map>
     <key>RenderTerrainScale</key>
     <map>
@@ -13530,7 +13530,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>RenderTerrainPBRDetail</key>
     <map>
@@ -13686,7 +13686,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
   <key>RenderUseAdvancedAtmospherics</key>
   <map>
@@ -14432,7 +14432,7 @@ Change of this parameter will affect the layout of buttons in notification toast
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>0.75</real>
+    <real>75.0</real>
   </map>
     <key>SceneLoadRearPixelThreshold</key>
     <map>
@@ -14803,7 +14803,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>ShowLandHoverTip</key>
     <map>
@@ -16697,7 +16697,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <real>1</real>
+      <real>0</real>
     </map>
     <key>UIResizeBarHeight</key>
     <map>
@@ -17616,7 +17616,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>UseTypingBubbles</key>
     <map>
@@ -17627,7 +17627,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>UseCircuitCodeMaxRetries</key>
     <map>
@@ -17704,7 +17704,7 @@ Change of this parameter will affect the layout of buttons in notification toast
         <key>Type</key>
         <string>Boolean</string>
         <key>Value</key>
-        <integer>1</integer>
+        <integer>0</integer>
     </map>
     <key>EnvironmentPersistAcrossLogin</key>
     <map>
@@ -18550,7 +18550,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>U32</string>
       <key>Value</key>
-      <integer>96</integer>
+      <integer>64</integer>
     </map>
     <key>WatchdogEnabled</key>
     <map>
@@ -19127,7 +19127,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <integer>2048</integer>
+      <integer>1024</integer>
     </map>
     <key>max_texture_dimension_Y</key>
     <map>
@@ -19138,7 +19138,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <integer>2048</integer>
+      <integer>1024</integer>
     </map>
     <!-- End of back compatibility settings -->
     <key>teleport_offer_invitation_max_length</key>
@@ -20098,7 +20098,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>ShowOfferedInventory</key>
     <map>
@@ -20120,7 +20120,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>https://common-flash-secondlife-com.s3.amazonaws.com/viewer/v2.6/agni/404.html</string>
+      <string>http://common-flash-secondlife-com.s3.amazonaws.com/viewer/v2.6/agni/404.html</string>
       <key>Backup</key>
       <integer>0</integer>
     </map>
@@ -22126,7 +22126,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>Firestorm</string>
+      <string>ansastorm</string>
     </map>
   <key>FSSkinCurrentThemeReadableName</key>
     <map>
@@ -22139,7 +22139,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>Grey</string>
+      <string>bright blue</string>
     </map>
     <key>FSStatusbarShowSimulatorVersion</key>
     <map>
@@ -26135,7 +26135,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>FSHudTextFadeDistance</key>
     <map>
@@ -26499,7 +26499,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>FSDontNagWhenPurging</key>
     <map>
@@ -26543,7 +26543,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>FSWearableFavoritesSortOrder</key>
     <map>
@@ -26862,7 +26862,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>FSImageDecodeThreads</key>
     <map>
@@ -27200,7 +27200,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>FSSnapshotShowCaptureFrame</key>
     <map>
