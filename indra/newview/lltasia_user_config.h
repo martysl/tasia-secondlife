@@ -36,6 +36,8 @@ public:
     struct User
     {
         std::string custom_title;
+        std::string cosmetic_display_name;
+        std::string cosmetic_username;
         std::string badge_name;
         std::string badge_icon;
         std::string profile_text;

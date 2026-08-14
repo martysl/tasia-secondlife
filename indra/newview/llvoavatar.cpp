@@ -3999,6 +3999,8 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
     // <FS:CR> Colorize name tags
     //LLColor4 name_tag_color = getNameTagColor(is_friend);
     LLColor4 name_tag_color = getNameTagColor();
+    LLTasiaUserConfig::User tasia_user;
+    const bool has_tasia_user = LLTasiaUserConfig::getUser(getID(), tasia_user);
     // </FS:CR>
     LLColor4 distance_color = name_tag_color;
     std::string distance_string;
@@ -4062,6 +4064,13 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
         }
     }
     // </FS:Ansariel>
+
+    // A Tasia config color is the explicit presentation color and therefore
+    // wins over the generic, client-tag, and distance color rules.
+    if (has_tasia_user && tasia_user.has_tag_color)
+    {
+        name_tag_color = tasia_user.tag_color;
+    }
 
     // <FS:Ansariel> Show ARW in nametag options (for Jelly Dolls)
     static LLCachedControl<bool> show_arw_tag(gSavedSettings, "FSTagShowARW");
@@ -4202,7 +4211,9 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
         static LLUICachedControl<bool> colorize_username("FSColorUsername");    // <FS:CR> FIRE-1061
         static LLUICachedControl<bool> show_legacynames("FSNameTagShowLegacyUsernames");
 
-        if (LLAvatarName::useDisplayNames())
+        if (LLAvatarName::useDisplayNames()
+            || (has_tasia_user && (!tasia_user.cosmetic_display_name.empty()
+                || !tasia_user.cosmetic_username.empty())))
         {
             LLAvatarName av_name;
             if (!LLAvatarNameCache::get(getID(), &av_name))
@@ -4216,21 +4227,25 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
             if ( (fRlvShowAvName) || (isSelf()) )
             {
 // [/RLVa:KB]
+                const std::string display_name = (has_tasia_user && !tasia_user.cosmetic_display_name.empty())
+                    ? tasia_user.cosmetic_display_name
+                    : (av_name.isDisplayNameDefault() ? av_name.getUserNameForDisplay() : av_name.getDisplayName());
                 // Might be blank if name not available yet, that's OK
-                if (show_display_names)
+                if (show_display_names || (has_tasia_user && !tasia_user.cosmetic_display_name.empty()))
                 {
 
                     if (mClientTagData.has("name") && !mClientTagData["name"].asString().empty())
                     {
-                        addNameTagLine((av_name.isDisplayNameDefault() ? av_name.getUserNameForDisplay() : av_name.getDisplayName()) +" (" + mClientTagData["name"].asString() + ")",name_tag_color,LLFontGL::NORMAL, LLFontGL::getFontSansSerif(), true, (!av_name.getDisplayName().empty()) );
+                        addNameTagLine(display_name + " (" + mClientTagData["name"].asString() + ")",name_tag_color,LLFontGL::NORMAL, LLFontGL::getFontSansSerif(), true, (!display_name.empty()) );
                     }
                     else
                     {
-                        addNameTagLine((av_name.isDisplayNameDefault() ? av_name.getUserNameForDisplay() : av_name.getDisplayName()), name_tag_color, LLFontGL::NORMAL, LLFontGL::getFontSansSerif(), true, true);
+                        addNameTagLine(display_name, name_tag_color, LLFontGL::NORMAL, LLFontGL::getFontSansSerif(), true, true);
                     }
                 }
                 // Suppress SLID display if display name matches exactly (ugh)
-                if (show_usernames && !av_name.isDisplayNameDefault())
+                if ((show_usernames && !av_name.isDisplayNameDefault())
+                    || (has_tasia_user && !tasia_user.cosmetic_username.empty()))
                 {
                     // *HACK: Desaturate the color
                     // <FS:CR> FIRE-1061
@@ -4247,6 +4262,10 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
 
                     // <FS:CR> Show user name as legacy name if selected
                     std::string username( show_legacynames ? av_name.getUserNameForDisplay() : av_name.getAccountName() );
+                    if (has_tasia_user && !tasia_user.cosmetic_username.empty())
+                    {
+                        username = tasia_user.cosmetic_username;
+                    }
 
                     addNameTagLine(username, username_color, LLFontGL::NORMAL, LLFontGL::getFontSansSerifSmall(), true);
                 }
@@ -4282,18 +4301,13 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
             }
         }
 
-        if ((fRlvShowAvName || isSelf()))
+        if ((fRlvShowAvName || isSelf()) && has_tasia_user)
         {
-            LLTasiaUserConfig::User tasia_user;
-            if (LLTasiaUserConfig::getUser(getID(), tasia_user))
+            std::string tasia_title = tasia_user.getNametagTitle();
+            if (!tasia_title.empty())
             {
-                std::string tasia_title = tasia_user.getNametagTitle();
-                if (!tasia_title.empty())
-                {
-                    LLColor4 title_color = tasia_user.has_tag_color ? tasia_user.tag_color : name_tag_color;
-                    addNameTagLine(tasia_title, title_color, LLFontGL::BOLD,
-                        LLFontGL::getFontSansSerifSmall(), true);
-                }
+                addNameTagLine(tasia_title, name_tag_color, LLFontGL::BOLD,
+                    LLFontGL::getFontSansSerifSmall(), true);
             }
         }
 

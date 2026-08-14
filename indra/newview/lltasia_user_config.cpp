@@ -187,6 +187,10 @@ LLTasiaUserConfig::User parseUser(const LLSD& item)
 {
     LLTasiaUserConfig::User user;
     user.custom_title = getFirstString(item, "custom_title", "title", "rank_title");
+    // These aliases are local presentation only: they never alter account,
+    // profile, IM, chat, or simulator identity.
+    user.cosmetic_display_name = getFirstString(item, "display_name", "display_name_override", "nametag_display_name");
+    user.cosmetic_username = getFirstString(item, "username", "username_override", "nametag_username");
     user.badge_name = getCleanString(item, "badge_name", MAX_SHORT_TEXT);
     user.badge_icon = getCleanURL(item, "badge_icon");
     user.profile_text = getCleanString(item, "profile_text", MAX_LONG_TEXT);
@@ -224,7 +228,9 @@ void applyConfig(const LLSD& response)
         }
 
         LLTasiaUserConfig::User user = parseUser(item);
-        if (!user.hasProfileBadge() && user.getNametagTitle().empty())
+        if (!user.hasProfileBadge() && user.getNametagTitle().empty()
+            && user.cosmetic_display_name.empty() && user.cosmetic_username.empty()
+            && !user.has_tag_color)
         {
             continue;
         }
