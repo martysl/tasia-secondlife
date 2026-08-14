@@ -4138,9 +4138,6 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
         }
 
         clearNameTag();
-        // Use the avatar/contact-set/Tasia tag color for the entire name tag,
-        // not only its label header.
-        mNameText->setColor(name_tag_color);
 
         // <FS:Ansariel> Show auto-response in nametag
         //if (is_away || is_muted || is_do_not_disturb || is_appearance)
