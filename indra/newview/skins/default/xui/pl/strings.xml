@@ -6569,6 +6569,9 @@ Twoja aktualna pozycja: [AVATAR_POS]
 	<string name="GroupNoticesToastDateString">
 		[wkday,datetime,slt]., [day,datetime,slt].[mth,datetime,slt].[year,datetime,slt], [hour,datetime,slt]:[min,datetime,slt]:[second,datetime,slt] [timezone,datetime,slt]
 	</string>
+	<string name="GroupNoticesToastDateStringAMPM">
+		[wkday,datetime,slt]., [day,datetime,slt].[mth,datetime,slt].[year,datetime,slt], [hour12,datetime,slt]:[min,datetime,slt]:[second,datetime,slt] [ampm,datetime,slt] [timezone,datetime,slt]
+	</string>
 	<string name="NotificationItemDateStringLocal">
 		[day,datetime,local].[mthnum,datetime,local].[year,datetime,local], [hour,datetime,local]:[min,datetime,local]
 	</string>

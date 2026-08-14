@@ -1488,7 +1488,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <boolean>0</boolean>
+      <boolean>1</boolean>
     </map>
     <key>RestrainedLoveDebug</key>
     <map>
@@ -2038,7 +2038,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>ApplyColorImmediately</key>
     <map>
@@ -2116,7 +2116,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>AssetFetchConcurrency</key>
     <map>
@@ -10168,16 +10168,16 @@ Change of this parameter will affect the layout of buttons in notification toast
       <real>0.9</real>
     </map>
 
-   <key>PlainTextChatHistory</key>
+    <key>PlainTextChatHistory</key>
     <map>
       <key>Comment</key>
       <string>Enable/Disable plain text chat transcript style</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
+     <key>Persist</key>
+     <integer>1</integer>
+     <key>Type</key>
+     <string>Boolean</string>
+     <key>Value</key>
+     <integer>0</integer>
     </map>
 
     <key>PluginInstancesLow</key>

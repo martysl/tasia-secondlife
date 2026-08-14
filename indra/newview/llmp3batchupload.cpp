@@ -17,6 +17,8 @@
 #include "llinventorymodel.h"
 #include "llnotecard.h"
 #include "llnotificationsutil.h"
+#include "llevents.h"
+#include "llprocess.h"
 #include "llstatusbar.h"
 #include "lluploaddialog.h"
 #include "llviewerassetupload.h"
@@ -26,16 +28,10 @@
 #include "llvorbisencode.h"
 
 #include <algorithm>
-#include <cerrno>
 #include <fstream>
 #include <memory>
 #include <sstream>
 #include <vector>
-
-#if LL_LINUX
-# include <sys/wait.h>
-# include <unistd.h>
-#endif
 
 void create_new_item(const std::string& name, const LLUUID& parent_id,
                      LLAssetType::EType asset_type, LLInventoryType::EType inv_type,
@@ -196,65 +192,175 @@ bool MP3BatchSoundUploadInfo::failedUpload(LLSD& result, std::string& reason)
     return false;
 }
 
-bool run_ffmpeg_segment(const std::string& input, const std::string& pattern, F32 segment_seconds)
-{
-#if LL_LINUX
-    std::string executable = gDirUtilp->getExecutableDir();
-    gDirUtilp->append(executable, "tasia-ffmpeg");
-    llstat st;
-    if (LLFile::stat(executable, &st) != 0)
-    {
-        // The launcher normally runs from the package root while the binary
-        // lives in bin/. Use that package-relative fallback as well.
-        executable = gDirUtilp->getWorkingDir();
-        gDirUtilp->append(executable, "bin/tasia-ffmpeg");
-        if (LLFile::stat(executable, &st) != 0)
-        {
-            LL_WARNS("MP3BatchUpload") << "Bundled converter not found: " << executable << LL_ENDL;
-            LLNotificationsUtil::add("MP3BatchSoundFfmpegMissing");
-            return false;
-        }
-    }
-    LL_INFOS("MP3BatchUpload") << "Converting '" << input << "' with " << executable << LL_ENDL;
-    const pid_t pid = fork();
-    if (pid == 0)
-    {
-        execl(executable.c_str(), executable.c_str(), "-y", "-v", "error", "-i", input.c_str(), "-ar", "44100", "-ac", "2",
-              "-c:a", "pcm_s16le", "-f", "segment", "-segment_time", llformat("%.2f", segment_seconds).c_str(), pattern.c_str(),
-              static_cast<char*>(NULL));
-        _exit(127);
-    }
-    if (pid < 0)
-    {
-        LL_WARNS("MP3BatchUpload") << "Could not start bundled converter" << LL_ENDL;
-        LLNotificationsUtil::add("MP3BatchSoundConversionFailed");
-        return false;
-    }
-    int status = 0;
-    pid_t waited = 0;
-    do
-    {
-        waited = waitpid(pid, &status, 0);
-    }
-    while (waited < 0 && errno == EINTR);
-    const bool success = waited == pid && WIFEXITED(status) && WEXITSTATUS(status) == 0;
-    if (!success)
-    {
-        LL_WARNS("MP3BatchUpload") << "Bundled converter failed, wait result=" << waited
-                                    << " status=" << status << " errno=" << errno << LL_ENDL;
-        LLNotificationsUtil::add("MP3BatchSoundConversionFailed");
-    }
-    return success;
-#else
-    LLNotificationsUtil::add("MP3BatchSoundFfmpegMissing");
-    return false;
-#endif
-}
-
 void begin_confirmed_batch(const MP3BatchContextPtr& context, S32 cost, const LLSD& notification, const LLSD& response)
 {
     if (LLNotificationsUtil::getSelectedOption(notification, response) == 0) context->start(cost);
 }
+
+void enumerate_and_confirm_parts(const std::string& prefix, F32 maximum)
+{
+    std::vector<BatchPart> parts;
+    for (S32 ordinal = 0; ; ++ordinal)
+    {
+        const std::string part = prefix + llformat("%03d.wav", ordinal);
+        if (!gDirUtilp->fileExists(part)) break;
+        std::string error;
+        if (check_for_invalid_wav_formats(part, error, LLGridManager::instance().isInSecondLife()))
+        {
+            LLFile::remove(part);
+            for (const BatchPart& accepted : parts) LLFile::remove(accepted.filename);
+            close_batch_progress();
+            LLSD args; args["FILE"] = part; args["MAX_LENGTH"] = llformat("%.0f", maximum);
+            LLNotificationsUtil::add(error, args);
+            return;
+        }
+        parts.push_back({ ordinal, part, LLUUID::null });
+    }
+    if (parts.empty())
+    {
+        close_batch_progress();
+        LLNotificationsUtil::add("MP3BatchSoundConversionFailed");
+        return;
+    }
+
+    S32 unit_cost = 0;
+    LLAssetType::EType sound_type = LLAssetType::AT_SOUND;
+    if (!LLAgentBenefitsMgr::current().findUploadCost(sound_type, unit_cost))
+    {
+        for (const BatchPart& part : parts) LLFile::remove(part.filename);
+        close_batch_progress();
+        LLNotificationsUtil::add("MP3BatchSoundCostUnavailable");
+        return;
+    }
+    const S32 total_cost = unit_cost * (S32)parts.size();
+    if (total_cost > gStatusBar->getBalance())
+    {
+        for (const BatchPart& part : parts) LLFile::remove(part.filename);
+        close_batch_progress();
+        LLSD args; args["COST"] = total_cost; args["COUNT"] = (S32)parts.size(); args["BALANCE"] = gStatusBar->getBalance();
+        LLNotificationsUtil::add("NotEnoughMoneyForBulkUpload", args);
+        return;
+    }
+
+    close_batch_progress();
+    MP3BatchContextPtr context = std::make_shared<MP3BatchContext>(parts);
+    LLSD args; args["COUNT"] = (S32)parts.size(); args["UNIT_COST"] = unit_cost; args["TOTAL_COST"] = total_cost;
+    LLNotificationsUtil::add("ConfirmMP3BatchSoundUpload", args, LLSD(), boost::bind(&begin_confirmed_batch, context, unit_cost, _1, _2));
+}
+
+class MP3ConversionContext;
+typedef std::shared_ptr<MP3ConversionContext> MP3ConversionContextPtr;
+
+class MP3ConversionContext : public std::enable_shared_from_this<MP3ConversionContext>
+{
+public:
+    MP3ConversionContext(const std::string& input, const std::string& prefix, F32 maximum)
+        : mInput(input),
+          mPrefix(prefix),
+          mMaximum(maximum),
+          mPostendPump("MP3BatchConversion", true),
+          mPostendListener(mPostendPump.listen("MP3BatchConversion", boost::bind(&MP3ConversionContext::conversionEnded, this, _1)))
+    {
+    }
+
+    void start()
+    {
+#if LL_LINUX
+        std::string executable = gDirUtilp->getExecutableDir();
+        gDirUtilp->append(executable, "tasia-ffmpeg");
+        llstat st;
+        if (LLFile::stat(executable, &st) != 0)
+        {
+            // The launcher normally runs from the package root while the binary
+            // lives in bin/. Use that package-relative fallback as well.
+            executable = gDirUtilp->getWorkingDir();
+            gDirUtilp->append(executable, "bin/tasia-ffmpeg");
+            if (LLFile::stat(executable, &st) != 0)
+            {
+                failed("Bundled converter not found: " + executable, "MP3BatchSoundFfmpegMissing");
+                return;
+            }
+        }
+        LL_INFOS("MP3BatchUpload") << "Converting '" << mInput << "' with " << executable << LL_ENDL;
+        LLProcess::Params params;
+        params.executable = executable;
+        params.args.add("-y");
+        params.args.add("-v");
+        params.args.add("error");
+        params.args.add("-i");
+        params.args.add(mInput);
+        params.args.add("-ar");
+        params.args.add("44100");
+        params.args.add("-ac");
+        params.args.add("2");
+        params.args.add("-c:a");
+        params.args.add("pcm_s16le");
+        params.args.add("-f");
+        params.args.add("segment");
+        params.args.add("-segment_time");
+        params.args.add(llformat("%.2f", mMaximum - MP3_SEGMENT_MARGIN_SECONDS));
+        params.args.add(mPrefix + "%03d.wav");
+        params.postend = mPostendPump.getName();
+        params.desc = "MP3 batch converter";
+
+        // Keep this context (and therefore the LLProcess and listener) alive
+        // until LLProcess posts its terminal state on the main loop.
+        MP3ConversionContextPtr keep_alive = shared_from_this();
+        mSelf = keep_alive;
+        mProcess = LLProcess::create(params);
+        if (!mProcess)
+        {
+            // LLProcess posts UNSTARTED synchronously on launch failure.
+            // conversionEnded() has already reported it in that case.
+            return;
+        }
+#else
+        failed("Bundled converter is only supported on Linux", "MP3BatchSoundFfmpegMissing");
+#endif
+    }
+
+private:
+    bool conversionEnded(const LLSD& event)
+    {
+        const bool success = event["state"].asInteger() == LLProcess::EXITED && event["data"].asInteger() == 0;
+        if (success)
+        {
+            enumerate_and_confirm_parts(mPrefix, mMaximum);
+        }
+        else
+        {
+            failed("Bundled converter " + event["string"].asString(), "MP3BatchSoundConversionFailed");
+        }
+        // Do not destroy the LLProcess or its event pump while LLProcess is
+        // still posting this event. Release them on the next main-loop tick.
+        mReleaseListener = LLEventPumps::instance().obtain("mainloop").listen(
+            "MP3BatchConversionRelease", boost::bind(&MP3ConversionContext::release, this, _1));
+        return false;
+    }
+
+    bool release(const LLSD&)
+    {
+        mProcess.reset();
+        mSelf.reset();
+        return false;
+    }
+
+    void failed(const std::string& message, const std::string& notification)
+    {
+        LL_WARNS("MP3BatchUpload") << message << LL_ENDL;
+        close_batch_progress();
+        LLNotificationsUtil::add(notification);
+    }
+
+    const std::string mInput;
+    const std::string mPrefix;
+    const F32 mMaximum;
+    LLEventStream mPostendPump;
+    LLTempBoundListener mPostendListener;
+    LLTempBoundListener mReleaseListener;
+    LLProcessPtr mProcess;
+    MP3ConversionContextPtr mSelf;
+};
 
 void convert_and_confirm(const std::vector<std::string>& filenames)
 {
@@ -266,49 +372,9 @@ void convert_and_confirm(const std::vector<std::string>& filenames)
 
     const F32 maximum = LLGridManager::instance().isInSecondLife() ? LLVORBIS_CLIP_MAX_TIME : LLVORBIS_CLIP_MAX_TIME_OPENSIM;
     const std::string prefix = gDirUtilp->getTempFilename() + "_mp3part_";
-    const std::string pattern = prefix + "%03d.wav";
     show_batch_progress("Converting MP3 into upload parts…", 0, 0);
-    if (!run_ffmpeg_segment(input, pattern, maximum - MP3_SEGMENT_MARGIN_SECONDS))
-    {
-        close_batch_progress();
-        return;
-    }
-
-    std::vector<BatchPart> parts;
-    for (S32 ordinal = 0; ; ++ordinal)
-    {
-        const std::string part = prefix + llformat("%03d.wav", ordinal);
-        if (!gDirUtilp->fileExists(part)) break;
-        std::string error;
-        if (check_for_invalid_wav_formats(part, error, LLGridManager::instance().isInSecondLife()))
-        {
-            LLFile::remove(part);
-            for (const BatchPart& accepted : parts) LLFile::remove(accepted.filename);
-            LLSD args; args["FILE"] = part; args["MAX_LENGTH"] = llformat("%.0f", maximum);
-            LLNotificationsUtil::add(error, args);
-            return;
-        }
-        parts.push_back({ ordinal, part, LLUUID::null });
-    }
-    if (parts.empty()) { LLNotificationsUtil::add("MP3BatchSoundConversionFailed"); return; }
-
-    S32 unit_cost = 0;
-    LLAssetType::EType sound_type = LLAssetType::AT_SOUND;
-    if (!LLAgentBenefitsMgr::current().findUploadCost(sound_type, unit_cost))
-    {
-        for (const BatchPart& part : parts) LLFile::remove(part.filename);
-        LLNotificationsUtil::add("MP3BatchSoundCostUnavailable"); return;
-    }
-    const S32 total_cost = unit_cost * (S32)parts.size();
-    if (total_cost > gStatusBar->getBalance())
-    {
-        for (const BatchPart& part : parts) LLFile::remove(part.filename);
-        LLSD args; args["COST"] = total_cost; args["COUNT"] = (S32)parts.size(); args["BALANCE"] = gStatusBar->getBalance();
-        LLNotificationsUtil::add("NotEnoughMoneyForBulkUpload", args); return;
-    }
-    MP3BatchContextPtr context = std::make_shared<MP3BatchContext>(parts);
-    LLSD args; args["COUNT"] = (S32)parts.size(); args["UNIT_COST"] = unit_cost; args["TOTAL_COST"] = total_cost;
-    LLNotificationsUtil::add("ConfirmMP3BatchSoundUpload", args, LLSD(), boost::bind(&begin_confirmed_batch, context, unit_cost, _1, _2));
+    MP3ConversionContextPtr context = std::make_shared<MP3ConversionContext>(input, prefix, maximum);
+    context->start();
 }
 } // namespace
 
