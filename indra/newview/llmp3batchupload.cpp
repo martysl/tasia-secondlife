@@ -16,6 +16,7 @@
 #include "llnotecard.h"
 #include "llnotificationsutil.h"
 #include "llstatusbar.h"
+#include "lluploaddialog.h"
 #include "llviewerassetupload.h"
 #include "llviewermenufile.h"
 #include "llviewerinventory.h"
@@ -39,7 +40,7 @@ void create_new_item(const std::string& name, const LLUUID& parent_id,
 
 namespace
 {
-const F32 MP3_SEGMENT_MARGIN_SECONDS = 0.10f;
+const F32 MP3_SEGMENT_MARGIN_SECONDS = 1.0f;
 
 struct BatchPart
 {
