@@ -42,6 +42,7 @@
 #include "llcallingcard.h" // for LLAvatarTracker
 #include "llcachename.h"
 #include "llinventory.h" // <FS:PP> FIRE-31146 Contact Sets - drag-and-drop support
+#include "lltasia_user_config.h"
 #include "lllistcontextmenu.h"
 #include "llrecentpeople.h"
 #include "lluuid.h"
@@ -796,18 +797,19 @@ void LLAvatarList::onItemClicked(LLUICtrl* ctrl, S32 x, S32 y, MASK mask)
 std::string LLAvatarList::getNameForDisplay(const LLUUID& avatar_id, const LLAvatarName& av_name, bool show_displayname, bool show_username, bool force_use_complete_name, bool rlv_check_shownames)
 {
     const bool fRlvCanShowName = (!rlv_check_shownames) || (RlvActions::canShowName(RlvActions::SNC_DEFAULT, avatar_id));
+    if (!fRlvCanShowName)
+    {
+        return RlvStrings::getAnonym(av_name);
+    }
     if (show_displayname && !show_username)
     {
-        return (fRlvCanShowName ? av_name.getDisplayName() : RlvStrings::getAnonym(av_name));
+        return LLTasiaUserConfig::renderDisplayName(avatar_id, av_name);
     }
     else if (!show_displayname && show_username)
     {
-        return (fRlvCanShowName ? av_name.getUserName() : RlvStrings::getAnonym(av_name));
+        return LLTasiaUserConfig::renderUsername(avatar_id, av_name);
     }
-    else
-    {
-        return (fRlvCanShowName ? av_name.getCompleteName(true, force_use_complete_name) : RlvStrings::getAnonym(av_name));
-    }
+    return LLTasiaUserConfig::renderCompleteName(avatar_id, av_name);
 }
 // </FS:Ansariel>
 

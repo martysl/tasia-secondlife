@@ -1335,7 +1335,7 @@ void LLPanelProfileSecondLife::onAvatarNameCache(const LLUUID& agent_id, const L
     // <FS:Ansariel> Fix LL UI/UX design accident
     //getChild<LLUICtrl>("display_name")->setValue(av_name.getDisplayName());
     //getChild<LLUICtrl>("user_name")->setValue(av_name.getAccountName());
-    getChild<LLUICtrl>("complete_name")->setValue(av_name.getCompleteName());
+    getChild<LLUICtrl>("complete_name")->setValue(LLTasiaUserConfig::renderCompleteName(agent_id, av_name));
     mCopyMenuButton->setVisible(true);
     // </FS:Ansariel>
 }

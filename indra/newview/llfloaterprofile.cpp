@@ -32,6 +32,7 @@
 #include "llnotificationsutil.h"
 #include "llpanelavatar.h"
 #include "llpanelprofile.h"
+#include "lltasia_user_config.h"
 
 static const std::string PANEL_PROFILE_VIEW = "panel_profile_view";
 
@@ -164,7 +165,7 @@ void LLFloaterProfile::createClassified()
 void LLFloaterProfile::onAvatarNameCache(const LLUUID& agent_id, const LLAvatarName& av_name)
 {
     mNameCallbackConnection.disconnect();
-    setTitle(av_name.getCompleteName());
+    setTitle(LLTasiaUserConfig::renderCompleteName(agent_id, av_name));
 }
 
 // eof

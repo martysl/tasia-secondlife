@@ -31,6 +31,7 @@
 
 #include "llagent.h"
 #include "llavatarnamecache.h"
+#include "lltasia_user_config.h"
 #include "llavataractions.h"
 #include "llevents.h"
 #include "llfloaterimsession.h"
@@ -532,7 +533,7 @@ void LLConversationItemSession::onAvatarNameCache(const LLAvatarName& av_name)
         mAvatarNameCacheConnection.disconnect();
     }
 
-    renameItem(av_name.getDisplayName());
+    renameItem(LLTasiaUserConfig::renderDisplayName(mUUID, av_name));
     postEvent("update_session", this, NULL);
 }
 
@@ -587,7 +588,7 @@ void LLConversationItemParticipant::onAvatarNameCache(const LLAvatarName& av_nam
 void LLConversationItemParticipant::updateName(const LLAvatarName& av_name)
 {
     mName = av_name.getUserName();
-    mDisplayName = av_name.getDisplayName();
+    mDisplayName = LLTasiaUserConfig::renderDisplayName(getUUID(), av_name);
 
     if (mDisplayModeratorLabel)
     {

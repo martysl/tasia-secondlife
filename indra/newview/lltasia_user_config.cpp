@@ -29,6 +29,7 @@
 #include "llcoros.h"
 #include "llhttpconstants.h"
 #include "llmath.h"
+#include "llavatarname.h"
 #include "llsd.h"
 #include "llsecapi.h"
 #include "llstring.h"
@@ -314,6 +315,41 @@ bool LLTasiaUserConfig::getUser(const LLUUID& agent_id, User& user)
 
     user = it->second;
     return true;
+}
+
+// static
+bool LLTasiaUserConfig::hasCosmeticAlias(const LLUUID& agent_id)
+{
+    User user;
+    return getUser(agent_id, user) && (!user.cosmetic_display_name.empty() || !user.cosmetic_username.empty());
+}
+
+// static
+std::string LLTasiaUserConfig::renderDisplayName(const LLUUID& agent_id, const LLAvatarName& real_name)
+{
+    User user;
+    return (getUser(agent_id, user) && !user.cosmetic_display_name.empty())
+        ? user.cosmetic_display_name : real_name.getDisplayName();
+}
+
+// static
+std::string LLTasiaUserConfig::renderUsername(const LLUUID& agent_id, const LLAvatarName& real_name)
+{
+    User user;
+    return (getUser(agent_id, user) && !user.cosmetic_username.empty())
+        ? user.cosmetic_username : real_name.getUserNameForDisplay();
+}
+
+// static
+std::string LLTasiaUserConfig::renderCompleteName(const LLUUID& agent_id, const LLAvatarName& real_name)
+{
+    if (!hasCosmeticAlias(agent_id))
+    {
+        return real_name.getCompleteName();
+    }
+    const std::string display_name = renderDisplayName(agent_id, real_name);
+    const std::string username = renderUsername(agent_id, real_name);
+    return (display_name == username) ? display_name : display_name + " (" + username + ")";
 }
 
 // static

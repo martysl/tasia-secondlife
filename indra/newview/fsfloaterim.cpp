@@ -45,6 +45,7 @@
 #include "llavataractions.h"
 #include "llfloatergiphypicker.h"
 #include "llavatarnamecache.h"
+#include "lltasia_user_config.h"
 #include "llbutton.h"
 #include "llchannelmanager.h"
 #include "llchatentry.h"
@@ -1149,36 +1150,25 @@ void FSFloaterIM::onAvatarNameCache(const LLUUID& agent_id,
 {
     mAvatarNameCacheConnection.disconnect();
 
-    std::string name = av_name.getCompleteName();
-    if (LLAvatarName::useDisplayNames())
+    const std::string display_name = LLTasiaUserConfig::renderDisplayName(agent_id, av_name);
+    const std::string username = LLTasiaUserConfig::renderUsername(agent_id, av_name);
+    std::string name = LLTasiaUserConfig::renderCompleteName(agent_id, av_name);
+    if (LLAvatarName::useDisplayNames() || LLTasiaUserConfig::hasCosmeticAlias(agent_id))
     {
         switch (gSavedSettings.getS32("FSIMTabNameFormat"))
         {
-            // Display name
             case 0:
-                name = av_name.getDisplayName();
+                name = display_name;
                 break;
-            // Username
             case 1:
-                name = av_name.getUserNameForDisplay();
+                name = username;
                 break;
-            // Display name (username)
             case 2:
-                // Do nothing - we already set the complete name as default
                 break;
-            // Username (display name)
             case 3:
-                if (av_name.isDisplayNameDefault())
-                {
-                    name = av_name.getUserNameForDisplay();
-                }
-                else
-                {
-                    name = av_name.getUserNameForDisplay() + " (" + av_name.getDisplayName() + ")";
-                }
+                name = (display_name == username) ? username : username + " (" + display_name + ")";
                 break;
             default:
-                // Do nothing - we already set the complete name as default
                 break;
         }
     }

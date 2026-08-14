@@ -33,6 +33,7 @@
 #include <boost/signals2.hpp>
 
 #include "llavatarnamecache.h"
+#include "lltasia_user_config.h"
 #include "llinstantmessage.h"
 
 #include "llimview.h"
@@ -1102,14 +1103,16 @@ private:
         mAvatarNameCacheConnection.disconnect();
 
         mFrom = av_name.getDisplayName();
+        const std::string rendered_display = LLTasiaUserConfig::renderDisplayName(agent_id, av_name);
+        const std::string rendered_username = LLTasiaUserConfig::renderUsername(agent_id, av_name);
+        const bool has_alias = LLTasiaUserConfig::hasCosmeticAlias(agent_id);
 
         LLTextBox* user_name = getChild<LLTextBox>("user_name");
-        user_name->setValue( LLSD(av_name.getDisplayName() ) );
-        user_name->setToolTip( av_name.getUserName() );
+        user_name->setValue(LLSD(rendered_display));
+        user_name->setToolTip(av_name.getUserName());
 
-        if (gSavedSettings.getBOOL("NameTagShowUsernames") &&
-            av_name.useDisplayNames() &&
-            !av_name.isDisplayNameDefault())
+        if ((gSavedSettings.getBOOL("NameTagShowUsernames") && av_name.useDisplayNames() && !av_name.isDisplayNameDefault())
+            || has_alias)
         {
             LLStyle::Params style_params_name;
             LLUIColor userNameColor = LLUIColorTable::instance().getColor("EmphasisColor");
@@ -1117,7 +1120,7 @@ private:
             style_params_name.font.name("SansSerifSmall");
             style_params_name.font.style("NORMAL");
             style_params_name.readonly_color(userNameColor);
-            user_name->appendText("  - " + av_name.getUserName(), false, style_params_name);
+            user_name->appendText("  - " + rendered_username, false, style_params_name);
         }
         setToolTip( av_name.getUserName() );
         // name might have changed, update width

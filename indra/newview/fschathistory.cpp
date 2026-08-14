@@ -85,6 +85,7 @@
 #endif
 
 #include "fscommon.h"
+#include "lltasia_user_config.h"
 #include "llchatentry.h"
 #include "llfocusmgr.h"
 #include "llkeyboard.h"
@@ -1197,13 +1198,15 @@ private:
         mAvatarNameCacheConnection.disconnect();
 
         mFrom = av_name.getDisplayName();
+        const std::string rendered_display = LLTasiaUserConfig::renderDisplayName(agent_id, av_name);
+        const std::string rendered_username = LLTasiaUserConfig::renderUsername(agent_id, av_name);
+        const bool has_alias = LLTasiaUserConfig::hasCosmeticAlias(agent_id);
 
-        mUserNameTextBox->setValue( LLSD(mFrom) );
-        mUserNameTextBox->setToolTip( av_name.getUserName() );
+        mUserNameTextBox->setValue(LLSD(rendered_display));
+        mUserNameTextBox->setToolTip(av_name.getUserName());
 
-        if (gSavedSettings.getBOOL("NameTagShowUsernames") &&
-            av_name.useDisplayNames() &&
-            !av_name.isDisplayNameDefault())
+        if ((gSavedSettings.getBOOL("NameTagShowUsernames") && av_name.useDisplayNames() && !av_name.isDisplayNameDefault())
+            || has_alias)
         {
             LLStyle::Params style_params_name;
             LLUIColor userNameColor = LLUIColorTable::instance().getColor("EmphasisColor");
@@ -1211,7 +1214,7 @@ private:
             style_params_name.font.name("SansSerifSmall");
             style_params_name.font.style(mNameStyleParams.font.style);
             style_params_name.readonly_color(userNameColor);
-            mUserNameTextBox->appendText(" - " + av_name.getUserNameForDisplay(), false, style_params_name);
+            mUserNameTextBox->appendText(" - " + rendered_username, false, style_params_name);
         }
         setToolTip( av_name.getUserName() );
         // name might have changed, update width
