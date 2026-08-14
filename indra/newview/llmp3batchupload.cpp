@@ -284,9 +284,18 @@ void convert_and_confirm(const std::vector<std::string>& filenames)
 }
 } // namespace
 
-void mp3_batch_sound_file_picked(const std::vector<std::string>& filenames) { convert_and_confirm(filenames); }
+void mp3_batch_sound_file_picked(const std::vector<std::string>& filenames, LLFilePicker::ELoadFilter)
+{
+    LL_INFOS("MP3BatchUpload") << "MP3 picker returned " << filenames.size() << " file(s)" << LL_ENDL;
+    if (filenames.empty())
+    {
+        LLNotificationsUtil::add("MP3BatchSoundConversionFailed");
+        return;
+    }
+    convert_and_confirm(filenames);
+}
 void start_mp3_batch_sound_upload()
 {
     if (gAgentCamera.cameraMouselook()) gAgentCamera.changeCameraToDefault();
-    LLFilePickerReplyThread::startPicker(boost::bind(&mp3_batch_sound_file_picked, _1), LLFilePicker::FFLOAD_ALL, false);
+    LLFilePickerReplyThread::startPicker(boost::bind(&mp3_batch_sound_file_picked, _1, _2), LLFilePicker::FFLOAD_ALL, false);
 }
