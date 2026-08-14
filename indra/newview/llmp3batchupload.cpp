@@ -203,9 +203,18 @@ bool run_ffmpeg_segment(const std::string& input, const std::string& pattern, F3
     llstat st;
     if (LLFile::stat(executable, &st) != 0)
     {
-        LLNotificationsUtil::add("MP3BatchSoundFfmpegMissing");
-        return false;
+        // The launcher normally runs from the package root while the binary
+        // lives in bin/. Use that package-relative fallback as well.
+        executable = gDirUtilp->getWorkingDir();
+        gDirUtilp->append(executable, "bin/tasia-ffmpeg");
+        if (LLFile::stat(executable, &st) != 0)
+        {
+            LL_WARNS("MP3BatchUpload") << "Bundled converter not found: " << executable << LL_ENDL;
+            LLNotificationsUtil::add("MP3BatchSoundFfmpegMissing");
+            return false;
+        }
     }
+    LL_INFOS("MP3BatchUpload") << "Converting '" << input << "' with " << executable << LL_ENDL;
     const pid_t pid = fork();
     if (pid == 0)
     {
@@ -214,9 +223,20 @@ bool run_ffmpeg_segment(const std::string& input, const std::string& pattern, F3
               static_cast<char*>(NULL));
         _exit(127);
     }
-    if (pid < 0) return false;
+    if (pid < 0)
+    {
+        LL_WARNS("MP3BatchUpload") << "Could not start bundled converter" << LL_ENDL;
+        LLNotificationsUtil::add("MP3BatchSoundConversionFailed");
+        return false;
+    }
     int status = 0;
-    return waitpid(pid, &status, 0) == pid && WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    const bool success = waitpid(pid, &status, 0) == pid && WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    if (!success)
+    {
+        LL_WARNS("MP3BatchUpload") << "Bundled converter failed, wait status=" << status << LL_ENDL;
+        LLNotificationsUtil::add("MP3BatchSoundConversionFailed");
+    }
+    return success;
 #else
     LLNotificationsUtil::add("MP3BatchSoundFfmpegMissing");
     return false;
