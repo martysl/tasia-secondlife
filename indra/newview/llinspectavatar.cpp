@@ -27,6 +27,7 @@
 
 #include "llinspectavatar.h"
 #include "lltasia_user_config.h"
+#include "llviewercontrol.h"
 
 // viewer files
 #include "llagent.h"
@@ -456,7 +457,8 @@ void LLInspectAvatar::processAvatarData(LLAvatarData* data)
     args["[RW_PROFILE"] = data->fl_about_text;
     args["[ACCTTYPE]"] = LLTasiaUserConfig::renderAccountType(
         data->avatar_id, LLAvatarPropertiesProcessor::accountType(data));
-    std::string payment_info = LLAvatarPropertiesProcessor::paymentInfo(data);
+    std::string payment_info = gSavedSettings.getBOOL("TasiaHideProfilePaymentInfo")
+        ? "" : LLAvatarPropertiesProcessor::paymentInfo(data);
     args["[PAYMENTINFO]"] = payment_info;
     args["[COMMA]"] = (payment_info.empty() ? "" : ",");
 

@@ -112,6 +112,15 @@
          width="270"
          control_name="FSResetSkeletonOnStandUp"/>
         <check_box
+         top_pad="8"
+         follows="left|top"
+         height="16"
+         label="Hide payment status in avatar profiles"
+         name="TasiaHideProfilePaymentInfo"
+         width="300"
+         control_name="TasiaHideProfilePaymentInfo"
+         tool_tip="Hides payment information such as Payment Info Used from profiles and avatar inspectors."/>
+        <check_box
          top_pad="10"
          follows="left|top"
          height="16"
