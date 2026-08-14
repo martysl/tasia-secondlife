@@ -26,6 +26,7 @@
 #include "llvorbisencode.h"
 
 #include <algorithm>
+#include <cerrno>
 #include <fstream>
 #include <memory>
 #include <sstream>
@@ -230,10 +231,17 @@ bool run_ffmpeg_segment(const std::string& input, const std::string& pattern, F3
         return false;
     }
     int status = 0;
-    const bool success = waitpid(pid, &status, 0) == pid && WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    pid_t waited = 0;
+    do
+    {
+        waited = waitpid(pid, &status, 0);
+    }
+    while (waited < 0 && errno == EINTR);
+    const bool success = waited == pid && WIFEXITED(status) && WEXITSTATUS(status) == 0;
     if (!success)
     {
-        LL_WARNS("MP3BatchUpload") << "Bundled converter failed, wait status=" << status << LL_ENDL;
+        LL_WARNS("MP3BatchUpload") << "Bundled converter failed, wait result=" << waited
+                                    << " status=" << status << " errno=" << errno << LL_ENDL;
         LLNotificationsUtil::add("MP3BatchSoundConversionFailed");
     }
     return success;
