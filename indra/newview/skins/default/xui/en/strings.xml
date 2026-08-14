@@ -11,7 +11,7 @@
 	<string name="CAPITALIZED_APP_NAME">TASIA</string>
 	<string name="SECOND_LIFE_GRID">Second Life Grid</string>
 	<string name="SUPPORT_SITE">Tasia Viewer Support</string>
-	<string name="DOWNLOAD_URL">https://i.let-us.cyou/</string>
+	<string name="DOWNLOAD_URL">https://tasiaviewer.work/</string>
 	<string name="CURRENT_GRID"/> <!-- Will be set in fsgridhandler.cpp / llviewernetwork.cpp -->
 	<string name="VIEWER_GENERATION">Viewer [VERSION]</string>
 	<string name="SHORT_VIEWER_GENERATION">V[VERSION]</string>
@@ -404,7 +404,7 @@ are allowed.
 
 	<string name="ReleaseNotes">Release Notes</string>
 	<!-- Always mark translate="false" for strings that are nothing but URLs, as they don't need translation. -->
-	<string name="RELEASE_NOTES_BASE_URL" translate="false">https://i.let-us.cyou/changelog:firestorm_change_log_</string>
+	<string name="RELEASE_NOTES_BASE_URL" translate="false">https://tasiaviewer.work/</string>
 
 	<!-- Indicates something is being loaded. Maybe should be merged with RetrievingData -->
 	<string name="LoadingData">Loading...</string>

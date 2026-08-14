@@ -3924,6 +3924,7 @@ LLSD LLAppViewer::getViewerInfo() const
     info["VIEWER_VERSION"] = llsd::array(versionInfo.getMajor(), versionInfo.getMinor(),
                                          versionInfo.getPatch(), stringize(versionInfo.getBuild()));
     info["VIEWER_VERSION_STR"] = versionInfo.getVersion();
+    info["GIT_HASH_SHORT"] = versionInfo.getGitHash().substr(0, 12);
     info["VIEWER_VERSION_LL"] = versionInfo.getLLViewerVersion(); // <FS:PP>
     info["BUILD_DATE"] = __DATE__;
     info["BUILD_TIME"] = __TIME__;
