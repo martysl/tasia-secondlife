@@ -46,6 +46,7 @@
 #include "llscrolllistctrl.h"
 #include "llslurl.h"
 #include "llstartup.h"
+#include "lltasia_user_config.h"
 #include "lltabcontainer.h"
 #include "lltooldraganddrop.h"
 #include "llviewermenu.h"
@@ -671,19 +672,19 @@ void FSFloaterContacts::addFriend(const LLUUID& agent_id)
     element["id"] = agent_id;
     LLSD& username_column               = element["columns"][LIST_FRIEND_USER_NAME];
     username_column["column"]           = "user_name";
-    username_column["value"]            = av_name.getUserNameForDisplay();
+    username_column["value"]            = LLTasiaUserConfig::renderUsername(agent_id, av_name);
     username_column["font"]["name"]     = mFriendListFontName;
     username_column["font"]["style"]    = "NORMAL";
 
     LLSD& display_name_column           = element["columns"][LIST_FRIEND_DISPLAY_NAME];
     display_name_column["column"]       = "display_name";
-    display_name_column["value"]        = av_name.getDisplayName();
+    display_name_column["value"]        = LLTasiaUserConfig::renderDisplayName(agent_id, av_name);
     display_name_column["font"]["name"] = mFriendListFontName;
     display_name_column["font"]["style"]= "NORMAL";
 
     LLSD& friend_column                 = element["columns"][LIST_FRIEND_NAME];
     friend_column["column"]             = "full_name";
-    friend_column["value"]              = getFullName(av_name);
+    friend_column["value"]              = getFullName(agent_id, av_name);
     friend_column["font"]["name"]       = mFriendListFontName;
     friend_column["font"]["style"]      = "NORMAL";
 
@@ -772,9 +773,9 @@ void FSFloaterContacts::updateFriendItem(const LLUUID& agent_id, const LLRelatio
 
     itemp->getColumn(LIST_ONLINE_STATUS)->setValue(statusIcon);
 
-    itemp->getColumn(LIST_FRIEND_USER_NAME)->setValue(av_name.getUserNameForDisplay());
-    itemp->getColumn(LIST_FRIEND_DISPLAY_NAME)->setValue(av_name.getDisplayName());
-    itemp->getColumn(LIST_FRIEND_NAME)->setValue(getFullName(av_name));
+    itemp->getColumn(LIST_FRIEND_USER_NAME)->setValue(LLTasiaUserConfig::renderUsername(agent_id, av_name));
+    itemp->getColumn(LIST_FRIEND_DISPLAY_NAME)->setValue(LLTasiaUserConfig::renderDisplayName(agent_id, av_name));
+    itemp->getColumn(LIST_FRIEND_NAME)->setValue(getFullName(agent_id, av_name));
     updateFriendItemColor(itemp, agent_id);
 
     // render name of online friends in bold text
@@ -1290,9 +1291,9 @@ void FSFloaterContacts::onDisplayNameChanged()
         LLAvatarName av_name;
         if (LLAvatarNameCache::get(item->getUUID(), &av_name))
         {
-            item->getColumn(LIST_FRIEND_USER_NAME)->setValue(av_name.getUserNameForDisplay());
-            item->getColumn(LIST_FRIEND_DISPLAY_NAME)->setValue(av_name.getDisplayName());
-            item->getColumn(LIST_FRIEND_NAME)->setValue(getFullName(av_name));
+            item->getColumn(LIST_FRIEND_USER_NAME)->setValue(LLTasiaUserConfig::renderUsername(item->getUUID(), av_name));
+            item->getColumn(LIST_FRIEND_DISPLAY_NAME)->setValue(LLTasiaUserConfig::renderDisplayName(item->getUUID(), av_name));
+            item->getColumn(LIST_FRIEND_NAME)->setValue(getFullName(item->getUUID(), av_name));
             updateFriendItemColor(item, item->getUUID());
         }
         else
@@ -1304,23 +1305,20 @@ void FSFloaterContacts::onDisplayNameChanged()
     mFriendsList->setNeedsSort();
 }
 
-std::string FSFloaterContacts::getFullName(const LLAvatarName& av_name) const
+std::string FSFloaterContacts::getFullName(const LLUUID& agent_id, const LLAvatarName& av_name) const
 {
-    if (av_name.isDisplayNameDefault() || !gSavedSettings.getBOOL("UseDisplayNames"))
+    const std::string display_name = LLTasiaUserConfig::renderDisplayName(agent_id, av_name);
+    const std::string username = LLTasiaUserConfig::renderUsername(agent_id, av_name);
+    if ((av_name.isDisplayNameDefault() && !LLTasiaUserConfig::hasCosmeticAlias(agent_id)) || !gSavedSettings.getBOOL("UseDisplayNames"))
     {
-        return av_name.getUserNameForDisplay();
+        return username;
     }
 
     if (gSavedSettings.getS32("FSFriendListFullNameFormat"))
     {
-        // Display name (Username)
-        return llformat("%s (%s)", av_name.getDisplayName().c_str(), av_name.getUserNameForDisplay().c_str());
+        return llformat("%s (%s)", display_name.c_str(), username.c_str());
     }
-    else
-    {
-        // Username (Display name)
-        return llformat("%s (%s)", av_name.getUserNameForDisplay().c_str(), av_name.getDisplayName().c_str());
-    }
+    return llformat("%s (%s)", username.c_str(), display_name.c_str());
 }
 
 void FSFloaterContacts::setDirtyNames(const LLUUID& request_id)

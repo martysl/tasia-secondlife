@@ -30,6 +30,7 @@
 
 #include "llfloaterreg.h"
 #include "llviewerfloaterreg.h"
+#include "llviewermenufile.h"
 
 #include "llcommandhandler.h"
 #include "llcompilequeue.h"
@@ -398,6 +399,7 @@ void LLViewerFloaterReg::registerFloaters()
     {
         return;
     }
+    register_file_menu_floaters();
     // *NOTE: Please keep these alphabetized for easier merges
 
     LLFloaterAboutUtil::registerFloater();

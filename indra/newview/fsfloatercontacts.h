@@ -200,7 +200,7 @@ private:
     boost::signals2::connection mRlvBehaviorCallbackConnection{};
     boost::signals2::connection mContactSetChangedConnection{};
 
-    std::string getFullName(const LLAvatarName& av_name) const;
+    std::string getFullName(const LLUUID& agent_id, const LLAvatarName& av_name) const;
 
     void setDirtyNames(const LLUUID& request_id);
 
