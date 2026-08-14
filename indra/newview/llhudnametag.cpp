@@ -265,9 +265,10 @@ void LLHUDNameTag::renderText()
 
     // *TODO: make this a per-text setting
     static LLCachedControl<F32> bubble_opacity(gSavedSettings, "ChatBubbleOpacity");
-    static LLUIColor nametag_bg_color = LLUIColorTable::instance().getColor("NameTagBackground");
     F32 color_alpha = bubble_opacity * alpha_factor;
-    LLColor4 bg_color = nametag_bg_color;
+    // Keep the complete name tag in the avatar's tag color. Previously only
+    // the label header used mColor while the rest stayed NameTagBackground.
+    LLColor4 bg_color = text_color;
     bg_color.setAlpha(color_alpha);
 
     // scale screen size of borders down
