@@ -6646,7 +6646,7 @@ void LLPanelPreferenceTasia::onAddAnimOverride()
         return;
     }
 
-    S32 prio = mPrioritySpin ? llround(mPrioritySpin->getValueF32()) : 4;
+    S32 prio = mPrioritySpin ? static_cast<S32>(llround(mPrioritySpin->getValueF32())) : 4;
     prio = llclamp(prio, 1, 6);
 
     std::string uuid_key = id.asString();
