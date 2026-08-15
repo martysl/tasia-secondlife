@@ -271,16 +271,22 @@ public:
 
     void start()
     {
-#if LL_LINUX
+#if LL_LINUX || LL_WINDOWS
         std::string executable = gDirUtilp->getExecutableDir();
-        gDirUtilp->append(executable, "tasia-ffmpeg");
+#if LL_WINDOWS
+        const std::string converter_name = "tasia-ffmpeg.exe";
+#else
+        const std::string converter_name = "tasia-ffmpeg";
+#endif
+        gDirUtilp->append(executable, converter_name);
         llstat st;
         if (LLFile::stat(executable, &st) != 0)
         {
             // The launcher normally runs from the package root while the binary
             // lives in bin/. Use that package-relative fallback as well.
             executable = gDirUtilp->getWorkingDir();
-            gDirUtilp->append(executable, "bin/tasia-ffmpeg");
+            gDirUtilp->append(executable, "bin");
+            gDirUtilp->append(executable, converter_name);
             if (LLFile::stat(executable, &st) != 0)
             {
                 failed("Bundled converter not found: " + executable, "MP3BatchSoundFfmpegMissing");

@@ -1324,6 +1324,28 @@ bool run_clipboard_image_command(std::string& filename)
         }
         remove_if_exists(text_filename);
     }
+#elif LL_WINDOWS
+    // An STA PowerShell process exposes the Windows clipboard image API. The
+    // destination is viewer-generated, then the regular upload preview handles it.
+    filename = gDirUtilp->getTempFilename() + ".png";
+    remove_if_exists(filename);
+    std::string quoted_path(filename);
+    LLStringUtil::replaceString(quoted_path, "'", "''");
+    const std::string command =
+        "powershell.exe -NoProfile -NonInteractive -STA -ExecutionPolicy Bypass -Command "
+        "\"$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.Windows.Forms; "
+        "$img=[Windows.Forms.Clipboard]::GetImage(); if ($null -eq $img) { exit 1 }; "
+        "$img.Save('" + quoted_path + "',[Drawing.Imaging.ImageFormat]::Png)\"";
+    const int rc = std::system(command.c_str());
+    const bool success = file_has_content(filename);
+    LL_INFOS("UploadClipboard") << "Windows clipboard image rc=" << rc
+                                 << " success=" << success << LL_ENDL;
+    if (!success)
+    {
+        remove_if_exists(filename);
+        filename.clear();
+    }
+    return success;
 #endif
     return false;
 }
@@ -1367,7 +1389,7 @@ private:
 
     void onPaste()
     {
-#if LL_LINUX
+#if LL_LINUX || LL_WINDOWS
         if (gAgentCamera.cameraMouselook())
         {
             gAgentCamera.changeCameraToDefault();
@@ -1376,7 +1398,7 @@ private:
         std::string filename;
         if (!run_clipboard_image_command(filename))
         {
-            setStatus("No supported image found. Use Copy Image, or copy a PNG/JPEG/BMP/TGA file. Requires wl-paste or xclip in PATH.");
+            setStatus("No supported image found. Use Copy Image, or copy a PNG/JPEG/BMP/TGA file.");
             return;
         }
 

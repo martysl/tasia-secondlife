@@ -177,6 +177,25 @@ jobs:
             --openal \
             --no-package
 
+      - name: Bundle verified FFmpeg converter
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $url = 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip'
+          $expected = 'fec81ae03971d9dd4be3ebe02e263bd2ec1d789483f931bdba5f5715e65da2e9'
+          $zip = Join-Path $env:RUNNER_TEMP 'tasia-ffmpeg-9.0.1-essentials.zip'
+          $unpack = Join-Path $env:RUNNER_TEMP 'tasia-ffmpeg-9.0.1-essentials'
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          $actual = (Get-FileHash -Algorithm SHA256 -Path $zip).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw "FFmpeg SHA-256 mismatch: $actual" }
+          Expand-Archive -Path $zip -DestinationPath $unpack -Force
+          $root = Get-ChildItem -Path $unpack -Directory | Select-Object -First 1
+          if (-not $root) { throw 'FFmpeg archive root not found' }
+          $dist = Join-Path $env:GITHUB_WORKSPACE 'build-vc170-64/newview/unpacked'
+          Copy-Item (Join-Path $root.FullName 'bin/ffmpeg.exe') (Join-Path $dist 'bin/tasia-ffmpeg.exe') -Force
+          Copy-Item (Join-Path $root.FullName 'LICENSE') (Join-Path $dist 'bin/tasia-ffmpeg-license.txt') -Force
+          & (Join-Path $dist 'bin/tasia-ffmpeg.exe') -version | Select-Object -First 1
+
       - name: Create Windows ZIP artifact
         shell: bash
         run: |
