@@ -203,14 +203,30 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import shutil
+          import os
           from pathlib import Path
 
-          installers = sorted(Path('indra/newview').glob('*_Setup.exe'))
-          if len(installers) != 1:
-              raise SystemExit(f'Expected one Windows installer, found: {installers}')
-          installer = installers[0]
-          archive = shutil.make_archive('${{ matrix.zip_name }}', 'zip', installer.parent, installer.name)
-          print(f'Created {archive} containing {installer.name}')
+          # Portability is priority: ZIP the unpacked directory directly.
+          # The directory was populated by copy_local_dist_viewer_manifest.
+          dist = Path('build-vc170-64/newview/unpacked')
+          if not dist.is_dir():
+              raise SystemExit(f'Missing unpacked Windows dist: {dist}')
+          
+          # We want the ZIP to contain a folder named after the viewer, not just bare files.
+          zip_name = '${{ matrix.zip_name }}'
+          tmp_dir = Path('portable_staging')
+          tmp_dir.mkdir(parents=True, exist_ok=True)
+          
+          # The root folder inside the ZIP should be something descriptive.
+          # Firestorm normally uses CHANNEL-VERSION-GITHASH naming.
+          # Here we just use zip_name as the folder name.
+          dest_folder = tmp_dir / zip_name
+          if dest_folder.exists():
+              shutil.rmtree(dest_folder)
+          shutil.copytree(dist, dest_folder)
+          
+          archive = shutil.make_archive(zip_name, 'zip', tmp_dir, zip_name)
+          print(f'Created portable {archive} from {dist}')
           PY
 
       - name: Upload artifact
