@@ -322,8 +322,12 @@ public:
 private:
     bool conversionEnded(const LLSD& event)
     {
-        const bool success = event["state"].asInteger() == LLProcess::EXITED && event["data"].asInteger() == 0;
-        if (success)
+        // Linux viewer builds define LL_IGNORE_SIGCHLD, so LLProcess receives
+        // EXITED with data=-1 even when FFmpeg completed successfully. The
+        // generated WAVs are validated below; only a non-EXITED process state
+        // is a converter failure here.
+        const bool exited = event["state"].asInteger() == LLProcess::EXITED;
+        if (exited)
         {
             enumerate_and_confirm_parts(mPrefix, mMaximum);
         }
