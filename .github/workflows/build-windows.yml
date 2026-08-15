@@ -94,6 +94,10 @@ jobs:
             echo "LL_BUILD was empty; using LL_BUILD_RELEASE"
             LL_BUILD="$LL_BUILD_RELEASE"
           fi
+          # This is a distribution build, not a debugging build. /Zi makes the
+          # Windows PCH compile exceed the hosted runner's time limit.
+          LL_BUILD="${LL_BUILD//\/Zi/}"
+          LL_BUILD_RELEASE="${LL_BUILD_RELEASE//\/Zi/}"
           echo "LL_BUILD=$LL_BUILD" >> "$GITHUB_ENV"
           echo "LL_BUILD_RELEASE=$LL_BUILD_RELEASE" >> "$GITHUB_ENV"
 
