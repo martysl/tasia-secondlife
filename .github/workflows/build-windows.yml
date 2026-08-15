@@ -205,7 +205,7 @@ jobs:
           import shutil
           from pathlib import Path
 
-          installers = sorted(Path('build-vc170-64/newview').glob('*_Setup.exe'))
+          installers = sorted(Path('indra/newview').glob('*_Setup.exe'))
           if len(installers) != 1:
               raise SystemExit(f'Expected one Windows installer, found: {installers}')
           installer = installers[0]
