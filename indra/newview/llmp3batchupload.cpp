@@ -16,6 +16,7 @@
 #include "llviewernetwork.h"
 #include "llinventorymodel.h"
 #include "llnotecard.h"
+#include "llpreviewnotecard.h"
 #include "llnotificationsutil.h"
 #include "llevents.h"
 #include "llprocess.h"
@@ -155,7 +156,12 @@ private:
                     return;
                 }
                 LLResourceUploadInfo::ptr_t info = std::make_shared<LLBufferedAssetUploadInfo>(item_id, LLAssetType::AT_NOTECARD,
-                    contents, nullptr, nullptr);
+                    contents,
+                    [](LLUUID saved_item_id, LLUUID new_asset_id, LLUUID new_item_id, LLSD)
+                    {
+                        LLPreviewNotecard::finishInventoryUpload(saved_item_id, new_asset_id, new_item_id);
+                    },
+                    nullptr);
                 LLViewerAssetUpload::EnqueueInventoryUpload(url, info);
             });
     }

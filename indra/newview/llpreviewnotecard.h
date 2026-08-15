@@ -94,6 +94,9 @@ public:
     // <FS:Ansariel> FIRE-9039: Close notecard after choosing "Save" in close confirmation
     void checkCloseAfterSave();
 
+    // Refresh an agent notecard after LLBufferedAssetUploadInfo completes.
+    static void finishInventoryUpload(LLUUID itemId, LLUUID newAssetId, LLUUID newItemId);
+
 protected:
 
     void updateTitleButtons() override;
@@ -113,7 +116,6 @@ protected:
     bool handleSaveChangesDialog(const LLSD& notification, const LLSD& response);
     bool handleConfirmDeleteDialog(const LLSD& notification, const LLSD& response);
 
-    static void finishInventoryUpload(LLUUID itemId, LLUUID newAssetId, LLUUID newItemId);
     static void finishTaskUpload(LLUUID itemId, LLUUID newAssetId, LLUUID taskId);
     // <FS:Ansariel> FIRE-13969: Search button
     void onSearchButtonClicked();
