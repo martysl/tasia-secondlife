@@ -45,9 +45,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - config: ReleaseFS_open
-            label: OpenSim
-            zip_name: Tasia-Viewer-Windows-OpenSim
           - config: ReleaseFS_SL
             label: SecondLife
             zip_name: Tasia-Viewer-Windows-SL
