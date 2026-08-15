@@ -2304,6 +2304,9 @@ class LinuxManifest(ViewerManifest):
             self.path("libvivox*")
             self.path("libortp*")
             self.path("libsndfile*")
+            # SLVoice requires these legacy ABI names at runtime.
+            self.path("libidn.so.11*")
+            self.path("libuuid.so.1*")
             self.path("*.crt")
 
     def package_finish(self):
