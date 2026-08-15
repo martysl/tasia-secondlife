@@ -165,19 +165,7 @@ jobs:
             --no-package \
             "-DLOCAL_DIST_DIR:PATH=$LOCAL_DIST_DIR"
 
-      - name: Build Windows
-        shell: bash
-        run: |
-          set -euo pipefail
-          autobuild build \
-            -c ${{ matrix.config }} \
-            -A ${{ env.AUTOBUILD_ADDRSIZE }} \
-            --no-configure \
-            -- \
-            --openal \
-            --no-package
-
-      - name: Bundle verified FFmpeg converter
+      - name: Stage verified FFmpeg converter
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -191,10 +179,23 @@ jobs:
           Expand-Archive -Path $zip -DestinationPath $unpack -Force
           $root = Get-ChildItem -Path $unpack -Directory | Select-Object -First 1
           if (-not $root) { throw 'FFmpeg archive root not found' }
-          $dist = Join-Path $env:GITHUB_WORKSPACE 'build-vc170-64/newview/unpacked'
-          Copy-Item (Join-Path $root.FullName 'bin/ffmpeg.exe') (Join-Path $dist 'bin/tasia-ffmpeg.exe') -Force
-          Copy-Item (Join-Path $root.FullName 'LICENSE') (Join-Path $dist 'bin/tasia-ffmpeg-license.txt') -Force
-          & (Join-Path $dist 'bin/tasia-ffmpeg.exe') -version | Select-Object -First 1
+          $stage = Join-Path $env:GITHUB_WORKSPACE 'build-vc170-64/packages/ffmpeg'
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          Copy-Item (Join-Path $root.FullName 'bin/ffmpeg.exe') (Join-Path $stage 'tasia-ffmpeg.exe') -Force
+          Copy-Item (Join-Path $root.FullName 'LICENSE') (Join-Path $stage 'tasia-ffmpeg-license.txt') -Force
+          & (Join-Path $stage 'tasia-ffmpeg.exe') -version | Select-Object -First 1
+
+      - name: Build Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+          autobuild build \
+            -c ${{ matrix.config }} \
+            -A ${{ env.AUTOBUILD_ADDRSIZE }} \
+            --no-configure \
+            -- \
+            --openal \
+            --no-package
 
       - name: Create Windows ZIP artifact
         shell: bash
@@ -204,11 +205,12 @@ jobs:
           import shutil
           from pathlib import Path
 
-          dist = Path('build-vc170-64/newview/unpacked')
-          if not dist.is_dir():
-              raise SystemExit(f'Missing unpacked Windows dist: {dist}')
-          archive = shutil.make_archive('${{ matrix.zip_name }}', 'zip', dist)
-          print(f'Created {archive}')
+          installers = sorted(Path('build-vc170-64/newview').glob('*_Setup.exe'))
+          if len(installers) != 1:
+              raise SystemExit(f'Expected one Windows installer, found: {installers}')
+          installer = installers[0]
+          archive = shutil.make_archive('${{ matrix.zip_name }}', 'zip', installer.parent, installer.name)
+          print(f'Created {archive} containing {installer.name}')
           PY
 
       - name: Upload artifact

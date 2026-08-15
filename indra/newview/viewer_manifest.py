@@ -644,6 +644,10 @@ class Windows_x86_64_Manifest(ViewerManifest):
         debpkgdir = os.path.join(pkgdir, "lib", "debug")
 
         if self.is_packaging_viewer():
+            # Stage-owned, SHA-verified converter installed by build-windows.yml.
+            self.path(src=os.path.join(pkgdir, 'ffmpeg', 'tasia-ffmpeg.exe'), dst='tasia-ffmpeg.exe')
+            self.path(src=os.path.join(pkgdir, 'ffmpeg', 'tasia-ffmpeg-license.txt'), dst='tasia-ffmpeg-license.txt')
+
             # Find firestorm-bin.exe in the 'configuration' dir, then rename it to the result of final_exe.
             self.path(src='%s/firestorm-bin.exe' % self.args['configuration'], dst=self.final_exe())
 
