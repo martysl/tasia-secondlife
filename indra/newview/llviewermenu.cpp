@@ -38,6 +38,7 @@
 #include "llcombobox.h"
 #include "llcoros.h"
 #include "llfloaterreg.h"
+#include "llfloaterwebcontent.h"
 #include "llfloatersidepanelcontainer.h"
 #include "llinventorypanel.h"
 #include "llnotifications.h"
@@ -11424,6 +11425,41 @@ void handle_load_from_xml(void*)
     }
 }
 
+// TASIA: Open the Tasia Chat webview with the current agent's identity.
+void handle_tasia_chat(const LLSD& /*param*/)
+{
+    std::string grid = LLGridManager::getInstance()->getGridId();
+    std::string username = gAgentUsername;
+
+    std::string display_name = username;
+    LLAvatarName av_name;
+    if (LLAvatarNameCache::get(gAgentID, &av_name))
+    {
+        display_name = av_name.getDisplayName();
+    }
+
+    // Build: https://chat.tasiaviewer.work/?uuid=UUID&username=USERNAME&display=DISPLAYNAME&hud=1&grid=GRID
+    // NOTE: LLURI::mapToQueryString() prepends the leading '?', so do NOT add another one.
+    LLSD qparams;
+    qparams["uuid"] = gAgentID.asString();
+    qparams["username"] = username;
+    qparams["display"] = display_name;
+    qparams["hud"] = "1";
+    qparams["grid"] = grid;
+
+    std::string url = "https://chat.tasiaviewer.work/" + LLURI::mapToQueryString(qparams);
+
+    // TASIA: Always open Tasia Chat in the internal (in-viewer) web browser.
+    // TASIA: Hide the address/chrome bar so the internal app shows no URL.
+    LLFloaterWebContent::Params params;
+    params.url = url;
+    params.show_chrome = false;
+    params.allow_address_entry = false;
+    params.trusted_content = true;
+    params.clean_browser = true;
+    LLFloaterReg::showInstance("web_content", params);
+}
+
 void handle_web_browser_test(const LLSD& param)
 {
     std::string url = param.asString();
@@ -13046,6 +13082,7 @@ void initialize_menus()
     view_listener_t::addMenu(new LLAdvancedDumpAttachments(), "Advanced.DumpAttachments");
     view_listener_t::addMenu(new LLAdvancedRebakeTextures(), "Advanced.RebakeTextures");
     view_listener_t::addMenu(new LLTasiaReloadScene(), "Tasia.ReloadScene"); // <Tasia>
+    commit.add("Tasia.Chat", boost::bind(&handle_tasia_chat, _2)); // TASIA: Open Tasia Chat webview
 // [SL:KB] - Patch: Appearance-PhantomAttach | Checked: Catznip-5.0
     commit.add("Advanced.RefreshAttachments", boost::bind(&handle_refresh_attachments));
 // [/SL:KB]

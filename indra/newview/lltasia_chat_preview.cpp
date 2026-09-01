@@ -451,9 +451,10 @@ void TasiaImagePreviewPanel::openInViewer()
 {
     LLFloaterWebContent::Params params;
     params.url = mURL;
-    params.show_chrome = true;
-    params.trusted_content = false;
-    params.allow_address_entry = true;
+    params.show_chrome = false;
+    params.trusted_content = true;
+    params.allow_address_entry = false;
+    params.clean_browser = true;
     LLFloaterReg::showInstance("web_content", params);
 }
 
@@ -528,9 +529,10 @@ void TasiaYouTubePreviewPanel::openInViewer()
 {
     LLFloaterWebContent::Params params;
     params.url = mPlayerURL;
-    params.show_chrome = true;
-    params.trusted_content = false;
-    params.allow_address_entry = true;
+    params.show_chrome = false;
+    params.trusted_content = true;
+    params.allow_address_entry = false;
+    params.clean_browser = true;
     LLFloaterReg::showInstance("web_content", params);
 }
 
@@ -616,9 +618,10 @@ void TasiaGiphyPreviewPanel::openInViewer()
 {
     LLFloaterWebContent::Params params;
     params.url = mPageURL;
-    params.show_chrome = true;
-    params.trusted_content = false;
-    params.allow_address_entry = true;
+    params.show_chrome = false;
+    params.trusted_content = true;
+    params.allow_address_entry = false;
+    params.clean_browser = true;
     LLFloaterReg::showInstance("web_content", params);
 }
 
