@@ -708,6 +708,25 @@
                tool_tip="Search GIPHY" />
             </layout_panel>
             <layout_panel
+              visibility_control="TasiaKlipyEnabled"
+              auto_resize="false"
+              user_resize="false"
+              name="klipy_button_layout_panel"
+              width="37">
+              <button
+               follows="right|bottom"
+               bottom="-1"
+               height="24"
+               width="33"
+               label="Clip"
+               image_hover_unselected="Toolbar_Middle_Over"
+               image_selected="Toolbar_Middle_Selected"
+               image_unselected="Toolbar_Middle_Off"
+               left="0"
+               name="klipy_picker_btn"
+               tool_tip="Search KLIPY clips &amp; GIFs" />
+            </layout_panel>
+            <layout_panel
               visibility_control="FSShowIMSendButton"
               auto_resize="false"
               user_resize="false"

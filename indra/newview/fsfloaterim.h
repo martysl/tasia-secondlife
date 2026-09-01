@@ -251,6 +251,8 @@ private:
     void onRecentEmojiPicked(const LLSD& value);
     void onGiphyPickerButtonClicked();
     void onGiphySelected(const std::string& url);
+    void onKlipyPickerButtonClicked();
+    void onKlipySelected(const std::string& url);
 
     FSPanelChatControlPanel* mControlPanel;
     LLUUID mSessionID;

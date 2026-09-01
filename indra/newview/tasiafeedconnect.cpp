@@ -46,7 +46,7 @@
 
 #include <boost/bind.hpp>
 
-const std::string TASIAFEED_UPLOAD_URL = "https://apps.easierit.org/igrid/feed/api/v1/snapshots/upload.php";
+const std::string TASIAFEED_UPLOAD_URL = "https://api.tasiaviewer.work/feed/api/v1/snapshots/upload.php";
 
 void TasiaFeedUploadResponse(LLSD const& aData, TasiaFeedUpload::response_callback_t aCallback)
 {

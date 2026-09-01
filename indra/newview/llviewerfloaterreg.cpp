@@ -235,6 +235,8 @@
 #include "llfloaterflickr.h"
 #include "llfloatergiphypicker.h"
 #include "llfloatertasiafeed.h"
+#include "llfloaterklipypicker.h"
+#include "lltasiaguard.h"
 #include "llfloaterscriptrecover.h"
 #include "llfloatersearchreplace.h"
 #include "llpanelgroup.h"
@@ -650,6 +652,8 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("giphy_picker", "floater_giphy_picker.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterGiphyPicker>);
     LLFloaterReg::add("primfeed", "floater_primfeed.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterPrimfeed>);
     LLFloaterReg::add("tasiafeed", "floater_tasiafeed.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterTasiaFeed>);
+    LLFloaterReg::add("tasiaguard", "floater_tasiaguard.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLTasiaGuardFloater>);
+    LLFloaterReg::add("klipy_picker", "floater_klipy_picker.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterKlipyPicker>);
     LLFloaterReg::add("fs_asset_blacklist", "floater_fs_asset_blacklist.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterAssetBlacklist>);
     LLFloaterReg::add("fs_avatar_render_settings", "floater_fs_avatar_render_settings.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterAvatarRenderSettings>);
     LLFloaterReg::add("fs_blocklist", "floater_fs_blocklist.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterBlocklist>);

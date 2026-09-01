@@ -52,6 +52,7 @@
 #include "lldraghandle.h"
 #include "llfloateremojipicker.h"
 #include "llfloatergiphypicker.h"
+#include "llfloaterklipypicker.h"
 #include "llfloaterreg.h"
 #include "llfloatersearchreplace.h"
 #include "llfocusmgr.h"
@@ -180,6 +181,8 @@ bool FSFloaterNearbyChat::postBuild()
     mEmojiPickerToggleBtn->setClickedCallback([this](LLUICtrl*, const LLSD&) { onEmojiPickerToggleBtnClicked(); });
 
     getChild<LLButton>("giphy_picker_btn")->setClickedCallback([this](LLUICtrl*, const LLSD&) { onGiphyPickerButtonClicked(); });
+
+    getChild<LLButton>("klipy_picker_btn")->setClickedCallback([this](LLUICtrl*, const LLSD&) { onKlipyPickerButtonClicked(); });
 
     mRecentEmojisUpdatedCallbackConnection = LLFloaterEmojiPicker::setRecentEmojisUpdatedCallback([this](const std::list<llwchar>& recent_emojis_list) { initEmojiRecentPanel(); });
 
@@ -1046,6 +1049,41 @@ void FSFloaterNearbyChat::onGiphyPickerButtonClicked()
 }
 
 void FSFloaterNearbyChat::onGiphySelected(const std::string& url)
+{
+    std::string trimmed_url = url;
+    LLStringUtil::trim(trimmed_url);
+    if (trimmed_url.empty())
+    {
+        return;
+    }
+
+    EChatType type = CHAT_TYPE_NORMAL;
+    if (gSavedSettings.getBOOL("FSShowChatType"))
+    {
+        const std::string type_string = mChatTypeCombo->getValue();
+        if (type_string == "whisper")
+        {
+            type = CHAT_TYPE_WHISPER;
+        }
+        else if (type_string == "shout")
+        {
+            type = CHAT_TYPE_SHOUT;
+        }
+    }
+
+    sendChatFromViewer(trimmed_url, type, gSavedSettings.getBOOL("PlayChatAnim"));
+    if (mInputEditor)
+    {
+        mInputEditor->setFocus(true);
+    }
+}
+
+void FSFloaterNearbyChat::onKlipyPickerButtonClicked()
+{
+    LLFloaterKlipyPicker::show(boost::bind(&FSFloaterNearbyChat::onKlipySelected, this, _1));
+}
+
+void FSFloaterNearbyChat::onKlipySelected(const std::string& url)
 {
     std::string trimmed_url = url;
     LLStringUtil::trim(trimmed_url);

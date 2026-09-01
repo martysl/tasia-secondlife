@@ -44,6 +44,7 @@
 #include "llautoreplace.h"
 #include "llavataractions.h"
 #include "llfloatergiphypicker.h"
+#include "llfloaterklipypicker.h"
 #include "llavatarnamecache.h"
 #include "lltasia_user_config.h"
 #include "llbutton.h"
@@ -1021,6 +1022,9 @@ bool FSFloaterIM::postBuild()
 
     LLButton* giphy_btn = getChild<LLButton>("giphy_picker_btn");
     giphy_btn->setClickedCallback([this](LLUICtrl*, const LLSD&) { onGiphyPickerButtonClicked(); });
+
+    LLButton* klipy_btn = getChild<LLButton>("klipy_picker_btn");
+    klipy_btn->setClickedCallback([this](LLUICtrl*, const LLSD&) { onKlipyPickerButtonClicked(); });
 
     mEmojiRecentPanel = getChild<LLLayoutPanel>("emoji_recent_layout_panel");
     mEmojiRecentPanel->setVisible(false);
@@ -2629,6 +2633,27 @@ void FSFloaterIM::onGiphyPickerButtonClicked()
 }
 
 void FSFloaterIM::onGiphySelected(const std::string& url)
+{
+    std::string trimmed_url = url;
+    LLStringUtil::trim(trimmed_url);
+    if (trimmed_url.empty())
+    {
+        return;
+    }
+
+    LLIMModel::sendMessage(trimmed_url, mSessionID, mOtherParticipantUUID, mDialog);
+    if (mInputEditor)
+    {
+        mInputEditor->setFocus(true);
+    }
+}
+
+void FSFloaterIM::onKlipyPickerButtonClicked()
+{
+    LLFloaterKlipyPicker::show(boost::bind(&FSFloaterIM::onKlipySelected, this, _1));
+}
+
+void FSFloaterIM::onKlipySelected(const std::string& url)
 {
     std::string trimmed_url = url;
     LLStringUtil::trim(trimmed_url);

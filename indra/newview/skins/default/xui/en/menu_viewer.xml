@@ -1034,16 +1034,26 @@
         </menu_item_call>
         
         <menu_item_call
-         label="Reload Scene"
-         name="Reload Scene">
-            <menu_item_call.on_click
-             function="Tasia.ReloadScene" />
-        </menu_item_call>
-        
-        <menu_item_separator/>
-     
-        <menu_item_call
-            label="Nearby Avatars"
+                 label="Reload Scene"
+                 name="Reload Scene">
+                   <menu_item_call.on_click
+                    function="Tasia.ReloadScene" />
+               </menu_item_call>
+       
+               <menu_item_separator/>
+       
+               <menu_item_call
+                   label="TasiaGuard - Unban IP"
+                   name="TasiaGuard">
+                   <menu_item_call.on_click
+                       function="Floater.Show"
+                       parameter="tasiaguard"/>
+               </menu_item_call>
+   
+               <menu_item_separator/>
+    
+               <menu_item_call
+                   label="Nearby Avatars"
             name="Active Speakers"
             shortcut="control|shift|A">
             <menu_item_call.on_click

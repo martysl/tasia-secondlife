@@ -133,3 +133,5 @@ checks.json
 
 # Tasia GIPHY generated key files
 indra/newview/lltasia_giphy_key.generated.*
+# Tasia KLIPY generated key files
+indra/newview/lltasia_klipy_key.generated.*

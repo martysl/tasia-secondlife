@@ -116,7 +116,7 @@ void tasiaStripTrailingUrlPunctuation(std::string& url)
 
 std::string tasiaMakeHostedYouTubePlayerURL(const std::string& video_id)
 {
-    return "https://apps.easierit.org/igrid/youtube-player/?v=" + LLURI::escape(video_id);
+    return "https://api.tasiaviewer.work/api/v1/yt?v=" + LLURI::escape(video_id);
 }
 
 bool tasiaIsGiphyId(const std::string& value)
