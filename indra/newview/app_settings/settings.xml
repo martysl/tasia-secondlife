@@ -1220,7 +1220,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>bright blue</string>
+      <string>Classic Brown</string>
     </map>
 
     <key>ShowSearchTopBar</key>
@@ -22139,7 +22139,7 @@ Change of this parameter will affect the layout of buttons in notification toast
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>bright blue</string>
+      <string>Classic Brown</string>
     </map>
     <key>FSStatusbarShowSimulatorVersion</key>
     <map>

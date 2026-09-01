@@ -110,10 +110,7 @@ class ViewerManifest(LLManifest,FSViewerManifest):
             with self.prefix(src_dst="app_settings"):
                 self.exclude("logcontrol.xml")
                 self.exclude("logcontrol-dev.xml")
-                # <Tasia> SL builds ship SL grids only; OpenSim builds ship I-Grid
-                if self.fs_is_opensim():
-                    self.path(src="grids_os.xml", dst="grids.xml")
-                    self.exclude("*/grids.xml")
+                # <Tasia> Ship the complete grid list (SL + OpenSim) in every build
                 self.exclude("*/grids_os.xml")
                 # </Tasia>
                 self.path("*.ini")
